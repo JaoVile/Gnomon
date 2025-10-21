@@ -1,48 +1,32 @@
-// src/App.tsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
-import HomePage from './pages/Intro/Intro';
-import LoginPage from './pages/Login/LoginPage';
-import CadastroPage from './pages/Cadastro/CadastroPage';
-import MapaPage from './pages/Mapa/MapaPage';
-import PerfilPage from './pages/Perfil/PerfilPage';
-import EsqueceuSenhaPage from './pages/EsqueceuSenha/EsqueceuSenhaPage';
-import RedefinirSenhaPage from './pages/RedefinirSenha/RedefinirSenha';
+import HomePage from './pages/Intro/Intro'
+import MapaPage from './pages/Mapa/MapaPage'
+import LoginPage from './pages/Login/LoginPage' // usaremos como /config (Staff/Admin)
 
-function App() {
-  return (
-    <BrowserRouter>
-      {/* O componente <Routes> gerencia qual rota será exibida */}
-      <Routes>
-        {/* 2. Define cada rota e o componente que ela deve renderizar */}
+export default function App() {
+return (
+<BrowserRouter>
+<Routes>
+{/* Público */}
+<Route path="/" element={<HomePage />} />
+<Route path="/mapa" element={<MapaPage />} />
 
-        {/* Rota principal (página inicial) */}
-        <Route path="/" element={<HomePage />} />
-        
-        {/* Rota para a página de login */}
-        <Route path="/login" element={<LoginPage />} />
-        
-        {/* Rota para a página de cadastro */}
-        <Route path="/cadastro" element={<CadastroPage />} />
-        
-        {/* Rota para a página do mapa */}
-        <Route path="/mapa" element={<MapaPage />} />
 
-        {/* Rota para a página de perfil */}
-        <Route path="/perfil" element={<PerfilPage />} />
+    {/* Configurações (login Staff/Admin) */}
+    <Route path="/config" element={<LoginPage />} />
 
-        {/* Rota para a página de esqueceu senha */}
-        <Route path="/esqueceu-senha" element={<EsqueceuSenhaPage />} />
+    {/* Rotas antigas -> redirecionar (removendo cadastro/login do público) */}
+    <Route path="/login" element={<Navigate to="/config" replace />} />
+    <Route path="/cadastro" element={<Navigate to="/mapa" replace />} />
+    <Route path="/perfil" element={<Navigate to="/mapa" replace />} />
+    <Route path="/esqueceu-senha" element={<Navigate to="/config" replace />} />
+    <Route path="/RedefinirSenha" element={<Navigate to="/config" replace />} />
+    <Route path="/reset-password" element={<Navigate to="/config" replace />} />
 
-        {/* Rota para a página de redefinir senha */}
-        <Route path="/RedefinirSenha" element={<RedefinirSenhaPage />} />
-
-        {/* Rota para a página de redefinir senha (alias) */}
-        <Route path="/reset-password" element={<RedefinirSenhaPage />} />
-
-      </Routes>
-    </BrowserRouter>
-  );
+    {/* Fallback */}
+    <Route path="*" element={<Navigate to="/" replace />} />
+  </Routes>
+</BrowserRouter>
+)
 }
-
-export default App;
