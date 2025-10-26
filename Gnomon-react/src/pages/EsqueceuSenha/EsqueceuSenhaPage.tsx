@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
-import './EsqueceuSenhaPage.css'; 
+import './EsqueceuSenhaPage.css';
+
+// Variável de ambiente para a URL da API, com um valor padrão para desenvolvimento local
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export default function EsqueceuSenhaPage() {
     const [email, setEmail] = useState('');
@@ -14,13 +17,11 @@ export default function EsqueceuSenhaPage() {
         event.preventDefault();
         
         try {
-            // 1. Faz a requisição 'fetch' para o endpoint de recuperação de senha
-            const response = await fetch('http://localhost:3001/api/users/forgot-password', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({ email }), // Envia o e-mail no corpo da requisição
+            // 1. Faz a requisição 'fetch' para o endpoint de recuperação de senha usando a API_URL
+           const response = await fetch(`${API_URL}/api/users/forgot-password`, {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ email }),
             });
 
             // 2. Converte a resposta do back-end

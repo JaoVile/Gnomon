@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer';
+// O import do nodemailer foi removido, pois agora usamos a instância injetada.
 import { randomBytes, createHash } from 'crypto';
 
 const prisma = new PrismaClient();
@@ -46,7 +46,9 @@ const resetPasswordSchema = z.object({
 export const registerUser = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { name, email, password } = registerSchema.parse(req.body);
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Custo do hash vindo do .env, com fallback para 10.
+    const rounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 10);
+    const hashedPassword = await bcrypt.hash(password, rounds);
 
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword },
@@ -130,6 +132,18 @@ export const forgotPassword = async (req: Request, res: Response): Promise<Respo
     const resetToken = randomBytes(32).toString('hex');
     const tokenHash = createHash('sha256').update(resetToken).digest('hex');
     const expires = new Date(Date.now() + 30 * 60 * 1000); // 30 min
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Resposta genérica para evitar enumeração
+    if (!user) {
+      return res.status(200).json({ message: "Se um usuário com este e-mail existir, um link de recuperação foi enviado." });
+    }
+
+    // Token plano + hash no banco
+    const resetToken = randomBytes(32).toString('hex');
+    const tokenHash = createHash('sha256').update(resetToken).digest('hex');
+    const ttlMin = Number(process.env.PASSWORD_RESET_EXPIRES_MINUTES ?? 30);
+    const expires = new Date(Date.now() + ttlMin * 60 * 1000);
 
     await prisma.user.update({
       where: { id: user.id },
@@ -179,13 +193,23 @@ export const forgotPassword = async (req: Request, res: Response): Promise<Respo
 
     const info = await transporter.sendMail({
       from: `"Seu App" <${smtpUser}>`,
+
+    // Link do front (path confirmado: /reset-password)
+    const baseUrl = (process.env.FRONTEND_URL ?? 'http://localhost:5173').replace(/\/$/, '');
+    const resetPath = '/reset-password';
+    const resetLink = `${baseUrl}${resetPath}?token=${encodeURIComponent(resetToken)}&email=${encodeURIComponent(user.email)}`;
+
+    // Envia e-mail com o mailer injetado na aplicação
+    const mailer = req.app.get('mailer');
+    await mailer.sendMail({
+      from: process.env.SMTP_FROM, // Remetente vindo do .env
       to: user.email,
       subject: 'Recuperação de Senha',
       html: `
         <h1>Recuperação de Senha</h1>
         <p>Olá, ${user.name}!</p>
-        <p>Clique no link para redefinir sua senha (expira em 30 minutos):</p>
-        <a href="${resetLink}" target="_blank" style="padding: 10px 15px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 5px;">Redefinir Senha</a>
+        <p>Clique no link para redefinir sua senha (expira em ${ttlMin} minutos):</p>
+        <p><a href="${resetLink}" target="_blank" rel="noopener noreferrer">${resetLink}</a></p>
         <p>Se você não solicitou isso, ignore este e-mail.</p>
       `,
     });
@@ -233,7 +257,18 @@ export const resetPassword = async (req: Request, res: Response): Promise<Respon
 
     if (!user) {
       return res.status(400).json({ message: 'Token inválido ou expirado.' });
+    if (user.passwordResetExpires.getTime() < Date.now()) {
+      return res.status(400).json({ message: 'Token expirado.' });
     }
+
+    const tokenHash = createHash('sha256').update(token).digest('hex');
+    if (tokenHash !== user.passwordResetToken) {
+      return res.status(400).json({ message: 'Token inválido.' });
+    }
+    
+    // Custo do hash vindo do .env, com fallback para 10.
+    const rounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 10);
+    const hashedPassword = await bcrypt.hash(password, rounds);
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await prisma.user.update({

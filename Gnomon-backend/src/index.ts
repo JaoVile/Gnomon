@@ -1,19 +1,44 @@
 /**
  * @file index.ts
- * @description Ponto de entrada (entrypoint) da aplicação back-end.
- * Este arquivo é responsável por importar a instância do servidor Express
- * e iniciá-la para ouvir por requisições na porta definida.
+ * @description Entrypoint: carrega .env, inicia o servidor e trata sinais/erros globais.
  */
 
-// Importa a instância configurada do aplicativo Express do arquivo server.ts
+import 'dotenv/config';
 import app from './server';
 
-// Define a porta em que o servidor irá operar.
-// É uma boa prática usar uma variável de ambiente aqui para produção, mas para desenvolvimento está ótimo.
-const port = process.env.PORT || 3001;
+const port = Number(process.env.PORT || 3001);
+const host = process.env.HOST || '0.0.0.0';
 
-// Inicia o servidor e o faz "ouvir" na porta especificada.
-app.listen(port, () => {
-  // Exibe uma mensagem no console quando o servidor está pronto e no ar.
-  console.log(`🚀 Servidor rodando com sucesso em: http://localhost:${port}`);
+// Opcional: reforça trust proxy via env (alternativa ao que está no server.ts)
+// if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
+
+// Sobe o servidor
+const server = app.listen(port, host, () => {
+  const base = `http://${host === '0.0.0.0' ? 'localhost' : host}:${port}`;
+  console.log(`🚀 API rodando em: ${base}`);
+  if (process.env.SWAGGER_ENABLED !== 'false') {
+    const docsPath = process.env.SWAGGER_PATH || '/api-docs';
+    console.log(`📚 Swagger: ${base}${docsPath}`);
+  }
+});
+
+// Erros não tratados
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  // Em produção, opcional fechar o servidor de forma controlada:
+  // process.exit(1);
+});
+
+// Encerramento gracioso
+['SIGINT', 'SIGTERM'].forEach((sig) => {
+  process.on(sig, () => {
+    console.log(`Recebido ${sig}. Encerrando...`);
+    server.close(() => {
+      console.log('Servidor encerrado.');
+      process.exit(0);
+    });
+  });
 });

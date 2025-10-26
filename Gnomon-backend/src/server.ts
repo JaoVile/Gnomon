@@ -1,8 +1,6 @@
 /**
  * @file server.ts
- * @description Arquivo principal de configuração do servidor Express.
- * Este arquivo é responsável por criar a instância do app, aplicar os middlewares
- * globais e registrar os módulos de rotas da aplicação.
+ * @description Configura e exporta a instância do Express (sem dar listen).
  */
 
 import express from 'express';
@@ -11,119 +9,108 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import pinoHttp from 'pino-http';
 
-// Importa os módulos de rotas da aplicação.
+// Rotas
 import userRoutes from './routes/userRoutes';
-import localRoutes from './routes/localRoutes'; // Importa as rotas de locais
+import localRoutes from './routes/localRoutes';
+
+// Configurações de e-mail
+import { mailer, verifySMTP } from './config/mail';
 
 // Swagger
 import { setupSwagger } from './docs/swagger';
-import 'dotenv/config';
 
-// Cria a instância principal do aplicativo Express.
+
 const app = express();
 
-// Se estiver atrás de proxy (Render, Vercel, Nginx...), preserve IP real para rate limit e logs
-if (process.env.NODE_ENV === 'production') {
+app.set('mailer', mailer);
+if (process.env.NODE_ENV !== 'production') {
+  verifySMTP(); // opcional, só para validar credenciais em dev
+}
+/**
+ * Trust proxy:
+ * - Ligue se estiver atrás de Nginx/Cloudflare/Render/etc.
+ * - Controle por env no index.ts (opcional) ou aqui via variável.
+ */
+if (process.env.TRUST_PROXY === '1' || process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// --- Configuração de Middlewares Globais ---
-
-/**
- * @middleware helmet
- * @description Define headers de segurança padrão.
- */
+// Segurança básica
 app.use(helmet());
 
-/**
- * @middleware cors
- * @description Habilita CORS com lista de origens permitidas.
- * Use FRONTEND_URL com múltiplas URLs separadas por vírgula (sem espaços),
- * ex: FRONTEND_URL=https://meusite.com,http://localhost:5173
- */
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+// CORS: aceita lista CSV (CORS_ORIGIN ou FRONTEND_URL), ex: "https://site.com,http://localhost:5173"
+const allowed = (
+  process.env.CORS_ORIGIN ||
+  process.env.FRONTEND_URL ||
+  'http://localhost:5173'
+)
   .split(',')
-  .map((o) => o.trim())
+  .map((s) => s.trim())
   .filter(Boolean);
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, cb) => {
+      // permite ferramentas sem Origin (curl, health checks)
+      if (!origin) return cb(null, true);
+      if (allowed.includes(origin)) return cb(null, true);
+      return cb(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
 
-/**
- * @middleware express.json
- * @description Parser de JSON nativo do Express.
- */
+// Body parser
 app.use(express.json());
 
-/**
- * @middleware rateLimit
- * @description Limita o número de requisições por IP em uma janela de tempo.
- */
+// Rate limit (parametrizável por env)
+const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 15 * 60 * 1000); // 15min
+const max = Number(process.env.RATE_LIMIT_MAX ?? 300); // 300 req/IP
 app.use(
   rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 300, // até 300 req por IP nesse período
+    windowMs,
+    max,
     standardHeaders: true,
     legacyHeaders: false,
   })
 );
 
-/**
- * @middleware pino-http
- * @description Logger HTTP performático para requests/responses.
- */
-app.use(pinoHttp());
+// Logger HTTP
+app.use(
+  pinoHttp({
+    // Nível pode ser controlado por LOG_LEVEL (info|debug...)
+    level: process.env.LOG_LEVEL || 'info',
+    // Em dev dá para deixar mais bonito com pino-pretty via transport (opcional)
+  })
+);
 
-// --- Registro de Rotas (Endpoints) ---
-
-/**
- * @route GET /
- * @description Rota raiz para uma verificação rápida de saúde da API (health check).
- * Útil para confirmar se o servidor está no ar.
- */
-app.get('/', (_req, res) => {
-  res.send('<h1>API do Gnomon está no ar!</h1>');
-});
-
-/**
- * @openapi
- * /health:
- *   get:
- *     tags:
- *       - Health
- *     summary: Health check
- *     responses:
- *       200:
- *         description: OK
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 ok:
- *                   type: boolean
- *                   example: true
- */
+// Health check simples
+app.get('/', (_req, res) => res.send('<h1>API do Gnomon está no ar!</h1>'));
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
-// Swagger (após os middlewares globais e antes de qualquer catch-all 404)
+// Swagger
 setupSwagger(app);
 
-/**
- * @description Registra o módulo de rotas de usuários sob o prefixo '/api/users'.
- * Ex: /api/users/register, /api/users/login
- */
+// Rotas de domínio
 app.use('/api/users', userRoutes);
-
-/**
- * @description Registra o módulo de rotas de locais sob o prefixo '/api/locais'.
- * Ex: /api/locais, /api/locais/1
- */
 app.use('/api/locais', localRoutes);
 
-// Exporta a instância 'app' para que o 'index.ts' possa iniciá-la.
+// 404 para rotas não encontradas
+app.use((_req, res) => res.status(404).json({ message: 'Rota não encontrada' }));
+
+// Middleware de erro (último)
+app.use(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  (err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    // Se tiver pino-http, use req.log
+    if ((req as any).log) (req as any).log.error(err);
+    else console.error(err);
+
+    return res.status(500).json({
+      message: 'Erro interno do servidor',
+      error: process.env.NODE_ENV === 'development' ? err?.message : undefined,
+    });
+  }
+);
+
 export default app;
