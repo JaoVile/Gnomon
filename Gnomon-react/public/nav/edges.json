@@ -1,0 +1,7 @@
+{
+"edges": [
+["node:entrada_A1", "node:corredor_A1"],
+["node:entrada_A2", "node:corredor_A2"],
+["node:entrada_B1", "node:corredor_B1"]
+]
+}
