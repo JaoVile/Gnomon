@@ -1,10 +1,13 @@
-// Fonte de dados: agora PostgreSQL, lendo a URL do .env
+// prisma/schema.prisma
+
+// Fonte de dados: PostgreSQL (Neon/Vercel ou local)
+// Lê as URLs do .env:
+// - DATABASE_URL: URL pooled (PgBouncer) — use a "Prisma" da Vercel/Neon
+// - DATABASE_URL_UNPOOLED: URL non-pooling — usada em migrações e tasks longas
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  // Se você vier a usar Prisma/Accelerate (Data Proxy), descomente a linha abaixo
-  // e defina DIRECT_DATABASE_URL no .env apontando para o Postgres real:
-  // directUrl = env("DIRECT_DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 // Gera o client do Prisma

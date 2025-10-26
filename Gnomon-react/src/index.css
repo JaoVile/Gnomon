@@ -1,219 +1,432 @@
 /*
- * Arquivo de Estilos Principal (Compartilhado)
- * Projeto: Gnomon
- * Versão: 0.4
- * Descrição: Contém estilos globais, variáveis de tema, e componentes
- * reutilizáveis em todo o site (header, footer, botões, etc).
+Arquivo de Estilos Principal (Compartilhado)
+Projeto: Gnomon
+Versão: 0.6 (PWA + Steampunk/Arcane — Obsidian & Emerald, Blue Accent)
 */
 
+/* Tipografias (pode mover para index.html se quiser) */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;600;700&display=swap');
+
 /* ==========================================================================
-   1. ESTILOS GLOBAIS E VARIÁVEIS DE TEMA (ROOT)
-   ========================================================================== */
+VARIÁVEIS DE TEMA + LAYOUT
+========================================================================== */
 :root {
-    /* Tema Escuro (Padrão) */
-    --cor-fundo: #1A1A1A;
-    --cor-fundo-secundaria: #2a2a2a;
-    --cor-texto: #ffffff;
-    --cor-texto-secundario: #dedede;
-    --cor-destaque: #4A90E2;
-    --cor-destaque-hover: #3d74ff;
-    --cor-overlay-fundo: rgba(0, 0, 0, 0.4);
+/* Obsidian & Emerald — Dark (com acento azul) */
+--cor-fundo: #0b0f11;
+--cor-fundo-secundaria: #14191c;
+--cor-texto: #f3efe6;
+--cor-texto-secundario: #c4bbab;
+
+/* Azul da marca (substitui âmbar/dourado) */
+--brand-blue: #1f6fe5; /* cobalto (logo) */
+--brand-blue-hover: #4ea1ff; /* hover mais claro */
+--brand-blue-deep: #174ea6; /* borda/sombra */
+--cor-destaque: var(--brand-blue);
+--cor-destaque-hover: var(--brand-blue-hover);
+
+--cor-overlay-fundo: rgba(0, 0, 0, 0.4);
+
+/* Bordas/elevação */
+--border: rgba(31, 111, 229, .28); /* azul translúcido */
+--ink-700: #1a2228;
+
+/* Layout */
+--header-h: 64px;
+--footer-h: 64px;
+--radius-sm: 8px;
+--radius-md: 12px;
+--radius-lg: 20px;
+--shadow-1: 0 6px 22px rgba(0, 0, 0, 0.28);
+--shadow-2: 0 10px 30px rgba(0, 0, 0, 0.35);
+--focus: 0 0 0 3px rgba(31, 111, 229, .35); /* glow azul */
+
+color-scheme: dark light; /* melhora UI de inputs nativos */
+
+/* Paleta base */
+--sp-ink: #0b0f11;
+--sp-charcoal: #14191c;
+--sp-indigo: #1c2330;
+--sp-brass: var(--brand-blue); /* usamos azul como “accent principal” */
+--sp-copper: #b97a3c;
+--sp-glow: var(--brand-blue-hover);
+--sp-emerald: #77a88d; /* teal/emerald p/ acessível */
+--sp-text: #f3efe6;
+--sp-text-dim: #c4bbab;
+
+/* Cores de rotas (Leaflet/3D) */
+--route-primary: var(--brand-blue);
+--route-accessible: var(--sp-emerald);
+--route-restricted: #ff6b6b;
+--route-outline: rgba(0,0,0,.55);
 }
 
 body.light-mode {
-    /* Tema Claro */
-    --cor-fundo: #ffffff;
-    --cor-fundo-secundaria: #f0f0f0;
-    --cor-texto: #000000;
-    --cor-texto-secundario: #303030;
-    --cor-destaque: #4A90E2;
-    --cor-destaque-hover: #3d74ff;
-    --cor-overlay-fundo: rgba(0, 0, 0, 0.4);
+/* Obsidian & Emerald — Light (pergaminho frio, acento azul) */
+--cor-fundo: #fbfaf6;
+--cor-fundo-secundaria: #f2eee6;
+--cor-texto: #121212;
+--cor-texto-secundario: #534d44;
+
+--brand-blue: #1f6fe5;
+--brand-blue-hover: #4ea1ff;
+--brand-blue-deep: #174ea6;
+--cor-destaque: var(--brand-blue);
+--cor-destaque-hover: var(--brand-blue-hover);
+
+--cor-overlay-fundo: rgba(0,0,0,.35);
+
+--border: rgba(31,111,229,.30);
+--ink-700: #e7dfcc;
+
+--shadow-1: 0 6px 22px rgba(0,0,0,0.10);
+--shadow-2: 0 10px 30px rgba(0,0,0,0.15);
+--focus: 0 0 0 3px rgba(31,111,229,.28);
+
+/* Ajuste para textos */
+--sp-text: #121212;
+--sp-text-dim: #534d44;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    scroll-behavior: smooth;
-}
+/* ==========================================================================
+BASE / RESET LEVE
+========================================================================== */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+html { height: -webkit-fill-available; } /* iOS 100vh real */
 
 body {
-    background-color: var(--cor-fundo);
-    color: var(--cor-texto);
-    line-height: 1.6;
-    transition: background-color 0.3s ease, color 0.3s ease;
+min-height: 100vh;
+min-height: -webkit-fill-available;
+margin: 0;
+
+/* BG com vinheta (dark) – obsidian frio */
+background:
+radial-gradient(1200px 800px at 12% -8%, #151b22 0%, transparent 60%),
+radial-gradient(1200px 800px at 110% 12%, #0e141a 0%, transparent 55%),
+var(--sp-ink);
+color: var(--sp-text);
+line-height: 1.6;
+transition: background-color .3s ease, color .3s ease;
+-webkit-tap-highlight-color: transparent;
+text-rendering: optimizeLegibility;
+font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
+
+/* Fundo claro com brilho sutil */
+body.light-mode {
+background:
+radial-gradient(1000px 500px at 50% -10%, rgba(31,111,229,.10), transparent 60%),
+radial-gradient(1000px 600px at 50% 110%, rgba(94,148,123,.10), transparent 55%),
+var(--cor-fundo);
+color: var(--cor-texto);
+}
+
+::selection { background: rgba(31,111,229,.28); color: #111; }
+body.light-mode ::selection { background: rgba(31,111,229,.22); color: #111; }
+
+a { color: inherit; text-decoration: none; }
+
+img, picture, video, canvas { display: block; max-width: 100%; }
 
 .container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 0 20px;
+width: 100%;
+max-width: clamp(960px, 90vw, 1100px);
+margin: 0 auto;
+padding: 0 20px;
 }
 
-section {
-     padding: 80px 0;
+section { padding: 80px 0; }
+
+h1, h2, h3, .logo-container span {
+font-family: 'Cinzel', serif;
+letter-spacing: 0.4px;
+text-shadow: 0 1px 0 rgba(0,0,0,.35);
 }
 
 h2 {
-    text-align: center;
-    font-size: 2.5em;
-    margin-bottom: 60px;
+text-align: center;
+font-size: clamp(1.6rem, 2.4vw + 1rem, 2.5rem);
+margin-bottom: 60px;
+}
+
+/* Acessibilidade: foco visível */
+:focus-visible {
+outline: none;
+box-shadow: var(--focus);
+border-radius: 10px;
+}
+
+/* Respeita usuários com redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+*, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
 /* ==========================================================================
-   2. COMPONENTES REUTILIZÁVEIS (Botões, Logos, etc.)
-   ========================================================================== */
+COMPONENTES (Botões, Logos)
+========================================================================== */
 .cta-button {
-    background-color: var(--cor-destaque);
-    color: #1A1A1A;
-    padding: 10px 25px;
-    border-radius: 50px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: transform 0.3s ease, background-color 0.3s ease;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+background: linear-gradient(180deg, var(--cor-destaque) 0%, var(--cor-destaque-hover) 100%);
+color: #06152d;
+padding: 12px 28px;
+border-radius: 999px;
+font-weight: 700;
+box-shadow:
+0 6px 20px rgba(31,111,229,.25),
+inset 0 1px 0 rgba(255,255,255,.35);
+transform: translateZ(0);
+transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+border: 1px solid var(--brand-blue-deep);
 }
-
 .cta-button:hover {
-    transform: scale(1.05);
-    background-color: var(--cor-destaque-hover);
+transform: translateY(-1px) scale(1.02);
+filter: brightness(1.06);
+box-shadow:
+0 10px 28px rgba(31,111,229,.35),
+inset 0 1px 0 rgba(255,255,255,.45);
+}
+.cta-button:active { transform: scale(.98); }
+.cta-button:focus-visible { box-shadow: var(--focus), 0 10px 28px rgba(31,111,229,.35); }
+
+/* variações úteis */
+.btn-secondary {
+background: var(--cor-fundo-secundaria);
+color: var(--sp-text);
+border: 1px solid var(--border);
+}
+.btn-ghost {
+background: transparent;
+color: var(--sp-text);
+border: 1px solid var(--border);
 }
 
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-decoration: none;
-}
-
+/* Logo com aro sutil */
+.logo-container { display: flex; align-items: center; gap: 12px; }
 .logo-container img {
-    height: 45px;
-    width: 45px;
-    border-radius: 50%;
-    object-fit: cover;
+height: 45px; width: 45px; border-radius: 50%; object-fit: cover;
+box-shadow: 0 0 0 1px var(--border);
 }
+.logo-container span { font-size: 1.8em; font-weight: bold; color: var(--sp-text); }
 
-.logo-container span {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: var(--cor-texto);
+/* Cards utilitários */
+.card {
+background: var(--cor-fundo-secundaria);
+border-radius: var(--radius-lg);
+padding: 16px;
+box-shadow: var(--shadow-1);
+border: 1px solid var(--border);
+color: var(--sp-text);
 }
 
 /* ==========================================================================
-   3. CABEÇALHO E NAVEGAÇÃO (HEADER)
-   ========================================================================== */
+HEADER (Glass + Safe Area)
+========================================================================== */
 header {
-    background: rgba(26, 26, 26, 0.5);
-    backdrop-filter: blur(10px);
-    padding: 15px 0;
-    position: fixed;
-    width: 100%;
-    z-index: 1000;
-    transition: background-color 0.3s ease, border-bottom 0.3s ease;
+position: fixed;
+inset: 0 0 auto 0;
+height: var(--header-h);
+background: linear-gradient(180deg, rgba(18,23,29,.85), rgba(12,17,22,.75));
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+border-bottom: 1px solid var(--border);
+z-index: 1000;
+transition: background-color .3s ease, border-bottom .3s ease;
+padding-top: env(safe-area-inset-top);
 }
-
 body.light-mode header {
-     background: rgba(255, 255, 255, 0.5);
-     border-bottom: 1px solid #ddd;
+background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.55));
+border-bottom: 1px solid var(--border);
 }
-
 header .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+height: 100%;
+display: flex; align-items: center; justify-content: space-between;
 }
+header nav { display: flex; align-items: center; gap: 16px; }
 
-header nav {
-    display: flex;
-    align-items: center;
-    gap: 25px;
-}
+.theme-switcher { display: flex; align-items: center; gap: 10px; }
+.theme-switcher i { font-size: 1.1em; color: var(--sp-text-dim); transition: color .3s ease; }
 
-.theme-switcher {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.theme-switcher i {
-    font-size: 1.1em;
-    color: var(--cor-texto-secundario);
-    transition: color 0.3s ease;
-}
-
-.theme-switch-wrapper {
-    position: relative;
-}
-
+.theme-switch-wrapper { position: relative; }
 .theme-switch {
-    width: 50px;
-    height: 26px;
-    background: #555;
-    border-radius: 13px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+width: 52px; height: 28px;
+background: #2e3642;
+border: 1px solid var(--border);
+border-radius: 999px; cursor: pointer; transition: background-color .3s ease;
 }
-
-.theme-switch-checkbox {
-    display: none;
-}
-
+.theme-switch-checkbox { display: none; }
 .slider {
-    position: absolute;
-    top: 3px;
-    left: 4px;
-    width: 20px;
-    height: 20px;
-    background-color: white;
-    border-radius: 50%;
-    transition: transform 0.3s ease;
+position: absolute; top: 4px; left: 4px;
+width: 20px; height: 20px; border-radius: 50%; background: #fff;
+transition: transform .3s ease, box-shadow .3s ease;
 }
-
 .theme-switch-checkbox:checked + .theme-switch .slider {
-    transform: translateX(23px);
+transform: translateX(24px);
+box-shadow: 0 0 10px rgba(31,111,229,.55); /* glow azul */
 }
 
-body.light-mode .theme-switch {
-    background: #ccc;
+/* Compensa o header fixo */
+main { padding-top: calc(var(--header-h) + 8px); }
+
+/* ==========================================================================
+FOOTER
+========================================================================== */
+footer {
+background: linear-gradient(180deg, #0a0d0f, #090b0d);
+color: var(--sp-text-dim);
+padding-top: 60px;
+padding-bottom: calc(20px + env(safe-area-inset-bottom));
+border-top: 1px solid var(--border);
+}
+.footer-content {
+display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+gap: 40px; margin-bottom: 40px;
+}
+.footer-section h3 { font-size: 1.2em; margin-bottom: 15px; color: var(--sp-text); }
+.footer-section a {
+color: var(--sp-text-dim); text-decoration: none; display: block; margin-bottom: 8px; transition: color .2s ease;
+}
+.footer-section a:hover { color: var(--brand-blue-hover); }
+.footer-bottom { text-align: center; padding: 20px 0; border-top: 1px solid rgba(0,0,0,.25); }
+
+/* ==========================================================================
+MAPA / ÁREA DE CONTEÚDO
+========================================================================== */
+#map-container,
+.map-full {
+width: 100%;
+min-height: 400px;
+height: calc(100vh - var(--header-h) - var(--footer-h) - env(safe-area-inset-bottom));
+background: linear-gradient(180deg, rgba(10,12,14,.6), rgba(10,12,14,.8)), var(--sp-charcoal);
+border-radius: 14px;
+border: 1px solid var(--border);
+box-shadow:
+0 12px 40px rgba(0,0,0,.45),
+inset 0 1px 0 rgba(255,255,255,.05);
+overflow: hidden;
+}
+body.light-mode #map-container,
+body.light-mode .map-full {
+background: #ece7db;
+border: 1px solid var(--border);
+}
+
+#map-container > div,
+#map-container .leaflet-container,
+#map-container canvas,
+.map-full > div,
+.map-full canvas {
+width: 100% !important;
+height: 100% !important;
+}
+
+/* Toggle 2D/3D (chapa; active azul) */
+.view-toggle { margin-left: auto; display: flex; gap: 6px; }
+.view-toggle button {
+padding: 6px 10px;
+background: linear-gradient(180deg, #2b3440, #1f2834);
+color: var(--sp-text);
+border: 1px solid rgba(31,111,229,.22);
+border-radius: 6px;
+cursor: pointer;
+}
+.view-toggle button.active {
+background: linear-gradient(180deg, #2b5fb3, #1f4c92); /* azul ativo */
+border-color: rgba(31,111,229,.45);
+color: #e9f2ff;
+box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+/* Borda decor nos títulos */
+h2::after {
+content: '';
+display: block;
+width: 120px;
+height: 2px;
+margin: 16px auto 0;
+background: linear-gradient(90deg, transparent, rgba(31,111,229,.7), transparent);
+}
+
+/* Engrenagem decorativa opcional (adicione <div class="decogear" /> onde quiser) */
+.decogear {
+position: absolute;
+width: 90px; height: 90px;
+right: 16px; bottom: 90px;
+opacity: .15;
+background:
+radial-gradient(circle at 50% 50%, rgba(31,111,229,.35) 0 2px, transparent 2px),
+conic-gradient(from 0deg, rgba(31,111,229,.5) 0 6deg, transparent 6deg 12deg, rgba(31,111,229,.5) 12deg 18deg, transparent 18deg 24deg, rgba(31,111,229,.5) 24deg 30deg, transparent 30deg 36deg);
+border-radius: 50%;
+animation: gearspin 28s linear infinite;
+pointer-events: none;
+}
+@keyframes gearspin { to { transform: rotate(360deg); } }
+
+/* ==========================================================================
+TOAST
+========================================================================== */
+.toast {
+position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom));
+transform: translateX(-50%);
+background: var(--cor-fundo-secundaria);
+color: var(--sp-text);
+padding: 12px 16px;
+border-radius: 12px;
+box-shadow: var(--shadow-1);
+border: 1px solid var(--border);
+z-index: 2000;
 }
 
 /* ==========================================================================
-   5. RODAPÉ (FOOTER)
+SCROLLBAR (opcional)
+========================================================================== */
+*::-webkit-scrollbar { height: 10px; width: 10px; }
+*::-webkit-scrollbar-thumb { background: rgba(255,255,255,.18); border-radius: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ==========================================================================
+UTILITÁRIOS
+========================================================================== */
+.mt-0 { margin-top: 0 !important; }
+.mt-1 { margin-top: 8px !important; }
+.mt-2 { margin-top: 16px !important; }
+.mt-3 { margin-top: 24px !important; }
+.hidden { display: none !important; }
+
+/* Modal/backdrop (pensando no admin futuro) */
+.modal-backdrop {
+position: fixed; inset: 0;
+background: var(--cor-overlay-fundo);
+backdrop-filter: blur(4px);
+z-index: 3000;
+}
+.modal {
+position: fixed; left: 50%; top: 50%;
+transform: translate(-50%, -50%);
+background: var(--cor-fundo);
+color: var(--sp-text);
+border-radius: 16px;
+box-shadow: var(--shadow-2);
+border: 1px solid var(--border);
+padding: 20px;
+z-index: 3001;
+}
+
+/* ==========================================================================
+   HOTFIX: Força o texto do Footer a ficar claro no Light Mode
    ========================================================================== */
-footer {
-    background-color: #4A90E2;
-    color: var(--cor-texto-secundario);
-    padding-top: 60px;
-}
-
-.footer-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 40px;
-    margin-bottom: 40px;
-}
-
-.footer-section h3 {
-    font-size: 1.2em;
-    margin-bottom: 15px;
-    color: var(--cor-texto);
-}
-
-.footer-section a {
-    color: var(--cor-texto-secundario);
-    text-decoration: none;
-    display: block;
-    margin-bottom: 8px;
-    transition: color 0.3s ease;
-}
-
-.footer-section a:hover {
-    color: var(--cor-destaque);
-}
-
-.footer-bottom {
-    text-align: center;
-    padding: 20px 0;
-    border-top: 1px solid #333;
+body.light-mode footer {
+    /* O fundo do footer não muda no light-mode, então o texto também não pode mudar.
+      Aqui, forçamos as variáveis de texto de volta para os valores
+      do :root (tema escuro) apenas dentro do escopo do footer.
+    */
+    --cor-texto: #f3efe6;
+    --cor-texto-secundario: #c4bbab;
+    --sp-text: #f3efe6;
+    --sp-text-dim: #c4bbab;
 }

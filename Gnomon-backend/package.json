@@ -41,6 +41,7 @@
     "prisma": "^6.16.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "three": "^0.180.0",
     "zod": "^4.1.11"
   }
 }
