@@ -1,47 +1,29 @@
 // src/components/Campus3d.tsx
-<<<<<<< HEAD
-import { useEffect, useRef, type JSX } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { useThemeVars } from '../libs/useThemeVars';
 
-// Tipos locais (sem libs)
+// Tipos locais (sem libs externas)
 type Edge = [string, string, number?];
 type Node3 = { id: string; x: number; y: number; z: number };
 
-=======
-import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { aStar, buildGraph, type Edge, type Node3 } from '../libs/nav/graph';
-import { useThemeVars } from '../libs/useThemeVars';
-
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
 type Entry = {
   id: string;
   label: string;
   anchorId: string;
   vantage?: [number, number, number];
   pos?: [number, number, number];
-<<<<<<< HEAD
   color?: string;
-=======
-  color?: string; // opcional, cor do pin
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
 };
 
 type Props = {
   url?: string;
   topDown?: boolean;
   edges?: Edge[];
-<<<<<<< HEAD
   entries?: Entry[];
-=======
-  entries?: Entry[];                 // ← lista de entradas (pins)
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
   startNodeId?: string;
   destNodeId?: string;
   selectedEntry?: Entry | null;
@@ -49,11 +31,10 @@ type Props = {
   onPickPoint?: (p: THREE.Vector3) => void;
   onAnchorsLoaded?: (ids: string[]) => void;
   onFlyEnd?: () => void;
-<<<<<<< HEAD
   onEntryClick?: (e: Entry) => void;
 };
 
-// Utilitários locais (sem libs)
+// Utils locais (A* embutido)
 function dist3(a: Node3, b: Node3) {
   const dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
   return Math.hypot(dx, dy, dz);
@@ -80,7 +61,7 @@ function aStar3D(graph: ReturnType<typeof buildGraph>, startId: string, goalId: 
   const f: Record<string, number> = { [startId]: dist3(byId[startId], byId[goalId]) };
   while (open.size) {
     let current: string | null = null, best = Infinity;
-    for (const id of open) { if (f[id] < best) { best = f[id]; current = id; } }
+    for (const id of open) if (f[id] < best) { best = f[id]; current = id; }
     if (!current) break;
     if (current === goalId) {
       const path = [current];
@@ -100,19 +81,9 @@ function aStar3D(graph: ReturnType<typeof buildGraph>, startId: string, goalId: 
   }
   return null;
 }
-
 function easeInOut(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
-=======
-  onEntryClick?: (e: Entry) => void; // ← callback ao clicar no pin
-};
-
-function easeInOut(t: number) {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
 function disposeMaterial(mat: THREE.Material | THREE.Material[]) {
   if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
   else mat.dispose();
@@ -131,11 +102,7 @@ export default function Campus3D({
   onAnchorsLoaded,
   onFlyEnd,
   onEntryClick
-<<<<<<< HEAD
-}: Props): JSX.Element {
-=======
 }: Props) {
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
   const containerRef = useRef<HTMLDivElement>(null);
 
   // core
@@ -168,22 +135,15 @@ export default function Campus3D({
   useEffect(() => { markModeRef.current = markMode; }, [markMode]);
   useEffect(() => { onPickPointRef.current = onPickPoint; }, [onPickPoint]);
 
-<<<<<<< HEAD
   // tema em runtime
   useEffect(() => {
     if (routeMatRef.current) routeMatRef.current.color = new THREE.Color(routePrimary);
     if (sceneRef.current) sceneRef.current.background = new THREE.Color(bg3d || '#0f1114');
     if (rendererRef.current) rendererRef.current.setClearColor(bg3d || '#0f1114', 1);
-=======
-  useEffect(() => {
-    if (routeMatRef.current) routeMatRef.current.color = new THREE.Color(routePrimary);
-    if (sceneRef.current) sceneRef.current.background = new THREE.Color(bg3d || '#0f1114');
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
   }, [routePrimary, bg3d]);
 
   useEffect(() => {
     const el = containerRef.current!;
-<<<<<<< HEAD
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(el.clientWidth, el.clientHeight);
@@ -194,14 +154,6 @@ export default function Campus3D({
     renderer.shadowMap.enabled = false;
     rendererRef.current = renderer;
     el.appendChild(renderer.domElement);
-=======
-    const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-    renderer.setSize(el.clientWidth, el.clientHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    el.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(bg3d || '#0f1114');
@@ -225,7 +177,6 @@ export default function Campus3D({
     }
     controlsRef.current = controls;
 
-<<<<<<< HEAD
     // Luzes (neutras)
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const dir = new THREE.DirectionalLight(0xffffff, 0.6);
@@ -238,14 +189,6 @@ export default function Campus3D({
     draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
     loader.setDRACOLoader(draco);
 
-=======
-    scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-    const dir = new THREE.DirectionalLight(0xffffff, 0.5);
-    dir.position.set(100, 150, 50);
-    scene.add(dir);
-
-    const loader = new GLTFLoader();
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
     let disposed = false;
 
     loader.load(
@@ -257,11 +200,7 @@ export default function Campus3D({
         root.traverse((o: any) => { if (o.isMesh) { o.castShadow = o.receiveShadow = false; } });
         scene.add(root);
 
-<<<<<<< HEAD
         // Enquadrar
-=======
-        // frame
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
         const box = new THREE.Box3().setFromObject(root);
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
@@ -271,11 +210,7 @@ export default function Campus3D({
         camera.updateProjectionMatrix();
         if (!topDown) camera.position.set(center.x + size.x, center.y + size.y * 1.2, center.z + size.z);
 
-<<<<<<< HEAD
         // Anchors node:*
-=======
-        // anchors node:*
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
         const anchors: Record<string, THREE.Vector3> = {};
         const tmp = new THREE.Vector3();
         root.updateMatrixWorld(true);
@@ -288,12 +223,8 @@ export default function Campus3D({
         anchorsRef.current = anchors;
         onAnchorsLoaded?.(Object.keys(anchors));
 
-<<<<<<< HEAD
         // pins/rota
         syncEntryPins();
-=======
-        syncEntryPins();  // ← cria/atualiza os pins
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
         updateRoute();
       },
       undefined,
@@ -306,12 +237,8 @@ export default function Campus3D({
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
     };
-<<<<<<< HEAD
     const ro = new ResizeObserver(onResize);
     ro.observe(el);
-=======
-    const ro = new ResizeObserver(onResize); ro.observe(el);
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
 
     const onPointerDown = (ev: PointerEvent) => {
       const r = renderer.domElement.getBoundingClientRect();
@@ -322,7 +249,6 @@ export default function Campus3D({
       const targets: THREE.Object3D[] = [];
       if (entryPinsGroupRef.current) targets.push(entryPinsGroupRef.current);
       if (rootRef.current) targets.push(rootRef.current);
-<<<<<<< HEAD
       const hits = raycasterRef.current.intersectObjects(targets, true);
 
       // Clique em pin?
@@ -330,16 +256,6 @@ export default function Campus3D({
         let o: THREE.Object3D | null = h.object;
         while (o) {
           if ((o as any).userData && typeof (o as any).userData.entryIndex === 'number') return true;
-=======
-
-      const hits = raycasterRef.current.intersectObjects(targets, true);
-
-      // 1) clique em um pin de entrada?
-      const pinHit = hits.find(h => {
-        let o: THREE.Object3D | null = h.object;
-        while (o) {
-          if (o.userData && typeof o.userData.entryIndex === 'number') return true;
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
           o = o.parent!;
         }
         return false;
@@ -349,14 +265,7 @@ export default function Campus3D({
         let o: THREE.Object3D | null = pinHit.object;
         let idx: number | undefined;
         while (o) {
-<<<<<<< HEAD
           if (typeof (o as any).userData.entryIndex === 'number') { idx = (o as any).userData.entryIndex; break; }
-=======
-          if (typeof o.userData.entryIndex === 'number') {
-            idx = o.userData.entryIndex;
-            break;
-          }
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
           o = o.parent!;
         }
         if (idx !== undefined) {
@@ -366,15 +275,9 @@ export default function Campus3D({
         return;
       }
 
-<<<<<<< HEAD
       // Marcar local
       if (markModeRef.current && hits.length) {
         onPickPointRef.current?.(hits[0].point.clone());
-=======
-      // 2) se marcar local estiver ativo, captura o ponto
-      if (markModeRef.current) {
-        if (hits.length) onPickPointRef.current?.(hits[0].point.clone());
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
       }
     };
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
@@ -394,7 +297,6 @@ export default function Campus3D({
       cleanupMarker(destMarkerRef);
       cleanupEntryPins();
 
-<<<<<<< HEAD
       if (rootRef.current) {
         scene.remove(rootRef.current);
         rootRef.current.traverse((o: any) => {
@@ -402,9 +304,6 @@ export default function Campus3D({
           if (o.material) disposeMaterial(o.material as THREE.Material | THREE.Material[]);
         });
       }
-=======
-      if (rootRef.current) scene.remove(rootRef.current);
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
       renderer.dispose();
       el.removeChild(renderer.domElement);
 
@@ -415,7 +314,6 @@ export default function Campus3D({
       cameraRef.current = null;
       controlsRef.current = null;
     };
-<<<<<<< HEAD
   }, [url, topDown, bg3d, routePrimary, onAnchorsLoaded, onEntryClick, onPickPoint]);
 
   // sincronizar pins quando entries mudar
@@ -427,23 +325,10 @@ export default function Campus3D({
   // Fly-to
   useEffect(() => {
     if (!selectedEntry) return;
-    const cam = cameraRef.current, ctr = controlsRef.current;
-=======
-  }, [url, topDown]); // tema e props variáveis em effects próprios
-
-  // quando mudar entries ou anchors, sincroniza pins
-  useEffect(() => { syncEntryPins(); }, [entries]); // eslint-disable-line
-
-  // atualiza rota ao mudar edges/start/dest/selectedEntry
-  useEffect(() => { updateRoute(); }, [edges, startNodeId, destNodeId, selectedEntry]); // eslint-disable-line
-
-  // fly-to na entrada selecionada
-  useEffect(() => {
-    if (!selectedEntry) return;
-    const cam = cameraRef.current as THREE.PerspectiveCamera | null;
-    const ctr = controlsRef.current as MapControls | null;
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
-    if (!cam || !ctr) return;
+    const cam = cameraRef.current;
+    if (!cam) return;
+    const ctr = controlsRef.current;
+    if (!ctr) return;
 
     const base =
       anchorsRef.current[selectedEntry.anchorId] ||
@@ -460,22 +345,13 @@ export default function Campus3D({
     const dur = 1000;
     const t0 = performance.now();
     function step(now: number) {
-<<<<<<< HEAD
-      const t = Math.min(1, (now - t0) / dur);
-      const k = easeInOut(t);
-      cam!.position.lerpVectors(startPos, dest, k);
-      const tmp = new THREE.Vector3().lerpVectors(startTarget, lookAt, k);
-      ctr!.target.copy(tmp);
-      cam!.lookAt(lookAt);
-=======
-      if (!cam || !ctr) return;
+      if (!cam) return;
       const t = Math.min(1, (now - t0) / dur);
       const k = easeInOut(t);
       cam.position.lerpVectors(startPos, dest, k);
       const tmp = new THREE.Vector3().lerpVectors(startTarget, lookAt, k);
-      ctr.target.copy(tmp);
+      ctr!.target.copy(tmp);
       cam.lookAt(lookAt);
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
       if (t < 1) requestAnimationFrame(step);
       else onFlyEnd?.();
     }
@@ -513,24 +389,14 @@ export default function Campus3D({
     }
     ref.current.position.copy(pos);
   }
-<<<<<<< HEAD
-=======
-
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
   function updateRoute() {
     const scene = sceneRef.current;
     if (!scene) return;
 
-<<<<<<< HEAD
     // base de posições: anchors do GLB + fallback de TODAS as entries com pos
     const posMap: Record<string, THREE.Vector3> = { ...anchorsRef.current };
     for (const e of entriesRef.current) {
       if (e.pos && !posMap[e.anchorId]) posMap[e.anchorId] = new THREE.Vector3(...e.pos);
-=======
-    const posMap: Record<string, THREE.Vector3> = { ...anchorsRef.current };
-    if (selectedEntry?.pos && selectedEntry.anchorId && !posMap[selectedEntry.anchorId]) {
-      posMap[selectedEntry.anchorId] = new THREE.Vector3(...selectedEntry.pos);
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
     }
 
     const nodes: Node3[] = Object.entries(posMap).map(([id, p]) => ({ id, x: p.x, y: p.y, z: p.z }));
@@ -543,12 +409,8 @@ export default function Campus3D({
 
     cleanupRoute();
     if (!startNodeId || !destNodeId) return;
-<<<<<<< HEAD
 
     const pathIds = aStar3D(graph, startNodeId, destNodeId);
-=======
-    const pathIds = aStar(graph, startNodeId, destNodeId);
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
     if (!pathIds || pathIds.length < 2) return;
 
     const pts = pathIds.map((id) => posMap[id]).filter(Boolean) as THREE.Vector3[];
@@ -562,10 +424,6 @@ export default function Campus3D({
     routeMeshRef.current = mesh;
     routeMatRef.current = mat;
   }
-<<<<<<< HEAD
-=======
-
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
   function cleanupEntryPins() {
     const scene = sceneRef.current;
     if (!scene || !entryPinsGroupRef.current) return;
@@ -576,75 +434,39 @@ export default function Campus3D({
     });
     entryPinsGroupRef.current = null;
   }
-<<<<<<< HEAD
   function makePin(colorHex: string) {
     const color = new THREE.Color(colorHex);
     const g = new THREE.Group();
-=======
-
-  function makePin(colorHex: string) {
-    const color = new THREE.Color(colorHex);
-    const g = new THREE.Group();
-
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
     const sphere = new THREE.Mesh(
       new THREE.SphereGeometry(0.35, 18, 18),
       new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.7 })
     );
     sphere.position.set(0, 0.4, 0);
-<<<<<<< HEAD
-=======
-
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
     const ring = new THREE.Mesh(
       new THREE.TorusGeometry(0.6, 0.06, 8, 32),
       new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9 })
     );
     ring.rotation.x = Math.PI / 2;
-<<<<<<< HEAD
     g.add(sphere); g.add(ring);
     return g;
   }
-=======
-
-    g.add(sphere);
-    g.add(ring);
-    return g;
-  }
-
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
   function syncEntryPins() {
     const scene = sceneRef.current;
     if (!scene) return;
 
     cleanupEntryPins();
-<<<<<<< HEAD
-=======
-
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
     const group = new THREE.Group();
     entries.forEach((e, idx) => {
       const p =
         anchorsRef.current[e.anchorId] ||
         (e.pos ? new THREE.Vector3(e.pos[0], e.pos[1], e.pos[2]) : undefined);
       if (!p) return;
-<<<<<<< HEAD
       const pin = makePin(e.color || (idx === 0 ? '#00AEF0' : idx === 1 ? '#34C759' : '#FFCC00'));
       pin.position.copy(p);
       (pin as any).userData.entryIndex = idx;
       pin.name = `pin:${e.id}`;
       group.add(pin);
     });
-=======
-
-      const pin = makePin(e.color || (idx === 0 ? '#00AEF0' : idx === 1 ? '#34C759' : '#FFCC00'));
-      pin.position.copy(p);
-      pin.userData.entryIndex = idx;
-      pin.name = `pin:${e.id}`;
-      group.add(pin);
-    });
-
->>>>>>> d5fa0e01db4f9d48297d1ee27a7f18d4fce9c526
     entryPinsGroupRef.current = group;
     scene.add(group);
   }
