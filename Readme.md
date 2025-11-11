@@ -270,6 +270,7 @@ Possibilidades de Monetização:
 ## Licença
 Este projeto é licenciado sob a Licença MIT. Veja o arquivo LICENSE para mais detalhes. =/
 ```
+
 ```
 Gnomon_Local
 ├─ Gnomon-backend
@@ -355,16 +356,18 @@ Gnomon_Local
 │  │  ├─ Gnomon_Icon.png
 │  │  ├─ Gnomon_Sem_Nome_Icon.png
 │  │  ├─ maps
-│  │  │  ├─ Campus_2D_TESTE.png
-│  │  │  └─ nodes-2d.json
+│  │  │  ├─ Campus_2D_DETALHE.png
+│  │  │  └─ nodes-2d-detalhe.json
 │  │  ├─ models
 │  │  │  └─ Campus.glb
 │  │  └─ places
+│  │     ├─ auditorio.jpg
 │  │     ├─ banheiro.jpg
-│  │     ├─ cantina.jpg
+│  │     ├─ banheiro2.jpg
+│  │     ├─ biblioteca.jpg
 │  │     ├─ cra.jpg
 │  │     ├─ entrada1.jpg
-│  │     ├─ entrada2.jpg
+│  │     ├─ laboratorios.jpg
 │  │     └─ patio.jpg
 │  ├─ README.md
 │  ├─ src
@@ -383,9 +386,14 @@ Gnomon_Local
 │  │  │  ├─ CtaButton.tsx
 │  │  │  ├─ Footer.tsx
 │  │  │  ├─ Header.tsx
-│  │  │  └─ Map2D.tsx
+│  │  │  ├─ JsonExporter.tsx
+│  │  │  ├─ Map2D.tsx
+│  │  │  ├─ PointsHistory.tsx
+│  │  │  └─ RouteInstructions.tsx
 │  │  ├─ hooks
-│  │  │  └─ useNavigation2D.ts
+│  │  │  ├─ useMapData.ts
+│  │  │  ├─ useNavigation2D.ts
+│  │  │  └─ usePathfinding.ts
 │  │  ├─ index.css
 │  │  ├─ libs
 │  │  │  └─ useThemeVars.ts
@@ -409,6 +417,7 @@ Gnomon_Local
 │  │  │  └─ RedefinirSenha
 │  │  │     ├─ RedefinirSenha.css
 │  │  │     └─ RedefinirSenha.tsx
+│  │  ├─ routes.tsx
 │  │  └─ vite-env.d.ts
 │  ├─ tsconfig.app.json
 │  ├─ tsconfig.json
