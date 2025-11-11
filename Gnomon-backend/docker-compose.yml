@@ -1,9 +1,8 @@
-version: '3.8'
 services:
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: gnomon-postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: gnomon
       POSTGRES_PASSWORD: gnomon
@@ -12,6 +11,64 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gnomon"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: meu-projeto-web:1.0.0
+    container_name: gnomon-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      # Servidor
+      NODE_ENV: production
+      PORT: 3001
+      HOST: 0.0.0.0
+
+      # Banco de dados (usa 'db' como hostname dentro do Docker)
+      DATABASE_URL: "postgresql://gnomon:gnomon@db:5432/gnomon?schema=public"
+      DIRECT_DATABASE_URL: "postgresql://gnomon:gnomon@db:5432/gnomon?schema=public"
+
+      # JWT
+      JWT_SECRET: "a2894b93bd1845f846f98f3bf9e0fa69e506c12af663852b6c0d58641fc26258"
+      JWT_EXPIRES_IN: "24h"
+
+      # Frontend (ajuste conforme necessário)
+      FRONTEND_URL: "http://localhost:5173"
+      CORS_ORIGIN: "http://localhost:5173"
+
+      # E-mail (SMTP)
+      SMTP_HOST: "smtp.gmail.com"
+      SMTP_PORT: "587"
+      SMTP_SECURE: "false"
+      SMTP_USER: "Hectorkyll@gmail.com"
+      SMTP_PASS: "pipxhxmmewpimfya"
+      SMTP_FROM: "Gnomon <Hectorkyll@gmail.com>"
+
+      # Segurança
+      BCRYPT_SALT_ROUNDS: "10"
+      PASSWORD_RESET_EXPIRES_MINUTES: "30"
+
+      # Rate limit
+      RATE_LIMIT_WINDOW_MS: "900000"
+      RATE_LIMIT_MAX: "300"
+
+      # Logs
+      LOG_LEVEL: "info"
+
+      # Swagger
+      SWAGGER_ENABLED: "true"
+      SWAGGER_PATH: "/api-docs"
 
 volumes:
   pgdata:

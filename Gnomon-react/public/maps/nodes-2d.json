@@ -1,0 +1,32 @@
+{
+"nodes": [
+{ "id": "E1", "x": 750.0, "y": 194.0 },
+
+{ "id": "R1_CRA", "x": 778.1, "y": 195.4 },
+{ "id": "R2_BANHEIRO",  "x": 800.9, "y": 252.3 },
+{ "id": "R3_PATIO", "x": 833.9, "y": 242.9 },
+{ "id": "R4_BIBLIOTECA", "x": 916.5, "y": 239.2 },
+{ "id": "R5_LABORATORIO", "x": 813.6, "y": 238.8 },
+{ "id": "R6_AUDITORIO", "x": 764.6, "y": 240.9},
+{ "id": "R7_BANHEIRO_2", "x": 847.9, "y": 195.3 }
+],
+"edges": [
+    ["E1", "R1_CRA"],
+    ["R1_CRA", "R2_BANHEIRO"],
+    ["R2_BANHEIRO", "R6_AUDITORIO"],
+    ["R6_AUDITORIO", "R3_PATIO"],
+    ["R3_PATIO", "R5_LABORATORIO"],
+    ["R5_LABORATORIO", "R7_BANHEIRO_2"],
+    ["R7_BANHEIRO_2", "R4_BIBLIOTECA"]
+],
+"pois": [
+{ "id": "entrada_1", "label": "Entrada 1 (Cima)", "nodeId": "E1", "type": "entrance", "category": "entrance", "photoUrl": "/places/entrada1.jpg" },
+{ "id": "ref_cra", "label": "CRA", "nodeId": "R1_CRA", "type": "reference", "category": "office", "photoUrl": "/places/cra.jpg" },
+{ "id": "ref_banheiro_1", "label": "Banheiro", "nodeId": "R2_BANHEIRO", "type": "reference", "category": "bathroom", "photoUrl": "/places/banheiro.jpg" },
+{ "id": "ref_patio", "label": "Pátio", "nodeId": "R3_PATIO", "type": "reference", "category": "patio", "photoUrl": "/places/patio.jpg" },
+{ "id": "ref_biblioteca", "label": "Biblioteca", "nodeId": "R4_BIBLIOTECA", "type": "reference", "category": "library", "photoUrl": "/places/biblioteca.jpg" },
+{ "id": "ref_lab", "label": "Laboratório", "nodeId": "R5_LABORATORIO", "type": "reference", "category": "lab", "photoUrl": "/places/laboratorios.jpg" },
+{ "id": "ref_auditorio", "label": "Auditório", "nodeId": "R6_AUDITORIO", "type": "reference", "category": "auditorium", "photoUrl": "/places/auditorio.jpg" },
+{ "id": "ref_banheiro_2", "label": "Banheiro 2", "nodeId": "R7_BANHEIRO_2", "type": "reference", "category": "bathroom", "photoUrl": "/places/banheiro2.jpg" }
+]
+}

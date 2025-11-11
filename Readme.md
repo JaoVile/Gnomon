@@ -269,3 +269,151 @@ Possibilidades de Monetização:
 
 ## Licença
 Este projeto é licenciado sob a Licença MIT. Veja o arquivo LICENSE para mais detalhes. =/
+```
+```
+Gnomon_Local
+├─ Gnomon-backend
+│  ├─ .dockerignore
+│  ├─ .env
+│  ├─ dist
+│  │  ├─ config
+│  │  │  └─ mail.js
+│  │  ├─ controllers
+│  │  │  ├─ AuthController.js
+│  │  │  └─ LocalController.js
+│  │  ├─ index.js
+│  │  ├─ middleware
+│  │  │  ├─ authMiddleware.js
+│  │  │  └─ docs
+│  │  │     ├─ openapi.js
+│  │  │     ├─ swagger.js
+│  │  │     └─ users.docs.js
+│  │  ├─ routes
+│  │  │  ├─ authRouters.js
+│  │  │  └─ localRoutes.js
+│  │  └─ server.js
+│  ├─ docker-compose.yml
+│  ├─ Dockerfile
+│  ├─ nodemon.json
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ prisma
+│  │  ├─ schema.prisma
+│  │  └─ seed.ts
+│  ├─ src
+│  │  ├─ config
+│  │  │  └─ mail.ts
+│  │  ├─ controllers
+│  │  │  ├─ AuthController.ts
+│  │  │  └─ LocalController.ts
+│  │  ├─ index.ts
+│  │  ├─ middleware
+│  │  │  ├─ authMiddleware.ts
+│  │  │  └─ docs
+│  │  │     ├─ locais.docs.ts
+│  │  │     ├─ openapi.ts
+│  │  │     ├─ swagger.ts
+│  │  │     └─ users.docs.ts
+│  │  ├─ routes
+│  │  │  ├─ authRouters.ts
+│  │  │  └─ localRoutes.ts
+│  │  └─ server.ts
+│  └─ tsconfig.json
+├─ Gnomon-react
+│  ├─ .env
+│  ├─ dist
+│  │  ├─ assets
+│  │  │  ├─ css
+│  │  │  │  └─ index-BzZf2Eq-.css
+│  │  │  ├─ jpg
+│  │  │  │  ├─ David-CmwEhJiK.jpg
+│  │  │  │  ├─ Joao-BTAKBEAu.jpg
+│  │  │  │  └─ Lucas-BdnrgAPR.jpg
+│  │  │  ├─ js
+│  │  │  │  ├─ index-CaY0pGpp.js
+│  │  │  │  └─ react-vendor-ItDNz60Q.js
+│  │  │  └─ png
+│  │  │     ├─ Gnomon Logo _ SEM NOME-DMDDslfa.png
+│  │  │     └─ Mapa-BH3cG4p0.png
+│  │  ├─ Gnomon_Icon.png
+│  │  ├─ Gnomon_Sem_Nome_Icon.png
+│  │  ├─ index.html
+│  │  ├─ models
+│  │  │  └─ Campus.glb
+│  │  ├─ nav
+│  │  │  ├─ edges.json
+│  │  │  ├─ entries.json
+│  │  │  └─ rooms.json
+│  │  └─ nav2d
+│  │     ├─ entries.json
+│  │     └─ nodes.json
+│  ├─ eslint.config.js
+│  ├─ index.html
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ public
+│  │  ├─ Gnomon_Icon.png
+│  │  ├─ Gnomon_Sem_Nome_Icon.png
+│  │  ├─ maps
+│  │  │  ├─ Campus_2D_TESTE.png
+│  │  │  └─ nodes-2d.json
+│  │  ├─ models
+│  │  │  └─ Campus.glb
+│  │  └─ places
+│  │     ├─ banheiro.jpg
+│  │     ├─ cantina.jpg
+│  │     ├─ cra.jpg
+│  │     ├─ entrada1.jpg
+│  │     ├─ entrada2.jpg
+│  │     └─ patio.jpg
+│  ├─ README.md
+│  ├─ src
+│  │  ├─ App.tsx
+│  │  ├─ assets
+│  │  │  ├─ David.jpg
+│  │  │  ├─ Gnomon Logo _ SEM NOME.png
+│  │  │  ├─ Gnomon Logo.png
+│  │  │  ├─ GnomonLogo.png
+│  │  │  ├─ GnomonLogoSemNome.png
+│  │  │  ├─ Joao.jpg
+│  │  │  ├─ Lucas.jpg
+│  │  │  └─ Mapa.png
+│  │  ├─ components
+│  │  │  ├─ Campus3d.tsx
+│  │  │  ├─ CtaButton.tsx
+│  │  │  ├─ Footer.tsx
+│  │  │  ├─ Header.tsx
+│  │  │  └─ Map2D.tsx
+│  │  ├─ hooks
+│  │  │  └─ useNavigation2D.ts
+│  │  ├─ index.css
+│  │  ├─ libs
+│  │  │  └─ useThemeVars.ts
+│  │  ├─ main.tsx
+│  │  ├─ pages
+│  │  │  ├─ EsqueceuSenha
+│  │  │  │  ├─ EsqueceuSenhaPage.css
+│  │  │  │  └─ EsqueceuSenhaPage.tsx
+│  │  │  ├─ Intro
+│  │  │  │  ├─ Intro.css
+│  │  │  │  └─ Intro.tsx
+│  │  │  ├─ Login
+│  │  │  │  ├─ LoginPage.css
+│  │  │  │  └─ LoginPage.tsx
+│  │  │  ├─ Mapa
+│  │  │  │  ├─ MapaPage.css
+│  │  │  │  └─ MapaPage.tsx
+│  │  │  ├─ Perfil
+│  │  │  │  ├─ PerfilPage.css
+│  │  │  │  └─ PerfilPage.tsx
+│  │  │  └─ RedefinirSenha
+│  │  │     ├─ RedefinirSenha.css
+│  │  │     └─ RedefinirSenha.tsx
+│  │  └─ vite-env.d.ts
+│  ├─ tsconfig.app.json
+│  ├─ tsconfig.json
+│  ├─ tsconfig.node.json
+│  └─ vite.config.ts
+└─ Readme.md
+
+```

@@ -1,31 +1,205 @@
-// src/pages/Mapa/MapaPage.tsx
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
 import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
-import type { LatLngExpression } from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import Campus3D from '../../components/Campus3d';
+import Map2D, { type MarkKind, type Mark2D, type TurnInstruction } from '../../components/Map2D';
+import type { Node2D } from '../../hooks/useNavigation2D';
+import RouteInstructions from '../../components/RouteInstructions';
+import PointsHistory from '../../components/PointsHistory';
 import { useThemeVars } from '../../libs/useThemeVars';
 import './MapaPage.css';
 
 export default function MapaPage() {
   const [activeNav, setActiveNav] = useState('Mapa');
-  const [mode, setMode] = useState<'2d' | '3d'>('3d');
+  const [mode, setMode] = useState<'2d' | '3d'>('2d');
   const [topDown] = useState(false);
+
+  // Detecção de mobile em modo retrato para girar o mapa
+  const [isMobilePortrait, setIsMobilePortrait] = useState(false);
+  useLayoutEffect(() => {
+    const checkOrientation = () => {
+      const isMobile = window.innerWidth < 768;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      setIsMobilePortrait(isMobile && isPortrait);
+    };
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    return () => window.removeEventListener('resize', checkOrientation);
+  }, []);
+
+  // Mapas e grafos (2 imagens)
+  const BASE_MAP = '/maps/Campus_2D_TESTE.png';
+  const BASE_GRAPH = '/maps/nodes-2d.json';
+  // Coloque sua imagem detalhada (JPG) aqui:
+  const DETAIL_MAP = '/maps/Campus_2D_DETALHE.png';
+  // E (opcional) um grafo de corredores específico para o detalhado:
+  const DETAIL_GRAPH = '/maps/corridors-floor0.json';
+
+  // Estado do mapa atual (troca com fade quando rota é solicitada)
+  const [mapImageUrl, setMapImageUrl] = useState(BASE_MAP);
+  const [graphUrl, setGraphUrl] = useState(BASE_GRAPH);
+  const [corridorsDataUrl, setCorridorsDataUrl] = useState<string | undefined>(undefined); // Novo estado para o URL dos corredores
+  const [detailMode, setDetailMode] = useState(false);
+  const [fadeStage, setFadeStage] = useState<'idle' | 'out' | 'in'>('idle');
+  const fadeTimer = useRef<number | null>(null);
+
+  // Admin - marcação de Entrada/Referência
+  const [adminMode, setAdminMode] = useState(false);
+  const [markKind, setMarkKind] = useState<MarkKind>('ENTRY');
+  const [marks, setMarks] = useState<Mark2D[]>([]);
+  const [lastMark, setLastMark] = useState<{ x: number; y: number; kind: MarkKind } | null>(null);
+  const [capturedPoints, setCapturedPoints] = useState<{ x: number; y: number; kind: MarkKind }[]>([]);
+
+  // Admin - Editor de Conexões
+  const [editGraph, setEditGraph] = useState(false);
+  const [editTool, setEditTool] = useState<'node' | 'edge' | 'delete'>('node');
+  const [editorNodeKind, setEditorNodeKind] = useState<'INTERSECTION' | 'WAYPOINT'>('INTERSECTION');
+  const [editorBidirectional, setEditorBidirectional] = useState(true);
+
+  const [editorAccessible, setEditorAccessible] = useState(true);
+  const [editorData, setEditorData] = useState<{ nodes: any[]; edges: any[] }>({ nodes: [], edges: [] });
+
+  // Encaixe origem/dest no corredor (px)
+  const [doorSnapPx, setDoorSnapPx] = useState(28);
+
+  // Origem/destino selecionados (para lógica de troca)
+  const [originNodeId, setOriginNodeId] = useState<string | null>(null);
+  const [destNodeId, setDestNodeId] = useState<string | null>(null);
+  const [turnInstructions, setTurnInstructions] = useState<TurnInstruction[]>([]); // Novo estado para as instruções de rota
+
+  // Encaixe origem/dest no corredor (px)
+
+
+  // Origem/destino selecionados (para lógica de troca)
+
 
   const { routePrimary } = useThemeVars();
 
-  const position: [number, number] = [-8.302728, -35.991291];
+  const copy = async (text: string) => {
+    try { await navigator.clipboard.writeText(text); } catch { }
+  };
 
-  // Exemplo de rota mock 2D
-  const mockPath: LatLngExpression[] = [
-    [-8.3029, -35.9916],
-    [-8.3027, -35.9913],
-    [-8.3025, -35.9911],
-  ];
+  // JSON para Local (sala/serviço/entrada)
+  const copyLocalJSON = () => {
+    if (!lastMark) return;
+    const isEntry = lastMark.kind === 'ENTRY';
+    const obj = {
+      name: isEntry ? 'Entrada Principal' : 'Nome do Local',
+      description: null,
+      code: isEntry ? null : 'COD-000',
+      type: isEntry ? 'ENTRANCE' : 'OTHER',
+      x: Number(lastMark.x.toFixed(2)),
+      y: Number(lastMark.y.toFixed(2)),
+      z: 0,
+      floor: 0,
+      building: 'A',
+      iconUrl: null,
+      imageUrl: null,
+      accessible: true,
+      mapId: 1
+    };
+    copy(JSON.stringify(obj, null, 2));
+  };
 
-  const styleMain = { color: routePrimary, weight: 7, opacity: 0.95 };
+  // JSON para GraphNode
+  const copyGraphNodeJSON = () => {
+    if (!lastMark) return;
+    const obj = {
+      name: lastMark.kind === 'ENTRY' ? 'Entrada' : 'Ponto de Referência',
+      x: Number(lastMark.x.toFixed(2)),
+      y: Number(lastMark.y.toFixed(2)),
+      z: 0,
+      floor: 0,
+      building: 'A',
+      type: lastMark.kind === 'ENTRY' ? 'ENTRANCE' : 'DESTINATION'
+    };
+    copy(JSON.stringify(obj, null, 2));
+  };
+
+  const clearMarks = () => {
+    setMarks([]);
+    setLastMark(null);
+    setCapturedPoints([]);
+  };
+
+  // Copiar JSON das conexões
+
+
+
+
+  // Troca suave para o mapa detalhado quando a rota é solicitada
+  function fadeToDetail(fromId: string, toId: string) {
+    if (detailMode) return; // já está no detalhado
+    setOriginNodeId(fromId);
+    setDestNodeId(toId);
+
+    // fade “escurece”, troca imagem e volta
+    setFadeStage('out');
+    window.clearTimeout(fadeTimer.current || 0);
+    fadeTimer.current = window.setTimeout(() => {
+      setMapImageUrl(DETAIL_MAP);
+      setGraphUrl(DETAIL_GRAPH); // se ainda não existir, mantém o BASE_GRAPH por enquanto
+      setCorridorsDataUrl(DETAIL_GRAPH); // Define o URL dos corredores para o detalhado
+      setDetailMode(true);
+      setFadeStage('in');
+      fadeTimer.current = window.setTimeout(() => setFadeStage('idle'), 280);
+    }, 220) as unknown as number;
+  }
+
+  // Voltar ao mapa base (se precisar)
+  function fadeBackToBase(fast = false) {
+    if (!detailMode) return;
+    const out_dur = fast ? 120 : 220;
+    const in_dur = fast ? 150 : 280;
+
+    setFadeStage('out');
+    window.clearTimeout(fadeTimer.current || 0);
+    fadeTimer.current = window.setTimeout(() => {
+      setMapImageUrl(BASE_MAP);
+      setGraphUrl(BASE_GRAPH);
+      setCorridorsDataUrl(undefined); // Reseta o URL dos corredores para o base
+      setDetailMode(false);
+      setOriginNodeId(null);
+      setDestNodeId(null);
+      setTurnInstructions([]); // Limpa as instruções ao voltar
+      setFadeStage('in');
+      fadeTimer.current = window.setTimeout(() => setFadeStage('idle'), in_dur);
+    }, out_dur) as unknown as number;
+  }
+
+  // Troca manual para o mapa de detalhe (sem carregar grafo)
+  function toggleDetailView() {
+    setTurnInstructions([]); // Limpa as instruções ao trocar de vista
+    if (detailMode) {
+      fadeBackToBase(true);
+      return;
+    }
+    setFadeStage('out');
+    window.clearTimeout(fadeTimer.current || 0);
+    fadeTimer.current = window.setTimeout(() => {
+      setMapImageUrl(DETAIL_MAP);
+      setGraphUrl(DETAIL_GRAPH); // Agora carrega o grafo de detalhe
+      setCorridorsDataUrl(DETAIL_GRAPH); // E também o URL dos corredores
+      setDetailMode(true);
+      setFadeStage('in');
+      fadeTimer.current = window.setTimeout(() => setFadeStage('idle'), 150);
+    }, 120) as unknown as number;
+  }
+
+  // Callbacks vindos do Map2D (precisa do patch simples nele; ver guia abaixo)
+  const handleSelectOrigin = (nodeId: string) => {
+    setOriginNodeId(nodeId);
+    // aqui você pode decidir voltar ao mapa base se quiser
+  };
+
+  const handleRequestRoute = (payload: { fromId: string; toId: string; fromPoiId?: string; toPoiId?: string }) => {
+    // quando o usuário clicar "Ir para cá" no popup do Map2D
+    fadeToDetail(payload.fromId, payload.toId);
+  };
+
+  const handleRouteCalculated = (path: Node2D[], instructions: TurnInstruction[]) => {
+    setTurnInstructions(instructions);
+  };
 
   return (
     <div id="map-app-container">
@@ -40,34 +214,213 @@ export default function MapaPage() {
         </Link>
       </header>
 
-      <main className="content-area">
-        <div className="search-bar">
-          <i className="fa-solid fa-magnifying-glass"></i>
-          <input type="search" placeholder="Buscar local, sala ou serviço..." />
-          <div className="view-toggle">
-            <button className={mode === '2d' ? 'active' : ''} onClick={() => setMode('2d')}>2D</button>
-            <button className={mode === '3d' ? 'active' : ''} onClick={() => setMode('3d')}>3D</button>
-          </div>
-        </div>
 
+      <main className="content-area">
+        {/* Painel de Instruções de Rota */}
+        {turnInstructions.length > 0 && (
+          <RouteInstructions
+            instructions={turnInstructions}
+            onClose={() => setTurnInstructions([])}
+          />
+        )}
         <div id="map-container">
           {mode === '3d' ? (
             <Campus3D url="/models/Campus.glb" topDown={topDown} />
           ) : (
-            <MapContainer center={position} zoom={18} scrollWheelZoom style={{ height: '100%', width: '100%' }}>
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <Marker position={position}>
-                <Popup>
-                  <b>Ponto Central do Campus</b> <br /> Entrada do Campus da Uninassau.
-                </Popup>
-              </Marker>
+            <div
+              className={isMobilePortrait ? 'rotate-map' : ''}
+              style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}
+            >
+              <Map2D
+                mapImageUrl={mapImageUrl}
+                graphUrl={graphUrl}
+                corridorsUrl={corridorsDataUrl} // Passa o URL dos corredores
+                strokeColor={routePrimary}
+                markMode={adminMode}
+                markKind={markKind}
+                showCoords={adminMode}
+                showPoiLabels={adminMode}
+                marks={marks}
 
-              {/* Rota principal (exemplo) */}
-              <Polyline positions={mockPath} pathOptions={styleMain} />
-            </MapContainer>
+                onMark={(p: { x: number; y: number; kind: MarkKind }) => {
+                  setLastMark(p);
+                  setCapturedPoints(prev => [...prev, p]);
+                  setMarks((prev: Mark2D[]) => [...prev, { id: 'm' + Date.now(), ...p }]);
+                }}
+                onMarksChange={setMarks}
+                editGraph={adminMode && editGraph}
+                editTool={editTool}
+                editorNodeKind={editorNodeKind}
+                editorEdgeKind="CORRIDOR"
+                editorBidirectional={editorBidirectional}
+                editorAccessible={editorAccessible}
+                onEditorChange={setEditorData}
+                doorSnapPx={doorSnapPx}
+                showCorridorsOverlay={detailMode} // Set to true when in detailMode
+                // callbacks (precisam do patch no Map2D – ver guia abaixo)
+                // quando o usuário clicar “Estou aqui”
+                // @ts-ignore
+                onSelectOrigin={(nodeId: string) => handleSelectOrigin(nodeId)}
+                // quando o usuário clicar “Ir para cá”
+                // @ts-ignore
+                onRequestRoute={(payload: { fromId: string; toId: string; fromPoiId?: string; toPoiId?: string }) => handleRequestRoute(payload)}
+                onRouteCalculated={handleRouteCalculated}
+              />
+
+              {adminMode && <PointsHistory points={capturedPoints} onClear={clearMarks} />}
+
+              {/* Botão para alternar mapa de detalhe */}
+              {mode === '2d' && (
+                <button
+                  onClick={toggleDetailView}
+                  style={{
+                    position: 'absolute',
+                    top: 10,
+                    right: adminMode ? 320 : 10, // ajusta a posição se o painel de histórico estiver aberto
+                    zIndex: 11,
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    border: '1px solid var(--border-color, #2c2c2e)',
+                    background: 'var(--bg-tertiary, #2c2c2e)',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    transition: 'right 0.3s ease'
+                  }}
+                  title={detailMode ? "Voltar para Mapa Geral" : "Mostrar Mapa Detalhado"}
+                >
+                  {detailMode ? 'Geral' : 'Detalhe'}
+                </button>
+              )}
+
+              {/* Overlay de transição (fade) */}
+              {fadeStage !== 'idle' && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: '#0f1114',
+                    opacity: fadeStage === 'out' ? 1 : 0,
+                    transition: `opacity ${detailMode ? 150 : 280}ms ease`,
+                    pointerEvents: 'none'
+                  }}
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* OVERLAY DE CONTROLES SOBRE O MAPA */}
+        <div className="map-controls-overlay">
+          <div className="search-bar">
+            <i className="fa-solid fa-magnifying-glass"></i>
+            <input type="search" placeholder="Buscar local, sala ou serviço..." />
+            <div className="view-toggle">
+              <button className={mode === '2d' ? 'active' : ''} onClick={() => setMode('2d')}>2D</button>
+              <button className={mode === '3d' ? 'active' : ''} onClick={() => setMode('3d')}>3D</button>
+            </div>
+
+            {/* Botão Admin */}
+            <button
+              onClick={() => setAdminMode(v => !v)}
+              className={`admin-toggle-main ${adminMode ? 'active' : ''}`}
+              title="Modo Admin: marcar locais e conexões no mapa"
+            >
+              {adminMode ? 'Admin ON' : 'Admin OFF'}
+            </button>
+          </div>
+
+          {/* Painel Admin - Entrada/Referência */}
+          {mode === '2d' && adminMode && (
+            <div className="admin-panel">
+              <div className="admin-buttons">
+                <button
+                  onClick={() => setMarkKind('ENTRY')}
+                  className={markKind === 'ENTRY' ? 'active' : ''}
+                  title="Marcar PONTO DE ENTRADA"
+                >
+                  Entrada
+                </button>
+                <button
+                  onClick={() => setMarkKind('REF')}
+                  className={markKind === 'REF' ? 'active' : ''}
+                  title="Marcar PONTO DE REFERÊNCIA"
+                >
+                  Referência
+                </button>
+                <button
+                  onClick={() => setMarkKind('CONNECTION')}
+                  className={markKind === 'CONNECTION' ? 'active' : ''}
+                  title="Marcar PONTO DE CONEXÃO"
+                >
+                  Conexão
+                </button>
+              </div>
+
+              {lastMark && (
+                <span className="admin-info">
+                  {lastMark.kind === 'ENTRY' ? 'Entrada' : lastMark.kind === 'REF' ? 'Referência' : 'Conexão'} · x: {lastMark.x.toFixed(1)} · y: {lastMark.y.toFixed(1)}
+                </span>
+              )}
+              <div className="admin-actions">
+                <button onClick={copyLocalJSON}>Copiar Local</button>
+                <button onClick={copyGraphNodeJSON}>Copiar Nó</button>
+                <button onClick={clearMarks}>Limpar</button>
+              </div>
+            </div>
+          )}
+
+          {/* Painel Admin - Conexões */}
+          {mode === '2d' && adminMode && (
+            <div className="admin-panel">
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
+                <strong>Conexões</strong>
+                <button
+                  onClick={() => setEditGraph(v => !v)}
+                  className={`admin-toggle ${editGraph ? 'active' : ''}`}
+                  title="Habilitar edição de conexões"
+                >
+                  {editGraph ? 'Editor ON' : 'Editor OFF'}
+                </button>
+              </div>
+
+              <div className="admin-buttons">
+                <button
+                  onClick={() => setEditTool('node')}
+                  className={editTool === 'node' ? 'active' : ''}
+                  title="Adicionar ponto de conexão"
+                >
+                  Ponto
+                </button>
+                <button
+                  onClick={() => setEditTool('edge')}
+                  className={editTool === 'edge' ? 'active' : ''}
+                  title="Conectar nós"
+                >
+                  Conectar
+                </button>
+                <button
+                  onClick={() => setEditTool('delete')}
+                  className={`delete ${editTool === 'delete' ? 'active' : ''}`}
+                  title="Apagar nó"
+                >
+                  Apagar
+                </button>
+              </div>
+
+              <div className="admin-options">
+                <select
+                  value={editorNodeKind}
+                  onChange={(e) => setEditorNodeKind(e.target.value as 'INTERSECTION' | 'WAYPOINT')}
+                >
+                  <option value="INTERSECTION">INTERSECTION</option>
+                  <option value="WAYPOINT">WAYPOINT</option>
+                </select>
+                <label>
+                  <input type="checkbox" checked={editorBidirectional} onChange={(e) => setEditorBidirectional(e.target.checked)} />
+                  bidirecional
+                </label>
+              </div>
+            </div>
           )}
         </div>
       </main>

@@ -1,7 +1,0 @@
-{
-"nodes": [
-{ "id": "node:entrada_A1", "x": 1024, "y": 560 },
-{ "id": "node:entrada_A2", "x": 820, "y": 600 },
-{ "id": "node:entrada_B1", "x": 1400, "y": 520 }
-]
-}
