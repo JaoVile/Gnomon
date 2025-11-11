@@ -1,81 +1,46 @@
 import { useState } from 'react';
 
 type Props = {
-  title: string;
-  data: any[];
-  formatter?: (item: any) => any;
+  data: any;
 };
 
-// Simple button to copy text to clipboard
-function CopyButton({ text }: { text: string }) {
-  const [status, setStatus] = useState<'idle' | 'copied'>('idle');
+export default function JsonExporter({ data }: Props) {
+  const [copySuccess, setCopySuccess] = useState('');
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text).then(() => {
-      setStatus('copied');
-      const timer = setTimeout(() => setStatus('idle'), 2000);
-      return () => clearTimeout(timer);
-    });
+  const copyToClipboard = async () => {
+    const jsonString = JSON.stringify(data, null, 2);
+    try {
+      await navigator.clipboard.writeText(jsonString);
+      setCopySuccess('Copiado!');
+      setTimeout(() => setCopySuccess(''), 2000);
+    } catch (err) {
+      setCopySuccess('Falhou!');
+    }
   };
 
   return (
-    <button
-      onClick={handleCopy}
-      style={{
-        background: status === 'copied' ? '#34c759' : '#007aff',
-        color: 'white',
-        border: 'none',
-        borderRadius: 5,
-        padding: '4px 8px',
-        fontSize: '11px',
-        cursor: 'pointer',
-        minWidth: '60px',
-        transition: 'background-color 0.2s ease',
-      }}
-    >
-      {status === 'copied' ? 'Copiado!' : 'Copiar'}
-    </button>
-  );
-}
-
-
-export default function JsonExporter({ title, data, formatter }: Props) {
-  if (!data || data.length === 0) {
-    return null;
-  }
-
-  const formattedData = formatter ? data.map(formatter) : data;
-  const jsonString = JSON.stringify(formattedData, null, 2);
-
-  return (
-    <div style={{
-      background: 'rgba(28, 28, 30, 0.9)',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      borderRadius: 8,
-      padding: '8px 12px',
-      color: '#fff',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      maxHeight: '200px',
-      fontSize: '12px',
-      backdropFilter: 'blur(10px)',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <strong style={{ fontWeight: 600 }}>{title}</strong>
-        <CopyButton text={jsonString} />
+    <div className="admin-panel" style={{ position: 'absolute', right: '10px', top: '130px', width: '300px', zIndex: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <strong>Exportar Grafo (JSON)</strong>
+        <button onClick={copyToClipboard} style={{ padding: '4px 8px' }}>
+          {copySuccess || 'Copiar'}
+        </button>
       </div>
-      <pre style={{
-        margin: 0,
-        padding: '8px',
-        background: 'rgba(0,0,0,0.3)',
-        borderRadius: 4,
-        overflowY: 'auto',
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-all',
-        flexGrow: 1,
-      }}>
-        {jsonString}
+      <pre
+        style={{
+          background: 'rgba(0,0,0,0.2)',
+          border: '1px solid var(--border-color, #2c2c2e)',
+          borderRadius: '6px',
+          padding: '8px',
+          maxHeight: '300px',
+          overflowY: 'auto',
+          fontSize: '11px',
+          color: '#fff',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-all',
+        }}
+      >
+        {JSON.stringify(data, null, 2)}
       </pre>
     </div>
   );

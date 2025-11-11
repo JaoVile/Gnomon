@@ -83,32 +83,80 @@ Versão: 0.9 (UI de Overlay Responsivo)
 
 /* Barra de busca */
 .search-bar {
-  width: min(95%, 780px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 1000px; /* Aumentado para acomodar os seletores */
+  padding: 8px;
+  background: var(--bg-secondary, #1c1c1e);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #2c2c2e);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.route-selection {
   display: flex;
   align-items: center;
   gap: 10px;
-  position: relative;
-}
-.search-bar input {
-  width: 100%;
-  padding: 15px 20px 15px 45px;
-  border: none;
-  border-radius: 50px;
-  background-color: var(--cor-fundo-secundaria);
-  color: var(--cor-texto);
-  font-size: 1em;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-.search-bar i {
-  position: absolute;
-  left: 20px;
-  color: var(--cor-texto-secundario);
+  flex-grow: 1;
 }
 
-/* Toggle 2D/3D e Admin */
-.view-toggle {
+.select-wrapper {
   display: flex;
+  align-items: center;
   gap: 6px;
+  color: #aeb3b9;
+  font-size: 14px;
+}
+
+.route-selection select {
+  background-color: var(--bg-tertiary, #2c2c2e);
+  color: #fff;
+  border: 1px solid var(--border-color, #3a3a3c);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  flex-grow: 1;
+  min-width: 150px;
+}
+
+.route-selection button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #0A84FF;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.route-selection button:disabled {
+  background-color: #3a3a3c;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.route-selection button.clear-btn {
+  background: transparent;
+  color: #aeb3b9;
+  padding: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.route-selection button.clear-btn:hover {
+  background-color: var(--bg-tertiary, #2c2c2e);
+}
+
+.search-bar .view-toggle {
+  display: flex;
+  border-radius: 8px;
+  background: var(--bg-tertiary, #2c2c2e);
+  padding: 4px;
 }
 .view-toggle button, .admin-toggle-main {
   padding: 8px 12px;
@@ -289,22 +337,109 @@ Versão: 0.9 (UI de Overlay Responsivo)
 }
 
 .zoom-icon {
+
   animation: pinch-in-out 2s ease-in-out infinite;
+
 }
+
+
 
 @keyframes fade-in-out {
+
   0%, 100% { opacity: 0; }
+
   15%, 85% { opacity: 1; }
+
 }
+
+
 
 @keyframes pan-horizontal {
+
   0% { transform: translateX(-8px); }
+
   50% { transform: translateX(8px); }
+
   100% { transform: translateX(-8px); }
+
 }
 
+
+
 @keyframes pinch-in-out {
+
   0% { transform: scale(1); }
+
   50% { transform: scale(0.85); }
+
   100% { transform: scale(1); }
+
+}
+
+
+
+/* --- Painel de Rota --- */
+
+.route-panel {
+
+  width: min(95%, 780px);
+
+  display: flex;
+
+  gap: 8px;
+
+  align-items: center;
+
+}
+
+
+
+.route-panel select {
+
+  flex-grow: 1;
+
+  padding: 12px 15px;
+
+  border: 1px solid var(--border);
+
+  border-radius: 8px;
+
+  background-color: var(--cor-fundo-secundaria);
+
+  color: var(--cor-texto);
+
+  font-size: 0.9em;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+}
+
+
+
+.route-panel .clear-route-btn {
+
+  padding: 10px;
+
+  border: 1px solid var(--border);
+
+  background: #b32b2b;
+
+  color: white;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+.route-panel .clear-route-btn i {
+
+  font-size: 1.2em;
+
 }

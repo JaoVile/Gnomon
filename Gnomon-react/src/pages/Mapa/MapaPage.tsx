@@ -27,21 +27,10 @@ export default function MapaPage() {
     return () => window.removeEventListener('resize', checkOrientation);
   }, []);
 
-  // Mapas e grafos (2 imagens)
-  const BASE_MAP = '/maps/Campus_2D_TESTE.png';
-  const BASE_GRAPH = '/maps/nodes-2d.json';
-  // Coloque sua imagem detalhada (JPG) aqui:
+  // Mapas e grafos
   const DETAIL_MAP = '/maps/Campus_2D_DETALHE.png';
-  // E (opcional) um grafo de corredores específico para o detalhado:
-  const DETAIL_GRAPH = '/maps/corridors-floor0.json';
-
-  // Estado do mapa atual (troca com fade quando rota é solicitada)
-  const [mapImageUrl, setMapImageUrl] = useState(BASE_MAP);
-  const [graphUrl, setGraphUrl] = useState(BASE_GRAPH);
-  const [corridorsDataUrl, setCorridorsDataUrl] = useState<string | undefined>(undefined); // Novo estado para o URL dos corredores
-  const [detailMode, setDetailMode] = useState(false);
-  const [fadeStage, setFadeStage] = useState<'idle' | 'out' | 'in'>('idle');
-  const fadeTimer = useRef<number | null>(null);
+  const DETAIL_GRAPH = '/maps/nodes-2d-detalhe.json';
+  const CORRIDORS_GRAPH = '/maps/corridors-floor0.json';
 
   // Admin - marcação de Entrada/Referência
   const [adminMode, setAdminMode] = useState(false);
@@ -66,11 +55,6 @@ export default function MapaPage() {
   const [originNodeId, setOriginNodeId] = useState<string | null>(null);
   const [destNodeId, setDestNodeId] = useState<string | null>(null);
   const [turnInstructions, setTurnInstructions] = useState<TurnInstruction[]>([]); // Novo estado para as instruções de rota
-
-  // Encaixe origem/dest no corredor (px)
-
-
-  // Origem/destino selecionados (para lógica de troca)
 
 
   const { routePrimary } = useThemeVars();
@@ -127,74 +111,13 @@ export default function MapaPage() {
 
 
 
-  // Troca suave para o mapa detalhado quando a rota é solicitada
-  function fadeToDetail(fromId: string, toId: string) {
-    if (detailMode) return; // já está no detalhado
-    setOriginNodeId(fromId);
-    setDestNodeId(toId);
-
-    // fade “escurece”, troca imagem e volta
-    setFadeStage('out');
-    window.clearTimeout(fadeTimer.current || 0);
-    fadeTimer.current = window.setTimeout(() => {
-      setMapImageUrl(DETAIL_MAP);
-      setGraphUrl(DETAIL_GRAPH); // se ainda não existir, mantém o BASE_GRAPH por enquanto
-      setCorridorsDataUrl(DETAIL_GRAPH); // Define o URL dos corredores para o detalhado
-      setDetailMode(true);
-      setFadeStage('in');
-      fadeTimer.current = window.setTimeout(() => setFadeStage('idle'), 280);
-    }, 220) as unknown as number;
-  }
-
-  // Voltar ao mapa base (se precisar)
-  function fadeBackToBase(fast = false) {
-    if (!detailMode) return;
-    const out_dur = fast ? 120 : 220;
-    const in_dur = fast ? 150 : 280;
-
-    setFadeStage('out');
-    window.clearTimeout(fadeTimer.current || 0);
-    fadeTimer.current = window.setTimeout(() => {
-      setMapImageUrl(BASE_MAP);
-      setGraphUrl(BASE_GRAPH);
-      setCorridorsDataUrl(undefined); // Reseta o URL dos corredores para o base
-      setDetailMode(false);
-      setOriginNodeId(null);
-      setDestNodeId(null);
-      setTurnInstructions([]); // Limpa as instruções ao voltar
-      setFadeStage('in');
-      fadeTimer.current = window.setTimeout(() => setFadeStage('idle'), in_dur);
-    }, out_dur) as unknown as number;
-  }
-
-  // Troca manual para o mapa de detalhe (sem carregar grafo)
-  function toggleDetailView() {
-    setTurnInstructions([]); // Limpa as instruções ao trocar de vista
-    if (detailMode) {
-      fadeBackToBase(true);
-      return;
-    }
-    setFadeStage('out');
-    window.clearTimeout(fadeTimer.current || 0);
-    fadeTimer.current = window.setTimeout(() => {
-      setMapImageUrl(DETAIL_MAP);
-      setGraphUrl(DETAIL_GRAPH); // Agora carrega o grafo de detalhe
-      setCorridorsDataUrl(DETAIL_GRAPH); // E também o URL dos corredores
-      setDetailMode(true);
-      setFadeStage('in');
-      fadeTimer.current = window.setTimeout(() => setFadeStage('idle'), 150);
-    }, 120) as unknown as number;
-  }
-
-  // Callbacks vindos do Map2D (precisa do patch simples nele; ver guia abaixo)
   const handleSelectOrigin = (nodeId: string) => {
     setOriginNodeId(nodeId);
-    // aqui você pode decidir voltar ao mapa base se quiser
   };
 
   const handleRequestRoute = (payload: { fromId: string; toId: string; fromPoiId?: string; toPoiId?: string }) => {
-    // quando o usuário clicar "Ir para cá" no popup do Map2D
-    fadeToDetail(payload.fromId, payload.toId);
+    setOriginNodeId(payload.fromId);
+    setDestNodeId(payload.toId);
   };
 
   const handleRouteCalculated = (path: Node2D[], instructions: TurnInstruction[]) => {
@@ -232,9 +155,9 @@ export default function MapaPage() {
               style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}
             >
               <Map2D
-                mapImageUrl={mapImageUrl}
-                graphUrl={graphUrl}
-                corridorsUrl={corridorsDataUrl} // Passa o URL dos corredores
+                mapImageUrl={DETAIL_MAP}
+                graphUrl={DETAIL_GRAPH}
+                corridorsUrl={CORRIDORS_GRAPH}
                 strokeColor={routePrimary}
                 markMode={adminMode}
                 markKind={markKind}
@@ -256,7 +179,7 @@ export default function MapaPage() {
                 editorAccessible={editorAccessible}
                 onEditorChange={setEditorData}
                 doorSnapPx={doorSnapPx}
-                showCorridorsOverlay={detailMode} // Set to true when in detailMode
+                showCorridorsOverlay={true} // Always true now
                 // callbacks (precisam do patch no Map2D – ver guia abaixo)
                 // quando o usuário clicar “Estou aqui”
                 // @ts-ignore
@@ -268,43 +191,6 @@ export default function MapaPage() {
               />
 
               {adminMode && <PointsHistory points={capturedPoints} onClear={clearMarks} />}
-
-              {/* Botão para alternar mapa de detalhe */}
-              {mode === '2d' && (
-                <button
-                  onClick={toggleDetailView}
-                  style={{
-                    position: 'absolute',
-                    top: 10,
-                    right: adminMode ? 320 : 10, // ajusta a posição se o painel de histórico estiver aberto
-                    zIndex: 11,
-                    padding: '8px 12px',
-                    borderRadius: 8,
-                    border: '1px solid var(--border-color, #2c2c2e)',
-                    background: 'var(--bg-tertiary, #2c2c2e)',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    transition: 'right 0.3s ease'
-                  }}
-                  title={detailMode ? "Voltar para Mapa Geral" : "Mostrar Mapa Detalhado"}
-                >
-                  {detailMode ? 'Geral' : 'Detalhe'}
-                </button>
-              )}
-
-              {/* Overlay de transição (fade) */}
-              {fadeStage !== 'idle' && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: '#0f1114',
-                    opacity: fadeStage === 'out' ? 1 : 0,
-                    transition: `opacity ${detailMode ? 150 : 280}ms ease`,
-                    pointerEvents: 'none'
-                  }}
-                />
-              )}
             </div>
           )}
         </div>
