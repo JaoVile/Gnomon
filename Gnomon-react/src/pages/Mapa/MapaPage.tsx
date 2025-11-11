@@ -1,12 +1,9 @@
-import { useState, useRef, useLayoutEffect } from 'react';
-import { Link } from 'react-router-dom';
-import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
-import Campus3D from '../../components/Campus3d';
 import Map2D, { type MarkKind, type Mark2D, type TurnInstruction } from '../../components/Map2D';
 import type { Node2D } from '../../hooks/useNavigation2D';
 import RouteInstructions from '../../components/RouteInstructions';
 import PointsHistory from '../../components/PointsHistory';
 import { useThemeVars } from '../../libs/useThemeVars';
+import { useMapData } from '../../hooks/useMapData'; // Import useMapData
 import './MapaPage.css';
 
 export default function MapaPage() {
@@ -31,6 +28,8 @@ export default function MapaPage() {
   const DETAIL_MAP = '/maps/Campus_2D_DETALHE.png';
   const DETAIL_GRAPH = '/maps/nodes-2d-detalhe.json';
   const CORRIDORS_GRAPH = '/maps/corridors-floor0.json';
+
+  const { data: mapData } = useMapData(); // Get mapData from useMapData hook
 
   // Admin - marcação de Entrada/Referência
   const [adminMode, setAdminMode] = useState(false);
@@ -155,6 +154,7 @@ export default function MapaPage() {
               style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}
             >
               <Map2D
+                mapData={mapData} // Pass mapData to Map2D
                 mapImageUrl={DETAIL_MAP}
                 graphUrl={DETAIL_GRAPH}
                 corridorsUrl={CORRIDORS_GRAPH}
@@ -228,7 +228,7 @@ export default function MapaPage() {
                 </button>
                 <button
                   onClick={() => setMarkKind('REF')}
-                  className={markKind === 'REF' ? 'active' : ''}
+                  className={markKind === 'REF' ? 'active' => ''}
                   title="Marcar PONTO DE REFERÊNCIA"
                 >
                   Referência
