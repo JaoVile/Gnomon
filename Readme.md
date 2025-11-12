@@ -357,7 +357,9 @@ Gnomon_Local
 │  │  ├─ Gnomon_Sem_Nome_Icon.png
 │  │  ├─ maps
 │  │  │  ├─ Campus_2D_DETALHE.png
-│  │  │  └─ nodes-2d-detalhe.json
+│  │  │  ├─ generate-edges.js
+│  │  │  ├─ nodes-2d-detalhe.json
+│  │  │  └─ path-graph.json
 │  │  ├─ models
 │  │  │  └─ Campus.glb
 │  │  └─ places
@@ -370,6 +372,8 @@ Gnomon_Local
 │  │     ├─ laboratorios.jpg
 │  │     └─ patio.jpg
 │  ├─ README.md
+│  ├─ scripts
+│  │  └─ connect-pois.js
 │  ├─ src
 │  │  ├─ App.tsx
 │  │  ├─ assets
@@ -385,11 +389,15 @@ Gnomon_Local
 │  │  │  ├─ Campus3d.tsx
 │  │  │  ├─ CtaButton.tsx
 │  │  │  ├─ Footer.tsx
+│  │  │  ├─ GpsMarker.css
+│  │  │  ├─ GpsMarker.tsx
 │  │  │  ├─ Header.tsx
 │  │  │  ├─ JsonExporter.tsx
 │  │  │  ├─ Map2D.tsx
 │  │  │  ├─ PointsHistory.tsx
-│  │  │  └─ RouteInstructions.tsx
+│  │  │  ├─ RouteInstructions.tsx
+│  │  │  ├─ Toast.css
+│  │  │  └─ Toast.tsx
 │  │  ├─ hooks
 │  │  │  ├─ useMapData.ts
 │  │  │  ├─ useNavigation2D.ts

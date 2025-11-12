@@ -1,9 +1,15 @@
-import Map2D, { type MarkKind, type Mark2D, type TurnInstruction } from '../../components/Map2D';
-import type { Node2D } from '../../hooks/useNavigation2D';
+import { useState, useLayoutEffect } from 'react';
+import { Link } from 'react-router-dom';
+import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
+import Campus3D from '../../components/Campus3d';
+import Map2D, { 
+  type TurnInstruction,
+  type Node2D
+} from '../../components/Map2D';
 import RouteInstructions from '../../components/RouteInstructions';
-import PointsHistory from '../../components/PointsHistory';
+import Toast from '../../components/Toast';
 import { useThemeVars } from '../../libs/useThemeVars';
-import { useMapData } from '../../hooks/useMapData'; // Import useMapData
+import { useMapData } from '../../hooks/useMapData';
 import './MapaPage.css';
 
 export default function MapaPage() {
@@ -11,7 +17,6 @@ export default function MapaPage() {
   const [mode, setMode] = useState<'2d' | '3d'>('2d');
   const [topDown] = useState(false);
 
-  // Detecção de mobile em modo retrato para girar o mapa
   const [isMobilePortrait, setIsMobilePortrait] = useState(false);
   useLayoutEffect(() => {
     const checkOrientation = () => {
@@ -24,108 +29,68 @@ export default function MapaPage() {
     return () => window.removeEventListener('resize', checkOrientation);
   }, []);
 
-  // Mapas e grafos
   const DETAIL_MAP = '/maps/Campus_2D_DETALHE.png';
-  const DETAIL_GRAPH = '/maps/nodes-2d-detalhe.json';
-  const CORRIDORS_GRAPH = '/maps/corridors-floor0.json';
+  const { data: mapData } = useMapData();
 
-  const { data: mapData } = useMapData(); // Get mapData from useMapData hook
+  // ✅ ESTADO DE NAVEGAÇÃO
+  const [originId, setOriginId] = useState<string | null>(null);
+  const [originLabel, setOriginLabel] = useState<string | null>(null);
+  const [path, setPath] = useState<Node2D[] | null>(null);
+  const [turnInstructions, setTurnInstructions] = useState<TurnInstruction[]>([]);
 
-  // Admin - marcação de Entrada/Referência
-  const [adminMode, setAdminMode] = useState(false);
-  const [markKind, setMarkKind] = useState<MarkKind>('ENTRY');
-  const [marks, setMarks] = useState<Mark2D[]>([]);
-  const [lastMark, setLastMark] = useState<{ x: number; y: number; kind: MarkKind } | null>(null);
-  const [capturedPoints, setCapturedPoints] = useState<{ x: number; y: number; kind: MarkKind }[]>([]);
-
-  // Admin - Editor de Conexões
-  const [editGraph, setEditGraph] = useState(false);
-  const [editTool, setEditTool] = useState<'node' | 'edge' | 'delete'>('node');
-  const [editorNodeKind, setEditorNodeKind] = useState<'INTERSECTION' | 'WAYPOINT'>('INTERSECTION');
-  const [editorBidirectional, setEditorBidirectional] = useState(true);
-
-  const [editorAccessible, setEditorAccessible] = useState(true);
-  const [editorData, setEditorData] = useState<{ nodes: any[]; edges: any[] }>({ nodes: [], edges: [] });
-
-  // Encaixe origem/dest no corredor (px)
-  const [doorSnapPx, setDoorSnapPx] = useState(28);
-
-  // Origem/destino selecionados (para lógica de troca)
-  const [originNodeId, setOriginNodeId] = useState<string | null>(null);
-  const [destNodeId, setDestNodeId] = useState<string | null>(null);
-  const [turnInstructions, setTurnInstructions] = useState<TurnInstruction[]>([]); // Novo estado para as instruções de rota
-
+  // ✅ TOAST DE FEEDBACK
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const { routePrimary } = useThemeVars();
 
-  const copy = async (text: string) => {
-    try { await navigator.clipboard.writeText(text); } catch { }
+  // ✅ CALLBACKS DE NAVEGAÇÃO
+  const handleSelectOrigin = (nodeId: string, label?: string) => {
+    console.log('📍 Origem definida:', nodeId, label);
+    setOriginId(nodeId);
+    setOriginLabel(label || null);
+    setPath(null);
+    
+    setToast({
+      message: `📍 ${label || 'Local marcado'}`,
+      type: 'success'
+    });
   };
 
-  // JSON para Local (sala/serviço/entrada)
-  const copyLocalJSON = () => {
-    if (!lastMark) return;
-    const isEntry = lastMark.kind === 'ENTRY';
-    const obj = {
-      name: isEntry ? 'Entrada Principal' : 'Nome do Local',
-      description: null,
-      code: isEntry ? null : 'COD-000',
-      type: isEntry ? 'ENTRANCE' : 'OTHER',
-      x: Number(lastMark.x.toFixed(2)),
-      y: Number(lastMark.y.toFixed(2)),
-      z: 0,
-      floor: 0,
-      building: 'A',
-      iconUrl: null,
-      imageUrl: null,
-      accessible: true,
-      mapId: 1
-    };
-    copy(JSON.stringify(obj, null, 2));
-  };
-
-  // JSON para GraphNode
-  const copyGraphNodeJSON = () => {
-    if (!lastMark) return;
-    const obj = {
-      name: lastMark.kind === 'ENTRY' ? 'Entrada' : 'Ponto de Referência',
-      x: Number(lastMark.x.toFixed(2)),
-      y: Number(lastMark.y.toFixed(2)),
-      z: 0,
-      floor: 0,
-      building: 'A',
-      type: lastMark.kind === 'ENTRY' ? 'ENTRANCE' : 'DESTINATION'
-    };
-    copy(JSON.stringify(obj, null, 2));
-  };
-
-  const clearMarks = () => {
-    setMarks([]);
-    setLastMark(null);
-    setCapturedPoints([]);
-  };
-
-  // Copiar JSON das conexões
-
-
-
-
-  const handleSelectOrigin = (nodeId: string) => {
-    setOriginNodeId(nodeId);
-  };
-
-  const handleRequestRoute = (payload: { fromId: string; toId: string; fromPoiId?: string; toPoiId?: string }) => {
-    setOriginNodeId(payload.fromId);
-    setDestNodeId(payload.toId);
-  };
-
-  const handleRouteCalculated = (path: Node2D[], instructions: TurnInstruction[]) => {
+  const handleRouteCalculated = (newPath: Node2D[], instructions: TurnInstruction[]) => {
+    console.log('🗺️ Rota calculada:', newPath.length, 'pontos');
+    setPath(newPath);
     setTurnInstructions(instructions);
+    
+    setToast({
+      message: `✅ Rota calculada: ${newPath.length} pontos`,
+      type: 'success'
+    });
+  };
+
+  const clearRoute = () => {
+    setPath(null);
+    setTurnInstructions([]);
+    setToast({
+      message: 'Rota removida',
+      type: 'info'
+    });
+  };
+
+  const clearOrigin = () => {
+    setOriginId(null);
+    setOriginLabel(null);
+    setPath(null);
+    setTurnInstructions([]);
+    setToast({
+      message: 'Origem removida',
+      type: 'info'
+    });
   };
 
   return (
     <div id="map-app-container">
-      <header className="top-bar">
+      {/* ✅ HEADER - CLICÁVEL */}
+      <header className="top-bar" style={{ pointerEvents: 'auto' }}>
         <i className="fa-solid fa-bars menu-icon"></i>
         <Link to="/" className="logo-container">
           <img src={logoIcon} alt="Ícone Gnomon" />
@@ -136,182 +101,183 @@ export default function MapaPage() {
         </Link>
       </header>
 
-
       <main className="content-area">
-        {/* Painel de Instruções de Rota */}
+        {/* ✅ TOAST DE FEEDBACK - NÃO BLOQUEIA */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
+
+        {/* ✅ INSTRUÇÕES DE ROTA - SEM WRAPPER BLOQUEADOR */}
         {turnInstructions.length > 0 && (
           <RouteInstructions
             instructions={turnInstructions}
-            onClose={() => setTurnInstructions([])}
+            onClose={() => {
+              setTurnInstructions([]);
+              setPath(null);
+            }}
           />
         )}
-        <div id="map-container">
+        
+        {/* ✅ CONTAINER DO MAPA - PERMITE INTERAÇÕES */}
+        <div id="map-container" style={{ pointerEvents: 'auto' }}>
           {mode === '3d' ? (
             <Campus3D url="/models/Campus.glb" topDown={topDown} />
           ) : (
             <div
               className={isMobilePortrait ? 'rotate-map' : ''}
-              style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}
+              style={{ 
+                position: 'relative', 
+                width: '100%', 
+                height: '100%', 
+                overflow: 'hidden',
+                pointerEvents: 'auto' // ✅ PERMITE INTERAÇÕES
+              }}
             >
               <Map2D
-                mapData={mapData} // Pass mapData to Map2D
+                mapData={mapData}
                 mapImageUrl={DETAIL_MAP}
-                graphUrl={DETAIL_GRAPH}
-                corridorsUrl={CORRIDORS_GRAPH}
                 strokeColor={routePrimary}
-                markMode={adminMode}
-                markKind={markKind}
-                showCoords={adminMode}
-                showPoiLabels={adminMode}
-                marks={marks}
-
-                onMark={(p: { x: number; y: number; kind: MarkKind }) => {
-                  setLastMark(p);
-                  setCapturedPoints(prev => [...prev, p]);
-                  setMarks((prev: Mark2D[]) => [...prev, { id: 'm' + Date.now(), ...p }]);
-                }}
-                onMarksChange={setMarks}
-                editGraph={adminMode && editGraph}
-                editTool={editTool}
-                editorNodeKind={editorNodeKind}
-                editorEdgeKind="CORRIDOR"
-                editorBidirectional={editorBidirectional}
-                editorAccessible={editorAccessible}
-                onEditorChange={setEditorData}
-                doorSnapPx={doorSnapPx}
-                showCorridorsOverlay={true} // Always true now
-                // callbacks (precisam do patch no Map2D – ver guia abaixo)
-                // quando o usuário clicar “Estou aqui”
-                // @ts-ignore
-                onSelectOrigin={(nodeId: string) => handleSelectOrigin(nodeId)}
-                // quando o usuário clicar “Ir para cá”
-                // @ts-ignore
-                onRequestRoute={(payload: { fromId: string; toId: string; fromPoiId?: string; toPoiId?: string }) => handleRequestRoute(payload)}
+                path={path}
+                originId={originId}
+                onSelectOrigin={handleSelectOrigin}
                 onRouteCalculated={handleRouteCalculated}
+                showCorridorsOverlay={false}
               />
-
-              {adminMode && <PointsHistory points={capturedPoints} onClear={clearMarks} />}
             </div>
           )}
         </div>
 
-        {/* OVERLAY DE CONTROLES SOBRE O MAPA */}
-        <div className="map-controls-overlay">
-          <div className="search-bar">
+        {/* ✅ CONTROLES DO MAPA - WRAPPER NÃO BLOQUEIA */}
+        <div 
+          className="map-controls-overlay" 
+          style={{ 
+            pointerEvents: 'none', // ✅ WRAPPER NÃO BLOQUEIA O MAPA
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            padding: '16px',
+            zIndex: 10
+          }}
+        >
+          {/* ✅ BARRA DE BUSCA - CLICÁVEL */}
+          <div 
+            className="search-bar" 
+            style={{ 
+              pointerEvents: 'auto' // ✅ BARRA É CLICÁVEL
+            }}
+          >
             <i className="fa-solid fa-magnifying-glass"></i>
             <input type="search" placeholder="Buscar local, sala ou serviço..." />
             <div className="view-toggle">
               <button className={mode === '2d' ? 'active' : ''} onClick={() => setMode('2d')}>2D</button>
               <button className={mode === '3d' ? 'active' : ''} onClick={() => setMode('3d')}>3D</button>
             </div>
-
-            {/* Botão Admin */}
-            <button
-              onClick={() => setAdminMode(v => !v)}
-              className={`admin-toggle-main ${adminMode ? 'active' : ''}`}
-              title="Modo Admin: marcar locais e conexões no mapa"
-            >
-              {adminMode ? 'Admin ON' : 'Admin OFF'}
-            </button>
           </div>
 
-          {/* Painel Admin - Entrada/Referência */}
-          {mode === '2d' && adminMode && (
-            <div className="admin-panel">
-              <div className="admin-buttons">
-                <button
-                  onClick={() => setMarkKind('ENTRY')}
-                  className={markKind === 'ENTRY' ? 'active' : ''}
-                  title="Marcar PONTO DE ENTRADA"
-                >
-                  Entrada
-                </button>
-                <button
-                  onClick={() => setMarkKind('REF')}
-                  className={markKind === 'REF' ? 'active' => ''}
-                  title="Marcar PONTO DE REFERÊNCIA"
-                >
-                  Referência
-                </button>
-                <button
-                  onClick={() => setMarkKind('CONNECTION')}
-                  className={markKind === 'CONNECTION' ? 'active' : ''}
-                  title="Marcar PONTO DE CONEXÃO"
-                >
-                  Conexão
-                </button>
+          {/* ✅ INDICADOR DE ORIGEM - CLICÁVEL */}
+          {originId && !path && (
+            <div 
+              className="origin-indicator" 
+              style={{
+                padding: '12px',
+                background: 'rgba(10, 132, 255, 0.95)',
+                borderRadius: '12px',
+                marginTop: '8px',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                pointerEvents: 'auto', // ✅ INDICADOR É CLICÁVEL
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.25)'
+              }}
+            >
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px',
+                flex: 1,
+                minWidth: 0 
+              }}>
+                <i className="fa-solid fa-location-dot" style={{ fontSize: '20px', flexShrink: 0 }}></i>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: '12px', opacity: 0.85 }}>Você está em:</div>
+                  <div style={{ 
+                    fontWeight: 600,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {originLabel || 'Local selecionado'}
+                  </div>
+                </div>
               </div>
-
-              {lastMark && (
-                <span className="admin-info">
-                  {lastMark.kind === 'ENTRY' ? 'Entrada' : lastMark.kind === 'REF' ? 'Referência' : 'Conexão'} · x: {lastMark.x.toFixed(1)} · y: {lastMark.y.toFixed(1)}
-                </span>
-              )}
-              <div className="admin-actions">
-                <button onClick={copyLocalJSON}>Copiar Local</button>
-                <button onClick={copyGraphNodeJSON}>Copiar Nó</button>
-                <button onClick={clearMarks}>Limpar</button>
-              </div>
+              <button
+                onClick={clearOrigin}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  transition: 'background 0.2s',
+                  pointerEvents: 'auto' // ✅ BOTÃO É CLICÁVEL
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
             </div>
           )}
 
-          {/* Painel Admin - Conexões */}
-          {mode === '2d' && adminMode && (
-            <div className="admin-panel">
-              <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
-                <strong>Conexões</strong>
-                <button
-                  onClick={() => setEditGraph(v => !v)}
-                  className={`admin-toggle ${editGraph ? 'active' : ''}`}
-                  title="Habilitar edição de conexões"
-                >
-                  {editGraph ? 'Editor ON' : 'Editor OFF'}
-                </button>
-              </div>
-
-              <div className="admin-buttons">
-                <button
-                  onClick={() => setEditTool('node')}
-                  className={editTool === 'node' ? 'active' : ''}
-                  title="Adicionar ponto de conexão"
-                >
-                  Ponto
-                </button>
-                <button
-                  onClick={() => setEditTool('edge')}
-                  className={editTool === 'edge' ? 'active' : ''}
-                  title="Conectar nós"
-                >
-                  Conectar
-                </button>
-                <button
-                  onClick={() => setEditTool('delete')}
-                  className={`delete ${editTool === 'delete' ? 'active' : ''}`}
-                  title="Apagar nó"
-                >
-                  Apagar
-                </button>
-              </div>
-
-              <div className="admin-options">
-                <select
-                  value={editorNodeKind}
-                  onChange={(e) => setEditorNodeKind(e.target.value as 'INTERSECTION' | 'WAYPOINT')}
-                >
-                  <option value="INTERSECTION">INTERSECTION</option>
-                  <option value="WAYPOINT">WAYPOINT</option>
-                </select>
-                <label>
-                  <input type="checkbox" checked={editorBidirectional} onChange={(e) => setEditorBidirectional(e.target.checked)} />
-                  bidirecional
-                </label>
-              </div>
+          {/* ✅ BOTÃO PARA LIMPAR ROTA - CLICÁVEL */}
+          {path && (
+            <div 
+              className="route-controls" 
+              style={{
+                padding: '12px',
+                background: 'rgba(20,22,26,0.95)',
+                borderRadius: '12px',
+                marginTop: '8px',
+                pointerEvents: 'auto', // ✅ CONTROLE É CLICÁVEL
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.25)'
+              }}
+            >
+              <button
+                onClick={clearRoute}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: '1px solid #FF3B30',
+                  background: '#FF3B30',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  transition: 'background 0.2s',
+                  pointerEvents: 'auto' // ✅ BOTÃO É CLICÁVEL
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#FF2D20'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#FF3B30'}
+              >
+                <i className="fa-solid fa-xmark"></i> Limpar Rota
+              </button>
             </div>
           )}
         </div>
       </main>
 
-      <footer className="bottom-nav">
+      {/* ✅ FOOTER - CLICÁVEL */}
+      <footer className="bottom-nav" style={{ pointerEvents: 'auto' }}>
         <div className={`nav-item ${activeNav === 'Mapa' ? 'active' : ''}`} onClick={() => setActiveNav('Mapa')}>
           <i className="fa-solid fa-map-location-dot"></i>
           <span>Mapa</span>

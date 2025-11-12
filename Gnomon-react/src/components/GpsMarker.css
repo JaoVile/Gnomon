@@ -1,0 +1,15 @@
+.gps-marker {
+  pointer-events: none;
+  filter: drop-shadow(0 2px 8px rgba(10, 132, 255, 0.4));
+}
+
+@keyframes gps-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.5;
+  }
+}

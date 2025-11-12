@@ -1,0 +1,133 @@
+/* src/components/RouteInstructions.css */
+
+.route-instructions-panel {
+  pointer-events: auto; /* ✅ APENAS O PAINEL É CLICÁVEL */
+  position: fixed;
+  top: 80px;
+  right: 16px;
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  background: rgba(20, 22, 26, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 16px;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color: white;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.panel-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.close-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  pointer-events: auto; /* ✅ BOTÃO É CLICÁVEL */
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.close-button:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.instructions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.instruction-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.instruction-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.instruction-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 132, 255, 0.2);
+  border-radius: 50%;
+  color: #0A84FF;
+  font-size: 16px;
+}
+
+.instruction-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.instruction-text span {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.distance-label {
+  display: block;
+  color: #999;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .route-instructions-panel {
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-height: 50vh;
+  }
+}

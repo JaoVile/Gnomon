@@ -1,51 +1,77 @@
 // src/components/RouteInstructions.tsx
 import React from 'react';
+import './RouteInstructions.css'; // ✅ ADICIONE ESTA LINHA
 import type { TurnInstruction } from './Map2D';
 
 type Props = {
-  instructions: TurnInstruction[];
+  instructions?: TurnInstruction[];
   onClose: () => void;
 };
 
-function getIconForInstruction(instruction: string): string {
-  const lower = instruction.toLowerCase();
-  if (lower.includes('comece') || lower.includes('partida')) return 'fa-solid fa-flag';
-  if (lower.includes('destino') || lower.includes('chegou')) return 'fa-solid fa-flag-checkered';
-  if (lower.includes('direita')) return 'fa-solid fa-arrow-turn-up fa-rotate-90';
-  if (lower.includes('esquerda')) return 'fa-solid fa-arrow-turn-up fa-flip-horizontal';
-  return 'fa-solid fa-arrow-up'; // Siga em frente
+function resolveIcon(step: TurnInstruction): string {
+  if (step.icon && step.icon.startsWith('fa-')) {
+    return `fa-solid ${step.icon}`;
+  }
+
+  const t = (step.text ?? '').toLowerCase();
+
+  if (t.includes('iniciar') || t.includes('comece') || t.includes('partida')) 
+    return 'fa-solid fa-location-dot';
+  if (t.includes('destino') || t.includes('chegou')) 
+    return 'fa-solid fa-flag-checkered';
+  if (t.includes('direita')) 
+    return 'fa-solid fa-arrow-right';
+  if (t.includes('esquerda')) 
+    return 'fa-solid fa-arrow-left';
+  if (t.includes('retorne') || t.includes('180')) 
+    return 'fa-solid fa-rotate-left';
+
+  return 'fa-solid fa-arrow-up';
 }
 
-export default function RouteInstructions({ instructions, onClose }: Props) {
-  if (!instructions || instructions.length === 0) {
-    return null;
-  }
+function formatDistance(px?: number) {
+  if (!Number.isFinite(px)) return '';
+  const meters = Math.round((px as number) / 5);
+  if (meters <= 1) return '';
+  return `aprox. ${meters} m`;
+}
+
+export default function RouteInstructions({ instructions = [], onClose }: Props) {
+  if (!Array.isArray(instructions) || instructions.length === 0) return null;
 
   return (
     <div className="route-instructions-panel">
       <div className="panel-header">
         <h4>Sua Rota</h4>
-        <button onClick={onClose} className="close-button" title="Fechar Rota">
+        <button 
+          onClick={onClose} 
+          className="close-button" 
+          title="Fechar Rota"
+        >
           <i className="fa-solid fa-xmark"></i>
         </button>
       </div>
+
       <ul className="instructions-list">
-        {instructions.map((item, index) => (
-          <li key={index} className="instruction-item">
-            <div className="instruction-icon">
-              <i className={getIconForInstruction(item.instruction)}></i>
-            </div>
-            <div className="instruction-text">
-              <span>{item.instruction}</span>
-              {item.distance > 1 && (
-                <small className="distance-label">
-                  {/* Converte a distância (pixels) para metros (ajuste o fator se necessário) */}
-                  aprox. {Math.round(item.distance / 5)} m
-                </small>
-              )}
-            </div>
-          </li>
-        ))}
+        {instructions.map((step, index) => {
+          const iconClass = resolveIcon(step);
+          const text = step?.text ?? '';
+          const distanceLabel = formatDistance(step?.distance);
+
+          return (
+            <li key={index} className="instruction-item">
+              <div className="instruction-icon">
+                <i className={iconClass}></i>
+              </div>
+              <div className="instruction-text">
+                <span>{text}</span>
+                {distanceLabel && (
+                  <small className="distance-label">{distanceLabel}</small>
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
