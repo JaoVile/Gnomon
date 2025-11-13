@@ -85,14 +85,59 @@ Versão: 0.9 (UI de Overlay Responsivo)
 .search-bar {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  background: var(--bg-tertiary, #2c2c2e);
+  border-radius: 10px;
+  padding: 6px 10px;
+  max-width: 500px;
   width: 100%;
-  max-width: 1000px; /* Aumentado para acomodar os seletores */
-  padding: 8px;
-  background: var(--bg-secondary, #1c1c1e);
-  border-radius: 12px;
-  border: 1px solid var(--border-color, #2c2c2e);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.search-bar i {
+  font-size: 14px;
+  color: #888;
+}
+
+.search-bar input[type="search"] {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.search-bar input[type="search"]::placeholder {
+  color: #888;
+  font-size: 13px;
+}
+
+.search-bar .view-toggle {
+  display: flex;
+  gap: 3px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px;
+}
+
+.search-bar .view-toggle button {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #888;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-bar .view-toggle button.active {
+  background: var(--accent-color, #007aff);
+  color: #fff;
 }
 
 .route-selection {
@@ -152,29 +197,6 @@ Versão: 0.9 (UI de Overlay Responsivo)
   background-color: var(--bg-tertiary, #2c2c2e);
 }
 
-.search-bar .view-toggle {
-  display: flex;
-  border-radius: 8px;
-  background: var(--bg-tertiary, #2c2c2e);
-  padding: 4px;
-}
-.view-toggle button, .admin-toggle-main {
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  background: var(--cor-fundo-secundaria);
-  color: var(--cor-texto);
-  border-radius: 8px;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.view-toggle button.active {
-  background: #2b5fb3;
-  border-color: rgba(31,111,229,.45);
-}
-.admin-toggle-main.active {
-  background: var(--cor-destaque);
-  border-color: rgba(0, 174, 240, 0.4);
-}
 
 /* --- Painel Admin --- */
 .admin-panel {
@@ -385,7 +407,7 @@ Versão: 0.9 (UI de Overlay Responsivo)
   width: min(95%, 780px);
 
   display: flex;
-
+   
   gap: 8px;
 
   align-items: center;

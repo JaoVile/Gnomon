@@ -7,13 +7,13 @@ type ToastProps = {
   onClose: () => void;
 };
 
-export default function Toast({ message, type = 'success', duration = 3000, onClose }: ToastProps) {
+export default function Toast({ message, type = 'success', duration = 750, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onClose, 300);
+      setTimeout(onClose, 500);
     }, duration);
 
     return () => clearTimeout(timer);
@@ -31,7 +31,7 @@ export default function Toast({ message, type = 'success', duration = 3000, onCl
     <div 
       style={{
         position: 'fixed',
-        top: 90,
+        top: '77%',
         left: '50%',
         transform: `translateX(-50%) translateY(${isVisible ? 0 : -20}px)`,
         padding: '10px 16px',

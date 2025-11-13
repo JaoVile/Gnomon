@@ -168,7 +168,8 @@ export default function MapaPage() {
           <div 
             className="search-bar" 
             style={{ 
-              pointerEvents: 'auto' // ✅ BARRA É CLICÁVEL
+              pointerEvents: 'auto', // ✅ BARRA É CLICÁVEL
+              marginTop: '80px'
             }}
           >
             <i className="fa-solid fa-magnifying-glass"></i>
@@ -179,77 +180,62 @@ export default function MapaPage() {
             </div>
           </div>
 
-          {/* ✅ INDICADOR DE ORIGEM - CLICÁVEL */}
-          {originId && !path && (
-            <div 
-              className="origin-indicator" 
-              style={{
-                padding: '12px',
-                background: 'rgba(10, 132, 255, 0.95)',
-                borderRadius: '12px',
-                marginTop: '8px',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                pointerEvents: 'auto', // ✅ INDICADOR É CLICÁVEL
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.25)'
-              }}
-            >
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '8px',
-                flex: 1,
-                minWidth: 0 
-              }}>
-                <i className="fa-solid fa-location-dot" style={{ fontSize: '20px', flexShrink: 0 }}></i>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: '12px', opacity: 0.85 }}>Você está em:</div>
-                  <div style={{ 
-                    fontWeight: 600,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}>
-                    {originLabel || 'Local selecionado'}
-                  </div>
-                </div>
+      {/* ✅ INDICADOR DE ORIGEM - POSIÇÃO FIXA */}
+      {originId && !path && (
+        <div
+          className="origin-indicator"
+          style={{
+            position: 'fixed',
+            bottom: '80px',
+            left: '16px',
+            pointerEvents: 'auto',
+            background: 'rgba(0, 122, 255, 0.15)', // ✅ AZUL TRANSLÚCIDO
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(0, 122, 255, 0.3)',
+            padding: '8px 12px',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0, 122, 255, 0.2)',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            maxWidth: 'calc(100% - 32px)',
+          }}
+        >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                <i className="fa-solid fa-location-dot" style={{ flexShrink: 0 }}></i>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  Você está em: <strong>{originLabel || 'Local selecionado'}</strong>
+                </span>
               </div>
               <button
                 onClick={clearOrigin}
                 style={{
-                  background: 'rgba(255,255,255,0.2)',
+                  background: 'transparent',
                   border: 'none',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                  color: '#fff',
+                  color: 'var(--text-secondary)',
                   cursor: 'pointer',
+                  marginLeft: '8px',
                   flexShrink: 0,
-                  transition: 'background 0.2s',
-                  pointerEvents: 'auto' // ✅ BOTÃO É CLICÁVEL
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
           )}
 
-          {/* ✅ BOTÃO PARA LIMPAR ROTA - CLICÁVEL */}
+          {/* ✅ BOTÃO PARA LIMPAR ROTA - POSIÇÃO FIXA */}
           {path && (
-            <div 
-              className="route-controls" 
+            <div
+              className="route-controls"
               style={{
-                padding: '12px',
-                background: 'rgba(20,22,26,0.95)',
-                borderRadius: '12px',
-                marginTop: '8px',
-                pointerEvents: 'auto', // ✅ CONTROLE É CLICÁVEL
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.25)'
+                position: 'fixed',
+                bottom: '16px',
+                left: '16px',
+                pointerEvents: 'auto',
+                zIndex: 10,
+                width: 'calc(100% - 32px)',
+                maxWidth: '400px',
               }}
             >
               <button
@@ -264,10 +250,7 @@ export default function MapaPage() {
                   cursor: 'pointer',
                   fontWeight: 600,
                   transition: 'background 0.2s',
-                  pointerEvents: 'auto' // ✅ BOTÃO É CLICÁVEL
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#FF2D20'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#FF3B30'}
               >
                 <i className="fa-solid fa-xmark"></i> Limpar Rota
               </button>

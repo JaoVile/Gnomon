@@ -73,6 +73,7 @@ export default function Map2D({
   const isPanning = useRef(false);
   const lastPos = useRef({ x: 0, y: 0 });
   const lastTouchDist = useRef(0);
+  const animationRef = useRef({ startTime: 0, duration: 0, pathLength: 0 });
 
   const [popup, setPopup] = useState<{ poiId: string; label: string; x: number; y: number; photoUrl?: string } | null>(null);
   const [popupPos, setPopupPos] = useState<{ left: number; top: number; orientation: 'down' | 'up' } | null>(null);
@@ -82,13 +83,25 @@ export default function Map2D({
 
   const [selectedNodeForEdge, setSelectedNodeForEdge] = useState<string | null>(null);
 
-  // ✅ NOVO ESTADO PARA CONTROLAR ANIMAÇÃO
-  const [isAnimating, setIsAnimating] = useState(false);
-
   useEffect(() => {
-    // Ativa/desativa a animação baseada na presença de originId
-    setIsAnimating(!!originId);
-  }, [originId]);
+    if (path && path.length > 0) {
+      const pathLength = path.reduce((acc, point, i) => {
+        if (i === 0) return 0;
+        const prev = path[i - 1];
+        return acc + Math.hypot(point.x - prev.x, point.y - prev.y);
+      }, 0);
+
+      animationRef.current = {
+        startTime: performance.now(),
+        duration: 1000, // Animação de 1 segundo
+        pathLength,
+      };
+    } else {
+      // Reseta a animação se não houver rota
+      animationRef.current = { startTime: 0, duration: 0, pathLength: 0 };
+    }
+  }, [path]);
+
 
   useEffect(() => {
     const timer = setTimeout(() => setShowHints(false), 3500);
@@ -149,6 +162,10 @@ export default function Map2D({
     if (!pts || pts.length < 2) return;
     const inv = 1 / transform.scale;
 
+    const { startTime, duration, pathLength } = animationRef.current;
+    const elapsed = performance.now() - startTime;
+    const progress = duration > 0 ? Math.min(elapsed / duration, 1) : 1;
+
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.35)';
     ctx.shadowBlur = 5 * inv;
@@ -156,6 +173,12 @@ export default function Map2D({
     ctx.strokeStyle = color;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+
+    if (progress < 1 && pathLength > 0) {
+      const drawLength = pathLength * progress;
+      ctx.setLineDash([drawLength, pathLength]);
+    }
+
     ctx.beginPath();
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
@@ -164,16 +187,20 @@ export default function Map2D({
     ctx.stroke();
     ctx.restore();
 
-    for (let i = 0; i < pts.length; i++) {
-      const p = pts[i];
-      if (i === 0 || i === pts.length - 1) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 8 * inv, 0, Math.PI * 2);
-        ctx.fillStyle = i === 0 ? '#34C759' : '#FF3B30';
-        ctx.fill();
-        ctx.strokeStyle = '#FFF';
-        ctx.lineWidth = 2 * inv;
-        ctx.stroke();
+    ctx.setLineDash([]); // Reset dash
+
+    if (progress >= 1) {
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        if (i === 0 || i === pts.length - 1) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 8 * inv, 0, Math.PI * 2);
+          ctx.fillStyle = i === 0 ? '#34C759' : '#FF3B30';
+          ctx.fill();
+          ctx.strokeStyle = '#FFF';
+          ctx.lineWidth = 2 * inv;
+          ctx.stroke();
+        }
       }
     }
   }
@@ -225,27 +252,36 @@ export default function Map2D({
   }, [popup]);
 
   function draw() {
-    try {
-      const c = canvasRef.current; if (!c) return;
-      const ctx = c.getContext('2d'); if (!ctx) return;
-      const w = c.clientWidth, h = c.clientHeight;
-      ctx.clearRect(0, 0, w, h);
+    const c = canvasRef.current; if (!c) return;
+    const ctx = c.getContext('2d'); if (!ctx) return;
 
-      ctx.save();
+    // 1. Limpa o canvas no espaço da tela (sem transformação)
+    ctx.save();
+    const dpr = window.devicePixelRatio || 1;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.restore();
+
+    // 2. Aplica a transformação global (pan/zoom) para todo o desenho
+    ctx.save();
+    try {
       ctx.translate(transform.x, transform.y);
       ctx.scale(transform.scale, transform.scale);
 
       const inv = 1 / transform.scale;
 
+      // 3. Desenha a imagem do mapa no espaço do mundo
       if (img) {
-        ctx.filter = 'brightness(0.8)';
+        ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
-        ctx.filter = 'none';
       }
 
-      if (!currentMapData) { ctx.restore(); return; }
+      if (!currentMapData) {
+        return; // Retorna cedo se não houver dados, o `finally` vai restaurar o contexto
+      }
 
+      // 4. Desenha todos os outros elementos (POIs, rotas, etc.) no espaço do mundo
       if (showCorridorsOverlay || editGraph) {
         ctx.lineWidth = 2 * inv;
         ctx.strokeStyle = editGraph ? '#00F' : '#888';
@@ -314,37 +350,36 @@ export default function Map2D({
         if (originNode) drawGpsMarker(ctx, originNode.x, originNode.y, inv);
       }
 
-      ctx.restore();
     } catch (err) {
       console.error('❌ ERRO no draw():', err);
+    } finally {
+      // 5. Garante que a transformação seja restaurada no final
+      ctx.restore();
     }
   }
 
   useEffect(() => {
     let rafId: number;
-
     const renderLoop = () => {
       draw();
-      // Se a animação estiver ativa (por causa do originId), continue o loop
-      if (isAnimating) {
+      // Continua o loop se a animação da rota estiver em andamento
+      const isAnimatingPath = animationRef.current.startTime > 0 && (performance.now() - animationRef.current.startTime) < animationRef.current.duration;
+      // Continua o loop se o marcador de GPS estiver pulsando
+      const isGpsPulsing = !!originId;
+
+      if (isAnimatingPath || isGpsPulsing) {
         rafId = requestAnimationFrame(renderLoop);
       }
     };
 
-    // Inicia o loop de renderização. Ele vai rodar uma vez se não estiver animando,
-    // ou continuamente se estiver.
-    renderLoop();
+    renderLoop(); // Inicia o loop
 
-    // Função de limpeza para cancelar o loop de animação quando o componente
-    // for desmontado ou as dependências do useEffect mudarem.
     return () => {
       if (rafId) {
         cancelAnimationFrame(rafId);
       }
     };
   }, [
-    isAnimating, // A dependência principal para o loop
-    // Outras dependências que causam um redesenho único quando alteradas
     img, currentMapData, pathToDraw, strokeColor, transform,
     markMode, marks, showCoords, showPoiLabels,
     editGraph, showCorridorsOverlay, originId
@@ -525,7 +560,7 @@ function goHere() {
         position: 'relative', 
         touchAction: 'none', // ✅ PREVINE SCROLL/ZOOM PADRÃO
         cursor: isPanning.current ? 'grabbing' : 'grab', 
-        background: bg3d,
+        background: '#5b5c6a',
         userSelect: 'none',
         WebkitUserSelect: 'none'
       }}
