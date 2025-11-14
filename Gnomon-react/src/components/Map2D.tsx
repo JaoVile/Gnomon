@@ -2,12 +2,11 @@ import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type T
 import { useThemeVars } from '../libs/useThemeVars';
 import { useMapData, type MapData, type MapNode, type Poi } from '../hooks/useMapData';
 import { usePathfinding } from '../hooks/usePathfinding';
+import './Map2D.css';
 
 export type { MapNode, Poi };
 export type Node2D = MapNode;
 
-export type MarkKind = 'ENTRY' | 'REF' | 'CONNECTION';
-export type Mark2D = { id: string; x: number; y: number; kind: MarkKind };
 export type TurnInstruction = { text: string; distance: number; icon: string };
 
 type Props = {
@@ -18,21 +17,7 @@ type Props = {
   originId?: string | null;
   onSelectOrigin?: (nodeId: string, label?: string) => void;
   onRouteCalculated?: (path: MapNode[], instructions: TurnInstruction[]) => void;
-  markMode?: boolean;
-  markKind?: MarkKind;
-  showCoords?: boolean;
   showPoiLabels?: boolean;
-  marks?: Mark2D[];
-  onMark?: (p: { x: number; y: number; kind: MarkKind }) => void;
-  editGraph?: boolean;
-  editTool?: 'node' | 'edge' | 'delete';
-  editorNodeKind?: 'INTERSECTION' | 'WAYPOINT';
-  editorBidirectional?: boolean;
-  editorAccessible?: boolean;
-  onEditorChange?: (data: { nodes: any[]; edges: any[] }) => void;
-  onMapClick?: (coords: { x: number; y: number }) => void;
-  doorSnapPx?: number;
-  showCorridorsOverlay?: boolean;
 };
 
 type Transform = { x: number; y: number; scale: number };
@@ -45,21 +30,7 @@ export default function Map2D({
   originId,
   onSelectOrigin = () => {},
   onRouteCalculated = () => {},
-  markMode = false,
-  markKind = 'ENTRY',
-  showCoords = false,
   showPoiLabels = false,
-  marks = [],
-  onMark = () => {},
-  editGraph = false,
-  editTool = 'node',
-  editorNodeKind: _editorNodeKind = 'INTERSECTION',
-  editorBidirectional = true,
-  editorAccessible: _editorAccessible = true,
-  onEditorChange = () => {},
-  onMapClick = () => {},
-  doorSnapPx: _doorSnapPx = 24,
-  showCorridorsOverlay = false,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -82,8 +53,6 @@ export default function Map2D({
 
   const [showHints, setShowHints] = useState(true);
   const { bg3d } = useThemeVars();
-
-  const [selectedNodeForEdge, setSelectedNodeForEdge] = useState<string | null>(null);
 
   useEffect(() => {
     if (path && path.length > 0) {
@@ -237,12 +206,6 @@ export default function Map2D({
   }
 
   useEffect(() => {
-    if (!currentMapData) return;
-    const missing = (currentMapData.pois || []).filter(p => !currentMapData.nodes.find(n => n.id === p.nodeId));
-    if (missing.length) console.warn('POIs com nodeId sem nó correspondente:', missing);
-  }, [currentMapData]);
-
-  useEffect(() => {
     if (!popup) { setPopupPos(null); return; }
     const wrap = containerRef.current; if (!wrap) return;
     const cw = wrap.clientWidth, ch = wrap.clientHeight, pad = 8, W = 280, H = popup.photoUrl ? 300 : 210;
@@ -284,31 +247,6 @@ export default function Map2D({
       }
 
       // 4. Desenha todos os outros elementos (POIs, rotas, etc.) no espaço do mundo
-      if (showCorridorsOverlay || editGraph) {
-        ctx.lineWidth = 2 * inv;
-        ctx.strokeStyle = editGraph ? '#00F' : '#888';
-        ctx.beginPath();
-        for (const [a, b] of currentMapData.edges) {
-          const A = currentMapData.nodes.find(n => n.id === a);
-          const B = currentMapData.nodes.find(n => n.id === b);
-          if (A && B) { ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); }
-        }
-        ctx.stroke();
-      }
-
-      if (editGraph) {
-        for (const n of currentMapData.nodes) {
-          ctx.beginPath();
-          ctx.arc(n.x, n.y, 6 * inv, 0, Math.PI * 2);
-          ctx.fillStyle = '#00F'; ctx.strokeStyle = '#FFF'; ctx.lineWidth = 1 * inv;
-          ctx.fill(); ctx.stroke();
-          if (showCoords) {
-            ctx.font = `${10 * inv}px Arial`; ctx.fillStyle = '#FFF';
-            ctx.fillText(`(${n.x.toFixed(0)}, ${n.y.toFixed(0)})`, n.x + 6 * inv, n.y + 4 * inv);
-          }
-        }
-      }
-
       if (currentMapData?.pois?.length) {
         ctx.font = `${12 * inv}px Inter, system-ui, sans-serif`;
         for (const poi of currentMapData.pois) {
@@ -383,8 +321,7 @@ export default function Map2D({
     };
   }, [
     img, currentMapData, pathToDraw, strokeColor, transform,
-    markMode, marks, showCoords, showPoiLabels,
-    editGraph, showCorridorsOverlay, originId
+    showPoiLabels, originId
   ]);
 
   const getPointerPos = (e: ReactMouseEvent<HTMLDivElement> | WheelEvent | ReactTouchEvent<HTMLDivElement> | ReactMouseEvent<HTMLCanvasElement>) => {
@@ -417,16 +354,6 @@ export default function Map2D({
     }
   }, []);
 
-  function nearestNodeId(x: number, y: number, maxDist = 24): string | null {
-    if (!currentMapData) return null;
-    let best: string | null = null, bestD = Infinity;
-    for (const n of currentMapData.nodes) {
-      const d = Math.hypot(n.x - x, n.y - y);
-      if (d < bestD && d <= maxDist) { bestD = d; best = n.id; }
-    }
-    return best;
-  }
-
   function onClick(e: ReactMouseEvent<HTMLCanvasElement>) {
     if (isPanning.current && (Math.abs(e.clientX - lastPos.current.x) > 2 || Math.abs(e.clientY - lastPos.current.y) > 2)) return;
 
@@ -434,37 +361,6 @@ export default function Map2D({
     const { x, y } = screenToWorld(sx, sy);
 
     if (!currentMapData) { console.warn('⚠️ Dados do mapa não carregados'); return; }
-
-    if (markMode) { onMark({ x, y, kind: markKind }); return; }
-
-    if (editGraph) {
-      onMapClick({ x: Math.round(x), y: Math.round(y) });
-
-      const nearNode = nearestNodeId(x, y, 32);
-      if (editTool === 'node') {
-        const newNode: MapNode = { id: `node_${Date.now()}`, x: Math.round(x), y: Math.round(y), floor: 0 };
-        onEditorChange({ nodes: [...currentMapData.nodes, newNode], edges: currentMapData.edges });
-      } else if (editTool === 'edge') {
-        if (!nearNode) return;
-        if (!selectedNodeForEdge) setSelectedNodeForEdge(nearNode);
-        else {
-          if (nearNode !== selectedNodeForEdge) {
-            const newEdges = [...currentMapData.edges];
-            newEdges.push([selectedNodeForEdge, nearNode]);
-            if (editorBidirectional) newEdges.push([nearNode, selectedNodeForEdge]);
-            onEditorChange({ nodes: currentMapData.nodes, edges: newEdges });
-          }
-          setSelectedNodeForEdge(null);
-        }
-      } else if (editTool === 'delete') {
-        if (nearNode) {
-          const newNodes = currentMapData.nodes.filter(n => n.id !== nearNode);
-          const newEdges = currentMapData.edges.filter(([a, b]) => a !== nearNode && b !== nearNode);
-          onEditorChange({ nodes: newNodes, edges: newEdges });
-        }
-      }
-      return;
-    }
 
     const poi = pickPoiNear(x, y, 40);
     if (poi) {
@@ -631,8 +527,14 @@ function goHere() {
     >
       {showHints && (
         <div className="interaction-hints">
-          <div className="hint-item"><i className="fa-solid fa-hand hint-icon pan-icon"></i><span className="hint-text">Arraste para mover</span></div>
-          <div className="hint-item"><i className="fa-solid fa-magnifying-glass-plus hint-icon zoom-icon"></i><span className="hint-text">Use a roda ou pinça para zoom</span></div>
+          <div className="hint-item">
+            <i className="fa-solid fa-hand hint-icon pan-icon-animation"></i>
+            <span className="hint-text">Arraste para mover</span>
+          </div>
+          <div className="hint-item">
+            <i className="fa-solid fa-magnifying-glass-plus hint-icon zoom-icon-animation"></i>
+            <span className="hint-text">Use a roda ou pinça para zoom</span>
+          </div>
         </div>
       )}
 
@@ -640,49 +542,40 @@ function goHere() {
 
       {popup && popupPos && (
         <div
+          className={`popup ${popup ? 'show' : ''}`}
           style={{ 
-            position: 'absolute', 
             left: popupPos.left, 
             top: popupPos.top, 
-            background: 'rgba(20,22,26,0.95)', 
-            color: '#fff', 
-            border: '1px solid rgba(255,255,255,0.1)', 
-            borderRadius: 12, 
-            minWidth: 220, 
-            maxWidth: 280, 
-            zIndex: 6, 
-            boxShadow: '0 8px 24px rgba(0,0,0,0.45)', 
-            pointerEvents: 'auto' // ✅ POPUP É CLICÁVEL
           }}
           onClick={(e) => e.stopPropagation()}
         >
           {popupPos.orientation === 'down'
-            ? <div style={{ position: 'absolute', left: '50%', top: -6, transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid rgba(20,22,26,0.95)' }} />
-            : <div style={{ position: 'absolute', left: '50%', bottom: -6, transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '6px solid rgba(20,22,26,0.95)' }} />
+            ? <div className="popup-arrow-down" />
+            : <div className="popup-arrow-up" />
           }
 
           {popup.photoUrl && (
-            <img src={popup.photoUrl} alt={popup.label} style={{ width: '100%', height: 140, objectFit: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 }} />
+            <img src={popup.photoUrl} alt={popup.label} className="popup-photo" />
           )}
-          <div style={{ padding: '10px 12px', display: 'grid', gap: 8 }}>
-            <div style={{ fontWeight: 600 }}>{popup.label}</div>
+          <div className="popup-content">
+            <div className="popup-title">{popup.label}</div>
 
             {originId && (
-              <div style={{ fontSize: '12px', padding: '6px 8px', background: 'rgba(10, 132, 255, 0.2)', borderRadius: '6px', color: '#0A84FF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="popup-ready-badge">
                 <i className="fa-solid fa-check-circle"></i> Pronto para navegar
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={setAsOrigin} style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #2c2c2e', background: '#2c2c2e', color: '#fff', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <div className="popup-buttons">
+              <button onClick={setAsOrigin} className="popup-button">
                 <i className="fa-solid fa-location-dot"></i> Estou aqui
               </button>
-              <button onClick={goHere} disabled={!originId} style={{ flex: 1, padding: '10px', borderRadius: 8, border: `1px solid ${!originId ? '#444' : '#0A84FF'}`, background: !originId ? '#333' : '#0A84FF', color: !originId ? '#888' : '#fff', cursor: !originId ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: !originId ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.2s' }}>
+              <button onClick={goHere} disabled={!originId} className="popup-button primary">
                 <i className="fa-solid fa-route"></i> Ir para cá
               </button>
             </div>
 
-            <button onClick={() => { setPopup(null); setPopupPos(null); }} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', color: '#9aa3af', cursor: 'pointer' }}>
+            <button onClick={() => { setPopup(null); setPopupPos(null); }} className="popup-close-button">
               Fechar
             </button>
           </div>
