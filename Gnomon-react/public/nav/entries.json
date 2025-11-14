@@ -1,7 +1,0 @@
-{
-"entries": [
-{ "id": "A1", "label": "Entrada A — Principal", "anchorId": "node:entrada_A1", "vantage": [0, 10, 12], "pos": [5.1, 0.2, -3.7] },
-{ "id": "A2", "label": "Entrada A — Lateral", "anchorId": "node:entrada_A2", "vantage": [-8, 10, 10], "pos": [-12.3, 0.2, 4.0] },
-{ "id": "B1", "label": "Entrada B — Principal", "anchorId": "node:entrada_B1", "vantage": [8, 10, 10], "pos": [18.6, 0.2, 2.9] }
-]
-}

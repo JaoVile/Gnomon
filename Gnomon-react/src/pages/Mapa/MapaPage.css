@@ -1,193 +1,220 @@
-/*
-Arquivo de Estilos da Página do Mapa
-Projeto: Gnomon
-Versão: 0.7
-Descrição: Estilos da interface principal do mapa (2D/3D)
-*/
-/* Altura da barra inferior (ajuste se quiser) */
 :root {
---bottom-nav-h: 60px;
+  --header-height: 60px;
+  --footer-height: 64px;
+  --search-bar-height: 52px;
+  --controls-v-padding: 16px;
 }
 
 #map-app-container {
-display: flex;
-flex-direction: column;
-height: 100dvh; /* corrige 100vh em Chrome/Vivaldi */
-width: 100%;
-background-color: var(--cor-fundo);
-overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #000;
+  color: #fff;
 }
 
-/* --- Barra Superior --- */
 .top-bar {
-display: flex;
-justify-content: space-between;
-align-items: center;
-padding: 10px 20px;
-background-color: var(--cor-fundo-secundaria);
-border-bottom: 1px solid var(--border);
-flex-shrink: 0;
-transition: background-color 0.3s ease, border-bottom 0.3s ease;
-}
-body.light-mode .top-bar { border-bottom: 1px solid var(--border); }
-
-.top-bar i {
-font-size: 1.5em;
-color: var(--cor-texto-secundario);
-cursor: pointer;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 20;
 }
 
-/* Tamanho do texto do logo específico para o app */
-.top-bar .logo-container span { font-size: 1.5em; }
+.menu-icon, .profile-icon {
+  font-size: 20px;
+  cursor: pointer;
+}
 
-/* --- Área de Conteúdo (Mapa + Busca) --- */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #fff;
+}
+
+.logo-container img {
+  height: 32px;
+}
+
+.logo-container span {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
 .content-area {
-position: relative;
-flex: 1 1 auto;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Barra de busca ancorada ao header real */
+#map-container {
+  width: 100%;
+  height: 100%;
+}
+
+.map-controls-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--controls-v-padding);
+  pointer-events: none;
+  z-index: 10;
+}
+
 .search-bar {
-position: absolute;
-top: calc(var(--header-h) + 12px);
-left: 50%;
-transform: translateX(-50%);
-width: min(90%, 720px);
-z-index: 1000;
-display: flex;
-align-items: center;
-gap: 10px;
-}
-
-.search-bar input {
-width: 100%;
-padding: 15px 20px 15px 45px;
-border: none;
-border-radius: 50px;
-background-color: var(--cor-fundo-secundaria);
-color: var(--cor-texto);
-font-size: 1em;
-box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-transition: background-color 0.3s ease, color 0.3s ease;
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 500px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(44, 44, 46, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px;
+  height: var(--search-bar-height);
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .search-bar i {
-position: absolute;
-left: 20px;
-color: var(--cor-texto-secundario);
+  color: #999;
+  margin-left: 8px;
 }
 
-/* --- Container do Mapa --- /
-/ Mapa preenche a área útil entre header e bottom-nav */
-#map-container {
-width: 100%;
-min-height: 400px;
-height: calc(100dvh - var(--header-h) - var(--bottom-nav-h) - env(safe-area-inset-bottom));
-background: linear-gradient(180deg, rgba(10,12,14,.6), rgba(10,12,14,.8)), var(--cor-fundo);
-border-radius: 14px;
-border: 1px solid var(--border);
-margin: 0;
-}
-body.light-mode #map-container { background: var(--cor-fundo-secundaria); }
-
-/* Garantir que Leaflet e o canvas 3D ocupem 100% da altura */
-#map-container > div,
-#map-container .leaflet-container,
-#map-container canvas {
-height: 100% !important;
-width: 100% !important;
+.search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
 }
 
-/* Placeholder opcional */
-.map-placeholder {
-width: 100%;
-height: 100%;
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-color: var(--cor-texto-secundario);
-font-size: 1.2em;
+.search-bar input::placeholder {
+  color: #999;
 }
-.map-placeholder i { font-size: 4em; margin-bottom: 20px; opacity: 0.5; }
 
-/* --- Toggle 2D/3D --- */
 .view-toggle {
-margin-left: auto;
-display: flex;
-gap: 6px;
-}
-.view-toggle button {
-padding: 6px 10px;
-border: 1px solid rgba(31,111,229,.22);
-background: linear-gradient(180deg, #2b3440, #1f2834);
-color: var(--sp-text);
-border-radius: 6px;
-cursor: pointer;
-}
-.view-toggle button.active {
-background: linear-gradient(180deg, #2b5fb3, #1f4c92);
-color: #e9f2ff;
-border-color: rgba(31,111,229,.45);
+  display: flex;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  padding: 4px;
 }
 
-/* --- Barra de Navegação Inferior --- /
-/ Fixa no fim com safe-area e elevação; a altura entra no cálculo do mapa */
+.view-toggle button {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.view-toggle button.active {
+  background: #0A84FF;
+}
+
+.bottom-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  padding-bottom: calc(var(--footer-height) + 8px);
+}
+
+.origin-indicator, .route-controls button {
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slide-up 0.3s ease;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.origin-indicator strong {
+  color: #0A84FF;
+}
+
+.origin-indicator button {
+  background: transparent;
+  border: none;
+  color: #999;
+  cursor: pointer;
+}
+
+.route-controls button {
+  width: 100%;
+  justify-content: center;
+  background: #FF3B30;
+  border-color: #FF3B30;
+  color: #fff;
+  font-weight: 600;
+}
+
 .bottom-nav {
-position: fixed;
-left: 0; right: 0; bottom: 0;
-height: var(--bottom-nav-h);
-display: flex;
-justify-content: space-around;
-align-items: center;
-background-color: var(--cor-fundo-secundaria);
-padding: 0 12px calc(8px + env(safe-area-inset-bottom));
-border-top: 1px solid var(--border);
-transition: background-color 0.3s ease, border-top 0.3s ease;
-z-index: 1000;
-box-shadow: 0 -8px 24px rgba(0,0,0,.25);
+  height: var(--footer-height);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(28, 28, 30, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 20;
 }
 
 .nav-item {
-display: flex;
-flex-direction: column;
-align-items: center;
-cursor: pointer;
-color: var(--sp-text-dim);
-transition: color 0.3s ease;
-width: 25%;
-padding: 5px 0;
-min-width: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #999;
+  cursor: pointer;
+  font-size: 12px;
 }
-.nav-item i { font-size: 1.6em; margin-bottom: 4px; }
-.nav-item span { font-size: 0.7em; }
-.nav-item.active, .nav-item:hover { color: var(--cor-destaque); }
 
-/* --- Seletor de Andares Flutuante --- */
-.floor-switcher {
-position: absolute;
-bottom: calc(var(--bottom-nav-h) + 15px);
-left: 50%;
-transform: translateX(-50%);
-z-index: 1000;
-background-color: var(--cor-fundo-secundaria);
-border-radius: 30px;
-padding: 5px;
-display: flex;
-gap: 5px;
-box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-border: 1px solid var(--border);
+.nav-item i {
+  font-size: 20px;
 }
-.floor-switcher button {
-background-color: transparent;
-color: var(--cor-texto);
-border: none;
-width: 40px;
-height: 40px;
-border-radius: 50%;
-font-size: 1em;
-font-weight: bold;
-cursor: pointer;
-transition: background-color 0.2s ease, color 0.2s ease;
+
+.nav-item.active {
+  color: #0A84FF;
 }
-.floor-switcher button:hover { background-color: rgba(255,255,255,0.06); }

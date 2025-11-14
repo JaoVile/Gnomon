@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/
 COPY package*.json ./
 RUN npm ci
 
+LABEL maintainer="Joâo Marcos Ferreira Vilela"
+
 # Etapa 2: build (gera Prisma Client e compila o TypeScript)
 FROM node:20-slim AS builder
 WORKDIR /app
@@ -42,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
 
 # Roda migrações e sobe o servidor
 # Ajuste o caminho do entrypoint se for diferente (ex.: dist/server.js)
-CMD sh -c "npx prisma migrate deploy && node dist/index.js"
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]

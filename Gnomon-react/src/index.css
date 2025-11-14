@@ -103,10 +103,7 @@ min-height: -webkit-fill-available;
 margin: 0;
 
 /* BG com vinheta (dark) – obsidian frio */
-background:
-radial-gradient(1200px 800px at 12% -8%, #151b22 0%, transparent 60%),
-radial-gradient(1200px 800px at 110% 12%, #0e141a 0%, transparent 55%),
-var(--sp-ink);
+background-color: #5b5c6a;
 color: var(--sp-text);
 line-height: 1.6;
 transition: background-color .3s ease, color .3s ease;
@@ -302,7 +299,7 @@ MAPA / ÁREA DE CONTEÚDO
 width: 100%;
 min-height: 400px;
 height: calc(100vh - var(--header-h) - var(--footer-h) - env(safe-area-inset-bottom));
-background: linear-gradient(180deg, rgba(10,12,14,.6), rgba(10,12,14,.8)), var(--sp-charcoal);
+background: linear-gradient(180deg, rgba(8, 51, 94, 0.6), rgba(10,12,14,.8)), var(--sp-charcoal);
 border-radius: 14px;
 border: 1px solid var(--border);
 box-shadow:

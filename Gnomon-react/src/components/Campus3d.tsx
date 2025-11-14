@@ -6,7 +6,6 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { useThemeVars } from '../libs/useThemeVars';
 
-// Tipos locais (sem libs externas)
 type Edge = [string, string, number?];
 type Node3 = { id: string; x: number; y: number; z: number };
 
@@ -34,11 +33,11 @@ type Props = {
   onEntryClick?: (e: Entry) => void;
 };
 
-// Utils locais (A* embutido)
 function dist3(a: Node3, b: Node3) {
   const dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
   return Math.hypot(dx, dy, dz);
 }
+
 function buildGraph(nodes: Node3[], edges: Edge[]) {
   const byId: Record<string, Node3> = {};
   nodes.forEach(n => { byId[n.id] = n; });
@@ -52,6 +51,7 @@ function buildGraph(nodes: Node3[], edges: Edge[]) {
   });
   return { byId, adj };
 }
+
 function aStar3D(graph: ReturnType<typeof buildGraph>, startId: string, goalId: string) {
   const { byId, adj } = graph;
   if (!byId[startId] || !byId[goalId]) return null;
@@ -81,9 +81,11 @@ function aStar3D(graph: ReturnType<typeof buildGraph>, startId: string, goalId: 
   }
   return null;
 }
+
 function easeInOut(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
+
 function disposeMaterial(mat: THREE.Material | THREE.Material[]) {
   if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
   else mat.dispose();
@@ -105,58 +107,64 @@ export default function Campus3D({
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // core
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const controlsRef = useRef<MapControls | null>(null);
   const rootRef = useRef<THREE.Group | null>(null);
 
-  // nav
   const anchorsRef = useRef<Record<string, THREE.Vector3>>({});
   const routeMeshRef = useRef<THREE.Mesh | null>(null);
   const routeMatRef = useRef<THREE.MeshBasicMaterial | null>(null);
   const startMarkerRef = useRef<THREE.Mesh | null>(null);
   const destMarkerRef = useRef<THREE.Mesh | null>(null);
 
-  // entry pins
   const entryPinsGroupRef = useRef<THREE.Group | null>(null);
   const entriesRef = useRef<Entry[]>(entries);
 
-  // picking
   const raycasterRef = useRef(new THREE.Raycaster());
   const pointerRef = useRef(new THREE.Vector2());
   const markModeRef = useRef<boolean | undefined>(markMode);
-  const onPickPointRef = useRef<Props['onPickPoint']>(onPickPoint);
 
-  const { routePrimary, bg3d } = useThemeVars();
+  const onPickPointRef = useRef(onPickPoint);
+  const onAnchorsLoadedRef = useRef(onAnchorsLoaded);
+  const onFlyEndRef = useRef(onFlyEnd);
+  const onEntryClickRef = useRef(onEntryClick);
+
+  const { routePrimary, bg3d, theme } = useThemeVars();
 
   useEffect(() => { entriesRef.current = entries; }, [entries]);
   useEffect(() => { markModeRef.current = markMode; }, [markMode]);
   useEffect(() => { onPickPointRef.current = onPickPoint; }, [onPickPoint]);
+  useEffect(() => { onAnchorsLoadedRef.current = onAnchorsLoaded; }, [onAnchorsLoaded]);
+  useEffect(() => { onFlyEndRef.current = onFlyEnd; }, [onFlyEnd]);
+  useEffect(() => { onEntryClickRef.current = onEntryClick; }, [onEntryClick]);
 
-  // tema em runtime
+  // Theme updater
   useEffect(() => {
-    if (routeMatRef.current) routeMatRef.current.color = new THREE.Color(routePrimary);
-    if (sceneRef.current) sceneRef.current.background = new THREE.Color(bg3d || '#0f1114');
-    if (rendererRef.current) rendererRef.current.setClearColor(bg3d || '#0f1114', 1);
-  }, [routePrimary, bg3d]);
+    if (routeMatRef.current) {
+      routeMatRef.current.color = new THREE.Color(routePrimary);
+    }
+  }, [routePrimary]);
 
+  // Main setup
   useEffect(() => {
-    const el = containerRef.current!;
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    const el = containerRef.current;
+    if (!el) return;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(el.clientWidth, el.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
-    renderer.setClearColor(bg3d || '#0f1114', 1);
+    renderer.setClearColor(0x000000, 0);
     renderer.shadowMap.enabled = false;
     rendererRef.current = renderer;
     el.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(bg3d || '#0f1114');
+    scene.background = null;
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(45, el.clientWidth / el.clientHeight, 0.1, 5000);
@@ -166,70 +174,12 @@ export default function Campus3D({
     const controls = new MapControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.screenSpacePanning = true;
-    if (topDown) {
-      controls.enableRotate = false;
-      camera.position.set(0, 200, 0);
-      camera.up.set(0, 0, -1);
-      camera.lookAt(0, 0, 0);
-    } else {
-      controls.minPolarAngle = 0.2;
-      controls.maxPolarAngle = Math.PI / 2;
-    }
     controlsRef.current = controls;
 
-    // Luzes (neutras)
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const dir = new THREE.DirectionalLight(0xffffff, 0.6);
     dir.position.set(60, 120, 60);
     scene.add(dir);
-
-    // Loader GLB com Draco
-    const loader = new GLTFLoader();
-    const draco = new DRACOLoader();
-    draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
-    loader.setDRACOLoader(draco);
-
-    let disposed = false;
-
-    loader.load(
-      url,
-      (gltf) => {
-        if (disposed) return;
-        const root = gltf.scene;
-        rootRef.current = root;
-        root.traverse((o: any) => { if (o.isMesh) { o.castShadow = o.receiveShadow = false; } });
-        scene.add(root);
-
-        // Enquadrar
-        const box = new THREE.Box3().setFromObject(root);
-        const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
-        controls.target.copy(center);
-        camera.near = Math.max(0.1, Math.min(size.length() / 100, 10));
-        camera.far = Math.max(1000, size.length() * 10);
-        camera.updateProjectionMatrix();
-        if (!topDown) camera.position.set(center.x + size.x, center.y + size.y * 1.2, center.z + size.z);
-
-        // Anchors node:*
-        const anchors: Record<string, THREE.Vector3> = {};
-        const tmp = new THREE.Vector3();
-        root.updateMatrixWorld(true);
-        root.traverse((o: any) => {
-          if (o.name && typeof o.name === 'string' && o.name.startsWith('node:')) {
-            o.getWorldPosition(tmp);
-            anchors[o.name] = tmp.clone();
-          }
-        });
-        anchorsRef.current = anchors;
-        onAnchorsLoaded?.(Object.keys(anchors));
-
-        // pins/rota
-        syncEntryPins();
-        updateRoute();
-      },
-      undefined,
-      (err) => console.error('Falha ao carregar GLB:', err)
-    );
 
     const onResize = () => {
       const w = el.clientWidth, h = el.clientHeight;
@@ -251,7 +201,6 @@ export default function Campus3D({
       if (rootRef.current) targets.push(rootRef.current);
       const hits = raycasterRef.current.intersectObjects(targets, true);
 
-      // Clique em pin?
       const pinHit = hits.find(h => {
         let o: THREE.Object3D | null = h.object;
         while (o) {
@@ -270,12 +219,11 @@ export default function Campus3D({
         }
         if (idx !== undefined) {
           const entry = entriesRef.current[idx];
-          if (entry && onEntryClick) onEntryClick(entry);
+          if (entry && onEntryClickRef.current) onEntryClickRef.current(entry);
         }
         return;
       }
 
-      // Marcar local
       if (markModeRef.current && hits.length) {
         onPickPointRef.current?.(hits[0].point.clone());
       }
@@ -287,42 +235,79 @@ export default function Campus3D({
     loop();
 
     return () => {
-      disposed = true;
       cancelAnimationFrame(raf);
       ro.disconnect();
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
-
-      cleanupRoute();
-      cleanupMarker(startMarkerRef);
-      cleanupMarker(destMarkerRef);
-      cleanupEntryPins();
-
-      if (rootRef.current) {
-        scene.remove(rootRef.current);
-        rootRef.current.traverse((o: any) => {
-          if (o.geometry) o.geometry.dispose?.();
-          if (o.material) disposeMaterial(o.material as THREE.Material | THREE.Material[]);
-        });
-      }
       renderer.dispose();
-      el.removeChild(renderer.domElement);
-
-      routeMatRef.current = null;
-      routeMeshRef.current = null;
-      rootRef.current = null;
-      sceneRef.current = null;
-      cameraRef.current = null;
-      controlsRef.current = null;
+      if (el && renderer.domElement.parentElement === el) {
+        el.removeChild(renderer.domElement);
+      }
     };
-  }, [url, topDown, bg3d, routePrimary, onAnchorsLoaded, onEntryClick, onPickPoint]);
+  }, []);
 
-  // sincronizar pins quando entries mudar
+  // GLB loader
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    if (rootRef.current) {
+      scene.remove(rootRef.current);
+      rootRef.current.traverse((o: any) => {
+        if (o.geometry) o.geometry.dispose?.();
+        if (o.material) disposeMaterial(o.material as THREE.Material | THREE.Material[]);
+      });
+    }
+
+    const loader = new GLTFLoader();
+    const draco = new DRACOLoader();
+    draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+    loader.setDRACOLoader(draco);
+
+    let disposed = false;
+    loader.load(
+      url,
+      (gltf) => {
+        if (disposed || !sceneRef.current) return;
+        const root = gltf.scene;
+        rootRef.current = root;
+        root.traverse((o: any) => { if (o.isMesh) { o.castShadow = o.receiveShadow = false; } });
+        scene.add(root);
+
+        const box = new THREE.Box3().setFromObject(root);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        if (controlsRef.current) controlsRef.current.target.copy(center);
+        if (cameraRef.current) {
+          cameraRef.current.near = Math.max(0.1, Math.min(size.length() / 100, 10));
+          cameraRef.current.far = Math.max(1000, size.length() * 10);
+          cameraRef.current.updateProjectionMatrix();
+          if (!topDown) cameraRef.current.position.set(center.x, center.y + 20, center.z + 50);
+        }
+
+        const anchors: Record<string, THREE.Vector3> = {};
+        const tmp = new THREE.Vector3();
+        root.updateMatrixWorld(true);
+        root.traverse((o: any) => {
+          if (o.name && typeof o.name === 'string' && o.name.startsWith('node:')) {
+            o.getWorldPosition(tmp);
+            anchors[o.name] = tmp.clone();
+          }
+        });
+        anchorsRef.current = anchors;
+        onAnchorsLoadedRef.current?.(Object.keys(anchors));
+
+        syncEntryPins();
+        updateRoute();
+      },
+      undefined,
+      (err) => console.error('Falha ao carregar GLB:', err)
+    );
+    return () => { disposed = true; }
+  }, [url, topDown]);
+
   useEffect(() => { syncEntryPins(); }, [entries]);
-
-  // atualizar rota quando edges/start/dest/selectedEntry mudar
   useEffect(() => { updateRoute(); }, [edges, startNodeId, destNodeId, selectedEntry]);
 
-  // Fly-to
   useEffect(() => {
     if (!selectedEntry) return;
     const cam = cameraRef.current;
@@ -353,12 +338,11 @@ export default function Campus3D({
       ctr!.target.copy(tmp);
       cam.lookAt(lookAt);
       if (t < 1) requestAnimationFrame(step);
-      else onFlyEnd?.();
+      else onFlyEndRef.current?.();
     }
     requestAnimationFrame(step);
-  }, [selectedEntry, onFlyEnd]);
+  }, [selectedEntry]);
 
-  // helpers
   function cleanupRoute() {
     const scene = sceneRef.current;
     if (!scene) return;
@@ -369,6 +353,7 @@ export default function Campus3D({
       routeMeshRef.current = null;
     }
   }
+
   function cleanupMarker(ref: React.MutableRefObject<THREE.Mesh | null>) {
     const scene = sceneRef.current;
     if (!scene || !ref.current) return;
@@ -377,6 +362,7 @@ export default function Campus3D({
     disposeMaterial(ref.current.material as THREE.Material | THREE.Material[]);
     ref.current = null;
   }
+
   function ensureMarker(ref: React.MutableRefObject<THREE.Mesh | null>, pos: THREE.Vector3 | undefined, color: string) {
     const scene = sceneRef.current;
     if (!scene) return;
@@ -389,11 +375,11 @@ export default function Campus3D({
     }
     ref.current.position.copy(pos);
   }
+
   function updateRoute() {
     const scene = sceneRef.current;
     if (!scene) return;
 
-    // base de posições: anchors do GLB + fallback de TODAS as entries com pos
     const posMap: Record<string, THREE.Vector3> = { ...anchorsRef.current };
     for (const e of entriesRef.current) {
       if (e.pos && !posMap[e.anchorId]) posMap[e.anchorId] = new THREE.Vector3(...e.pos);
@@ -424,6 +410,7 @@ export default function Campus3D({
     routeMeshRef.current = mesh;
     routeMatRef.current = mat;
   }
+
   function cleanupEntryPins() {
     const scene = sceneRef.current;
     if (!scene || !entryPinsGroupRef.current) return;
@@ -434,6 +421,7 @@ export default function Campus3D({
     });
     entryPinsGroupRef.current = null;
   }
+
   function makePin(colorHex: string) {
     const color = new THREE.Color(colorHex);
     const g = new THREE.Group();
@@ -450,6 +438,7 @@ export default function Campus3D({
     g.add(sphere); g.add(ring);
     return g;
   }
+
   function syncEntryPins() {
     const scene = sceneRef.current;
     if (!scene) return;
@@ -471,5 +460,8 @@ export default function Campus3D({
     scene.add(group);
   }
 
-  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+  return <div
+    ref={containerRef}
+    style={{ width: '100%', height: '100%' }}
+  />;
 }

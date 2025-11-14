@@ -1,84 +1,189 @@
 // prisma/schema.prisma
 
-// Fonte de dados: PostgreSQL (Neon/Vercel ou local)
-// Lê as URLs do .env:
-// - DATABASE_URL: URL pooled (PgBouncer) — use a "Prisma" da Vercel/Neon
-// - DATABASE_URL_UNPOOLED: URL non-pooling — usada em migrações e tasks longas
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL_UNPOOLED")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
-// Gera o client do Prisma
 generator client {
   provider = "prisma-client-js"
 }
 
-// Modelo para os Usuários do aplicativo
-model User {
+// ==========================================
+// AUTENTICAÇÃO (Admin e Staff)
+// ==========================================
+
+model Admin {
   id       Int    @id @default(autoincrement())
   email    String @unique
   name     String
   password String
+  
+  role     Role    @default(STAFF)
+  isActive Boolean @default(true)
 
-  // Campos para reset de senha
   passwordResetToken   String?
   passwordResetExpires DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([email])
   @@index([passwordResetToken])
-  @@map("usuarios")
+  @@map("admins")
 }
 
-// Modelo para os Locais (salas, banheiros, laboratórios, etc.)
+enum Role {
+  ADMIN
+  STAFF
+}
+
+// ==========================================
+// MAPAS E LOCAIS
+// ==========================================
+
+model Map {
+  id        Int      @id @default(autoincrement())
+  name      String
+  imageUrl  String
+  floor     Int      @default(0)
+  building  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  locals Local[]
+
+  @@map("maps")
+}
+
 model Local {
   id          Int      @id @default(autoincrement())
   name        String
-  description String? // O '?' indica que este campo é opcional
-  coordinates String // Ex: "-8.3027, -35.9912"
-  type        String // Ex: "Sala de Aula", "Banheiro", "Laboratório"
+  description String?
+  code        String?  @unique // Ex: "LAB-101"
+  type        LocalType @default(OTHER)
+  
+  // Coordenadas (para mapa 2D e 3D)
+  x           Float
+  y           Float
+  z           Float?   @default(0)
+  
+  // Localização
+  floor       Int      @default(0)
+  building    String?
+  
+  // Metadados
   iconUrl     String?
+  imageUrl    String?
+  accessible  Boolean  @default(true) // Acessível para cadeirantes
+  isActive    Boolean  @default(true)
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Relação: Um local pertence a um mapa
-  mapId Int
-  map   Map @relation(fields: [mapId], references: [id])
+  mapId       Int
+  map         Map      @relation(fields: [mapId], references: [id], onDelete: Cascade)
 
-  // Relação: Um local pode estar em várias rotas (muitos-para-muitos implícito)
-  routes Route[]
-
-  @@map("locais")
+  @@index([mapId])
+  @@index([type])
+  @@index([code])
+  @@index([building, floor])
+  @@map("locals")
 }
 
-// Modelo para os Mapas (planta dos andares)
-model Map {
-  id        Int      @id @default(autoincrement())
-  name      String // Ex: "1º Andar - Bloco A"
-  imageUrl  String // URL da imagem da planta baixa
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relação: Um mapa contém vários locais
-  locals Local[]
-
-  @@map("mapas")
+enum LocalType {
+  CLASSROOM     // Sala de aula
+  LABORATORY    // Laboratório
+  BATHROOM      // Banheiro
+  OFFICE        // CRA/Secretaria
+  LIBRARY       // Biblioteca
+  CAFETERIA     // Cantina
+  AUDITORIUM    // Auditório
+  ENTRANCE      // Entradas
+  STAIRS        // Escada
+  ELEVATOR      // Elevador
+  PARKING       // Estacionamento
+  OTHER         // Outro
 }
 
-// Modelo para as Rotas (caminhos que conectam os locais)
-model Route {
-  id        Int      @id @default(autoincrement())
-  name      String
-  // Para simplificar, armazenamos os pontos da rota como texto JSON
-  pathData  String // Ex: "[[-8.302, -35.991], [-8.303, -35.992]]"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ==========================================
+// GRAFO DE NAVEGAÇÃO
+// ==========================================
 
-  // Relação: Uma rota é composta por vários locais (muitos-para-muitos implícito)
-  locals Local[]
+model GraphNode {
+  id          Int      @id @default(autoincrement())
+  name        String?  // Opcional: "Corredor A", "Bifurcação 1"
+  
+  // Coordenadas
+  x           Float
+  y           Float
+  z           Float?   @default(0)
+  floor       Int      @default(0)
+  building    String?
+  
+  // Tipo de nó
+  type        NodeType @default(WAYPOINT)
+  
+  // Relacionamento com Local (se for um ponto de interesse)
+  localId     Int?     @unique
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@map("rotas")
+  edgesFrom   GraphEdge[] @relation("EdgeFrom")
+  edgesTo     GraphEdge[] @relation("EdgeTo")
+
+  @@index([floor, building])
+  @@map("graph_nodes")
+}
+
+enum NodeType {
+  WAYPOINT      // Ponto de passagem
+  ENTRANCE      // Entrada
+  STAIRS        // Escada
+  ELEVATOR      // Elevador
+  INTERSECTION  // Cruzamento
+  DESTINATION   // Destino (sala, local)
+}
+
+model GraphEdge {
+  id          Int      @id @default(autoincrement())
+  
+  fromNodeId  Int
+  toNodeId    Int
+  
+  // Peso da aresta (distância em metros ou tempo em segundos)
+  weight      Float    @default(1.0)
+  
+  // Tipo de conexão
+  type        EdgeType @default(CORRIDOR)
+  
+  // Acessibilidade
+  accessible  Boolean  @default(true) // Rota acessível
+  
+  // Bidirecional (ida e volta)
+  bidirectional Boolean @default(true)
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  fromNode    GraphNode @relation("EdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
+  toNode      GraphNode @relation("EdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+
+  @@unique([fromNodeId, toNodeId])
+  @@index([fromNodeId])
+  @@index([toNodeId])
+  @@map("graph_edges")
+}
+
+enum EdgeType {
+  CORRIDOR    // Corredor
+  STAIRS      // Escada
+  ELEVATOR    // Elevador
+  OUTDOOR     // Área externa
+  DOOR        // Porta
 }

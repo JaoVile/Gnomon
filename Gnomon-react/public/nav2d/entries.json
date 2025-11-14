@@ -1,7 +1,0 @@
-{
-"entries": [
-{ "id": "A1", "label": "Entrada A — Principal", "nodeId": "node:entrada_A1" },
-{ "id": "A2", "label": "Entrada A — Lateral", "nodeId": "node:entrada_A2" },
-{ "id": "B1", "label": "Entrada B — Principal", "nodeId": "node:entrada_B1" }
-]
-}
