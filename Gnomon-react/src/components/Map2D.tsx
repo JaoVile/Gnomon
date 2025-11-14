@@ -30,6 +30,7 @@ type Props = {
   editorBidirectional?: boolean;
   editorAccessible?: boolean;
   onEditorChange?: (data: { nodes: any[]; edges: any[] }) => void;
+  onMapClick?: (coords: { x: number; y: number }) => void;
   doorSnapPx?: number;
   showCorridorsOverlay?: boolean;
 };
@@ -56,6 +57,7 @@ export default function Map2D({
   editorBidirectional = true,
   editorAccessible: _editorAccessible = true,
   onEditorChange = () => {},
+  onMapClick = () => {},
   doorSnapPx: _doorSnapPx = 24,
   showCorridorsOverlay = false,
 }: Props) {
@@ -436,6 +438,8 @@ export default function Map2D({
     if (markMode) { onMark({ x, y, kind: markKind }); return; }
 
     if (editGraph) {
+      onMapClick({ x: Math.round(x), y: Math.round(y) });
+
       const nearNode = nearestNodeId(x, y, 32);
       if (editTool === 'node') {
         const newNode: MapNode = { id: `node_${Date.now()}`, x: Math.round(x), y: Math.round(y), floor: 0 };

@@ -1,467 +1,120 @@
-/**************************************************
-Arquivo de Estilos da Página do Mapa
-Projeto: Gnomon
-Versão: 0.9 (UI de Overlay Responsivo)
-**************************************************/
-
-:root {
-  --header-h: 60px;
-  --bottom-nav-h: 60px;
-  --cor-fundo: #0f1114;
-  --cor-fundo-secundaria: #1c1c1e;
-  --cor-texto: #e5e7eb;
-  --cor-texto-secundario: #9aa3af;
-  --cor-destaque: #00AEF0;
-  --border: rgba(255,255,255,0.1);
-}
-
-#map-app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh;
-  width: 100%;
-  background-color: var(--cor-fundo);
-  overflow: hidden;
-}
-
-/* --- Barra Superior --- */
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  background-color: var(--cor-fundo-secundaria);
-  border-bottom: 1px solid var(--border);
-  min-height: var(--header-h);
-  flex-shrink: 0;
-}
-.top-bar i {
-  font-size: 1.5em;
-  color: var(--cor-texto-secundario);
-  cursor: pointer;
-}
-.top-bar .logo-container span { font-size: 1.5em; }
-
-/* --- Área de Conteúdo --- */
-.content-area {
-  position: relative; /* Crucial para o overlay */
-  flex: 1 1 auto;
-  display: flex;
-}
-
-/* --- Container do Mapa --- */
-#map-container {
-  flex-grow: 1;
-  background: var(--cor-fundo);
-  overflow: hidden;
-}
-#map-container > div,
-#map-container canvas {
-  height: 100% !important;
-  width: 100% !important;
-}
-
-/* --- Overlay de Controles --- */
-.map-controls-overlay {
+/* Estilos para o novo painel de admin */
+.admin-panel {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1001;
+  top: 170px;
+  right: 20px;
+  width: 280px;
+  background: rgba(28, 28, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 16px;
+  z-index: 1000;
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.admin-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  text-align: center;
+}
+
+.admin-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.admin-tool-btn {
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 12px;
-  pointer-events: none; /* Clicks passam através do overlay */
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
-/* Elementos clicáveis dentro do overlay precisam reativar os eventos */
-.map-controls-overlay > * {
-  pointer-events: auto;
+.admin-tool-btn:hover {
+  background: #444;
 }
 
-/* Barra de busca */
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--bg-tertiary, #2c2c2e);
-  border-radius: 10px;
-  padding: 6px 10px;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.search-bar i {
-  font-size: 14px;
-  color: #888;
-}
-
-.search-bar input[type="search"] {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
+.admin-tool-btn.active {
+  background: #0A84FF;
+  border-color: #0A84FF;
   color: #fff;
-  font-size: 13px;
-  padding: 4px 0;
 }
 
-.search-bar input[type="search"]::placeholder {
-  color: #888;
-  font-size: 13px;
+.admin-tool-btn i {
+  font-size: 16px;
 }
 
-.search-bar .view-toggle {
-  display: flex;
-  gap: 3px;
-  border-radius: 6px;
+.admin-coords {
   background: rgba(0, 0, 0, 0.2);
-  padding: 2px;
-}
-
-.search-bar .view-toggle button {
-  padding: 4px 10px;
-  border: none;
-  border-radius: 5px;
-  background: transparent;
-  color: #888;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.search-bar .view-toggle button.active {
-  background: var(--accent-color, #007aff);
-  color: #fff;
-}
-
-.route-selection {
+  border-radius: 8px;
+  padding: 12px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
-  flex-grow: 1;
 }
 
-.select-wrapper {
+.coords-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #aaa;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.coords-display {
+  background: #111;
+  color: #34C759; /* Verde para o texto das coordenadas */
+  padding: 10px;
+  border-radius: 6px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  border: 1px solid #333;
+}
+
+.copy-btn {
+  background: #0A84FF;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #aeb3b9;
-  font-size: 14px;
-}
-
-.route-selection select {
-  background-color: var(--bg-tertiary, #2c2c2e);
-  color: #fff;
-  border: 1px solid var(--border-color, #3a3a3c);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 14px;
-  flex-grow: 1;
-  min-width: 150px;
-}
-
-.route-selection button {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: none;
-  background-color: #0A84FF;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
+  justify-content: center;
+  gap: 8px;
   transition: background-color 0.2s;
 }
 
-.route-selection button:disabled {
-  background-color: #3a3a3c;
+.copy-btn:hover {
+  background: #005ecb;
+}
+
+.copy-btn:disabled {
+  background: #555;
   cursor: not-allowed;
   opacity: 0.6;
-}
-
-.route-selection button.clear-btn {
-  background: transparent;
-  color: #aeb3b9;
-  padding: 8px;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.route-selection button.clear-btn:hover {
-  background-color: var(--bg-tertiary, #2c2c2e);
-}
-
-
-/* --- Painel Admin --- */
-.admin-panel {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  background: rgba(28, 28, 30, 0.9);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(8px);
-  border-radius: 12px;
-  padding: 10px 12px;
-  width: min(95%, 780px);
-}
-
-.admin-info {
-  color: var(--cor-texto-secundario);
-  font-size: 0.9em;
-  margin-left: 4px;
-}
-
-.admin-buttons, .admin-actions, .admin-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.admin-panel button, .admin-panel select {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--cor-fundo-secundaria);
-  color: var(--cor-texto);
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-.admin-panel button:hover { filter: brightness(1.2); }
-
-.admin-buttons button.active[onClick*="ENTRY"] { background: #0A84FF; }
-.admin-buttons button.active[onClick*="REF"] { background: #FFCC00; color: #000; }
-.admin-buttons button.active[onClick*="CONNECTION"] { background: #00c78c; }
-
-.admin-toggle.active { background: var(--cor-destaque); }
-.admin-buttons button.active[onClick*="node"] { background: #2b5fb3; }
-.admin-buttons button.active[onClick*="edge"] { background: #2b5fb3; }
-.admin-buttons button.active[onClick*="delete"] { background: #b32b2b; }
-
-.admin-options label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 0.9em;
-  border: 1px solid var(--border);
-}
-
-/* --- Barra de Navegação Inferior --- */
-.bottom-nav {
-  position: relative;
-  z-index: 1000;
-  height: var(--bottom-nav-h);
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  background-color: var(--cor-fundo-secundaria);
-  padding: 8px 12px env(safe-area-inset-bottom);
-  border-top: 1px solid var(--border);
-  box-shadow: 0 -8px 24px rgba(0,0,0,.25);
-  flex-shrink: 0;
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  color: var(--sp-text-dim);
-  transition: color 0.3s ease;
-  width: 25%;
-  padding: 0;
-  min-width: 64px;
-}
-.nav-item i { font-size: 1.5em; margin-bottom: 4px; }
-.nav-item span { font-size: 0.7em; }
-.nav-item.active, .nav-item:hover { color: var(--cor-destaque); }
-
-
-/* --- Responsivo --- */
-@media (max-width: 768px) {
-  .search-bar input {
-    padding: 12px 15px 12px 40px;
-    font-size: 0.9em;
-  }
-  .search-bar i { left: 15px; }
-
-  .view-toggle button, .admin-toggle-main {
-    padding: 8px 10px;
-    font-size: 0.8em;
-  }
-
-  .admin-panel {
-    padding: 8px;
-    gap: 6px;
-  }
-
-  .admin-panel button, .admin-panel select {
-    padding: 6px 8px;
-    font-size: 0.75em;
-  }
-  .admin-options label {
-    padding: 5px 8px;
-    font-size: 0.75em;
-    gap: 4px;
-  }
-  .admin-info {
-      font-size: 0.75em;
-    }
-  }
-  
-/* Estilos para dicas de interação no mapa */
-.interaction-hints {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  opacity: 0; /* Começa invisível */
-  animation: fade-in-out 3.5s ease-in-out forwards;
-}
-
-.hint-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 8px 15px;
-  border-radius: 20px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-.hint-icon {
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.hint-text {
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.pan-icon {
-  animation: pan-horizontal 2s ease-in-out infinite;
-}
-
-.zoom-icon {
-
-  animation: pinch-in-out 2s ease-in-out infinite;
-
-}
-
-
-
-@keyframes fade-in-out {
-
-  0%, 100% { opacity: 0; }
-
-  15%, 85% { opacity: 1; }
-
-}
-
-
-
-@keyframes pan-horizontal {
-
-  0% { transform: translateX(-8px); }
-
-  50% { transform: translateX(8px); }
-
-  100% { transform: translateX(-8px); }
-
-}
-
-
-
-@keyframes pinch-in-out {
-
-  0% { transform: scale(1); }
-
-  50% { transform: scale(0.85); }
-
-  100% { transform: scale(1); }
-
-}
-
-
-
-/* --- Painel de Rota --- */
-
-.route-panel {
-
-  width: min(95%, 780px);
-
-  display: flex;
-   
-  gap: 8px;
-
-  align-items: center;
-
-}
-
-
-
-.route-panel select {
-
-  flex-grow: 1;
-
-  padding: 12px 15px;
-
-  border: 1px solid var(--border);
-
-  border-radius: 8px;
-
-  background-color: var(--cor-fundo-secundaria);
-
-  color: var(--cor-texto);
-
-  font-size: 0.9em;
-
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-
-}
-
-
-
-.route-panel .clear-route-btn {
-
-  padding: 10px;
-
-  border: 1px solid var(--border);
-
-  background: #b32b2b;
-
-  color: white;
-
-  border-radius: 8px;
-
-  cursor: pointer;
-
-  display: flex;
-
-  align-items: center;
-
-  justify-content: center;
-
-}
-
-.route-panel .clear-route-btn i {
-
-  font-size: 1.2em;
-
 }

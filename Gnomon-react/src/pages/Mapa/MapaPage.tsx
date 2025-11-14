@@ -16,6 +16,9 @@ export default function MapaPage() {
   const [activeNav, setActiveNav] = useState('Mapa');
   const [mode, setMode] = useState<'2d' | '3d'>('2d');
   const [topDown] = useState(false);
+  const [adminMode, setAdminMode] = useState(false);
+  const [editTool, setEditTool] = useState<'node' | 'delete'>('node');
+  const [clickedCoords, setClickedCoords] = useState<{ x: number, y: number } | null>(null);
 
   const [isMobilePortrait, setIsMobilePortrait] = useState(false);
   useLayoutEffect(() => {
@@ -42,6 +45,18 @@ export default function MapaPage() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const { routePrimary } = useThemeVars();
+
+  const handleCopyCoords = () => {
+    if (clickedCoords) {
+      const coordsString = `"x": ${clickedCoords.x}, "y": ${clickedCoords.y}`;
+      navigator.clipboard.writeText(coordsString).then(() => {
+        setToast({ message: 'Coordenadas copiadas!', type: 'success' });
+      }).catch(err => {
+        console.error('Erro ao copiar coordenadas: ', err);
+        setToast({ message: 'Erro ao copiar.', type: 'error' });
+      });
+    }
+  };
 
   // ✅ CALLBACKS DE NAVEGAÇÃO
   const handleSelectOrigin = (nodeId: string, label?: string) => {
@@ -146,6 +161,16 @@ export default function MapaPage() {
                 onSelectOrigin={handleSelectOrigin}
                 onRouteCalculated={handleRouteCalculated}
                 showCorridorsOverlay={false}
+                editGraph={adminMode}
+                editTool={editTool}
+                showCoords={adminMode}
+                onMapClick={setClickedCoords}
+                onEditorChange={(data) => {
+                  console.clear();
+                  console.log('--- DADOS DO EDITOR (JSON) ---');
+                  console.log(JSON.stringify(data, null, 2));
+                  alert('Dados do mapa atualizados! Verifique o console do navegador (F12).');
+                }}
               />
             </div>
           )}
@@ -165,6 +190,32 @@ export default function MapaPage() {
           }}
         >
           {/* ✅ BARRA DE BUSCA - CLICÁVEL */}
+          <button onClick={() => setAdminMode(!adminMode)} style={{ position: 'absolute', top: '120px', right: '20px', zIndex: 1001, pointerEvents: 'auto', background: adminMode ? '#FF3B30' : '#34C759', color: 'white', border: 'none', padding: '10px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+            {adminMode ? 'Sair do Modo Admin' : 'Modo Admin'}
+          </button>
+
+          {adminMode && (
+            <div className="admin-panel">
+              <h3 className="admin-title">Painel de Edição</h3>
+              <div className="admin-tools">
+                <button className={`admin-tool-btn ${editTool === 'node' ? 'active' : ''}`} onClick={() => setEditTool('node')}>
+                  <i className="fa-solid fa-map-marker-alt"></i> Marcar Ponto
+                </button>
+                <button className={`admin-tool-btn ${editTool === 'delete' ? 'active' : ''}`} onClick={() => setEditTool('delete')}>
+                  <i className="fa-solid fa-trash"></i> Deletar Ponto
+                </button>
+              </div>
+              <div className="admin-coords">
+                <h4 className="coords-title">Coordenadas</h4>
+                <pre className="coords-display">
+                  {clickedCoords ? `"x": ${clickedCoords.x},\n"y": ${clickedCoords.y}` : 'Clique no mapa...'}
+                </pre>
+                <button className="copy-btn" onClick={handleCopyCoords} disabled={!clickedCoords}>
+                  <i className="fa-solid fa-copy"></i> Copiar
+                </button>
+              </div>
+            </div>
+          )}
           <div 
             className="search-bar" 
             style={{ 
@@ -172,112 +223,10 @@ export default function MapaPage() {
               marginTop: '80px'
             }}
           >
-            <i className="fa-solid fa-magnifying-glass"></i>
-            <input type="search" placeholder="Buscar local, sala ou serviço..." />
-            <div className="view-toggle">
-              <button className={mode === '2d' ? 'active' : ''} onClick={() => setMode('2d')}>2D</button>
-              <button className={mode === '3d' ? 'active' : ''} onClick={() => setMode('3d')}>3D</button>
-            </div>
+            {/* Conteúdo da barra de busca aqui */}
           </div>
-
-      {/* ✅ INDICADOR DE ORIGEM - POSIÇÃO FIXA */}
-      {originId && !path && (
-        <div
-          className="origin-indicator"
-          style={{
-            position: 'fixed',
-            bottom: '80px',
-            left: '16px',
-            pointerEvents: 'auto',
-            background: 'rgba(0, 122, 255, 0.15)', // ✅ AZUL TRANSLÚCIDO
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(0, 122, 255, 0.3)',
-            padding: '8px 12px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0, 122, 255, 0.2)',
-            zIndex: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            maxWidth: 'calc(100% - 32px)',
-          }}
-        >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                <i className="fa-solid fa-location-dot" style={{ flexShrink: 0 }}></i>
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  Você está em: <strong>{originLabel || 'Local selecionado'}</strong>
-                </span>
-              </div>
-              <button
-                onClick={clearOrigin}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  marginLeft: '8px',
-                  flexShrink: 0,
-                }}
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-          )}
-
-          {/* ✅ BOTÃO PARA LIMPAR ROTA - POSIÇÃO FIXA */}
-          {path && (
-            <div
-              className="route-controls"
-              style={{
-                position: 'fixed',
-                bottom: '16px',
-                left: '16px',
-                pointerEvents: 'auto',
-                zIndex: 10,
-                width: 'calc(100% - 32px)',
-                maxWidth: '400px',
-              }}
-            >
-              <button
-                onClick={clearRoute}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  borderRadius: '8px',
-                  border: '1px solid #FF3B30',
-                  background: '#FF3B30',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  transition: 'background 0.2s',
-                }}
-              >
-                <i className="fa-solid fa-xmark"></i> Limpar Rota
-              </button>
-            </div>
-          )}
         </div>
       </main>
-
-      {/* ✅ FOOTER - CLICÁVEL */}
-      <footer className="bottom-nav" style={{ pointerEvents: 'auto' }}>
-        <div className={`nav-item ${activeNav === 'Mapa' ? 'active' : ''}`} onClick={() => setActiveNav('Mapa')}>
-          <i className="fa-solid fa-map-location-dot"></i>
-          <span>Mapa</span>
-        </div>
-        <div className={`nav-item ${activeNav === 'Locais' ? 'active' : ''}`} onClick={() => setActiveNav('Locais')}>
-          <i className="fa-solid fa-list-ul"></i>
-          <span>Locais</span>
-        </div>
-        <div className={`nav-item ${activeNav === 'Favoritos' ? 'active' : ''}`} onClick={() => setActiveNav('Favoritos')}>
-          <i className="fa-solid fa-star"></i>
-          <span>Favoritos</span>
-        </div>
-        <div className={`nav-item ${activeNav === 'Ajustes' ? 'active' : ''}`} onClick={() => setActiveNav('Ajustes')}>
-          <i className="fa-solid fa-gear"></i>
-          <span>Ajustes</span>
-        </div>
-      </footer>
     </div>
   );
 }
