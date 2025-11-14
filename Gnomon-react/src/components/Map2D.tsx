@@ -560,7 +560,7 @@ function goHere() {
         position: 'relative', 
         touchAction: 'none', // ✅ PREVINE SCROLL/ZOOM PADRÃO
         cursor: isPanning.current ? 'grabbing' : 'grab', 
-        background: '#5b5c6a',
+        background: '#667281',
         userSelect: 'none',
         WebkitUserSelect: 'none'
       }}
