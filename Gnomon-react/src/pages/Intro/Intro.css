@@ -709,7 +709,7 @@
   text-align: center;
   font-size: 1rem;
   color: var(--text-secondary);
-  margin: 10px auto 0 auto; /* Center and add top margin */
+  margin: 10px auto 30px auto; /* Center, add top margin, and add bottom margin for spacing */
   max-width: 600px; /* Limit width for better readability */
   line-height: 1.6;
   border: 1px solid var(--primary-dark); /* Blue border */
