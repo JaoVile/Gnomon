@@ -269,6 +269,10 @@
   background: var(--background-secondary);
 }
 
+.features-section .section-header {
+  text-align: center;
+}
+
 .features-grid {
   display: grid;
   grid-template-columns: 1fr; /* ✅ Uma coluna em mobile */
