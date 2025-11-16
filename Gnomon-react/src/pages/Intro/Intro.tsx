@@ -63,7 +63,6 @@ export function Intro() {
   
   const { ref: featuresRef, isVisible: featuresVisible } = useScrollAnimation();
   const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation();
-  const { ref: showcaseRef, isVisible: showcaseVisible } = useScrollAnimation();
   const { ref: teamRef, isVisible: teamVisible } = useScrollAnimation();
   const { ref: testimonialsRef, isVisible: testimonialsVisible } = useScrollAnimation();
 
@@ -107,16 +106,7 @@ export function Intro() {
     return () => clearTimeout(timer);
   }, [isMobile]);
 
-  // ✅ Auto-rotate features - pausar quando não visível ou em mobile com motion reduzido
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-    
-    const interval = setInterval(() => {
-      setActiveFeature(prev => (prev + 1) % 3);
-    }, isMobile ? 7000 : 5000); // Mais lento em mobile para economizar bateria
-    
-    return () => clearInterval(interval);
-  }, [isMobile, prefersReducedMotion]);
+
 
   // ✅ Pausar auto-rotate quando tab não está visível
   useEffect(() => {
@@ -136,26 +126,7 @@ export function Intro() {
     { value: '24/7', label: 'Disponibilidade', icon: 'fa-clock' },
   ];
 
-  const features = [
-    {
-      icon: 'fa-map-location-dot',
-      title: 'Navegação Inteligente',
-      description: 'Sistema de rotas otimizado que calcula o melhor caminho para seu destino em tempo real.',
-      image: '/places/navegacao2d.png'
-    },
-    {
-      icon: 'fa-cube',
-      title: 'Visualização 3D',
-      description: 'Explore o campus em três dimensões para uma orientação visual completa e imersiva.',
-      image: '/places/modelo3d.png'
-    },
-    {
-      icon: 'fa-mobile-screen-button',
-      title: 'Acesso Universal',
-      description: 'PWA responsivo que funciona em qualquer dispositivo, online ou offline.',
-      image: '/places/laboratorios.jpg'
-    }
-  ];
+
 
   const testimonials = [
     {
@@ -176,13 +147,27 @@ export function Intro() {
   ];
 
   return (
-    <>
+    <div className="intro-page-wrapper">
+      {/* ✅ Partículas APENAS em desktop */}
+      {!isMobile && !prefersReducedMotion && (
+        <Suspense fallback={null}>
+          <ParticlesBackground color="#3498db" />
+        </Suspense>
+      )}
+
       <Header />
       <a href="#main-content" className="skip-to-content">
         Pular para conteúdo principal
       </a>
 
       <main id="main-content">
+        <div className="intro-summary-navigation">
+          <span className="summary-item summary-item-beneficios">Benefícios</span>
+          <span className="summary-item summary-item-simples-rapido">Simples e Rápido</span>
+          <span className="summary-item summary-item-depoimentos">Depoimentos</span>
+          <span className="summary-item">Nossa Missão</span>
+          <span className="summary-item summary-item-time">Time</span>
+        </div>
         {/* ===== HERO SECTION ===== */}
         <section id="hero" ref={heroRef}>
           <div className="hero-background">
@@ -195,18 +180,13 @@ export function Intro() {
               poster="/places/patio.jpg" // ✅ Poster enquanto carrega
               onLoadedData={() => setIsVideoLoaded(true)}
               preload={isMobile ? "none" : "metadata"} // ✅ Não preload em mobile
+              width="1920" // Explicit width
+              height="1080" // Explicit height
             >
               <source src={videoBg} type="video/mp4" />
             </video>
             <div className="hero-overlay"></div>
           </div>
-
-          {/* ✅ Partículas APENAS em desktop */}
-          {!isMobile && !prefersReducedMotion && (
-            <Suspense fallback={null}>
-              <ParticlesBackground />
-            </Suspense>
-          )}
 
           {/* ✅ Shapes reduzidas em mobile */}
           {!prefersReducedMotion && (
@@ -282,71 +262,7 @@ export function Intro() {
           </div>
         </section>
 
-        {/* ===== FEATURES SHOWCASE ===== */}
-        <section 
-          id="features-showcase" 
-          ref={showcaseRef}
-          className={`showcase-section ${showcaseVisible ? 'is-visible' : ''}`}
-        >
-          <div className="container">
-            <div className="section-header">
-              <span className="section-badge">Funcionalidades</span>
-              <h2>Tudo que você precisa para navegar</h2>
-              <p>Recursos pensados para tornar sua jornada no campus mais eficiente</p>
-            </div>
 
-            <div className="showcase-content">
-              <div className="showcase-features">
-                {features.map((feature, index) => (
-                  <div
-                    key={index}
-                    className={`showcase-feature ${activeFeature === index ? 'active' : ''}`}
-                    onMouseEnter={() => !isMobile && setActiveFeature(index)}
-                    onClick={() => isMobile && setActiveFeature(index)} // ✅ Touch em mobile
-                  >
-                    <div className="feature-icon">
-                      <i className={`fa-solid ${feature.icon}`}></i>
-                    </div>
-                    <div className="feature-content">
-                      <h3>{feature.title}</h3>
-                      <p>{feature.description}</p>
-                    </div>
-                    <div className="feature-arrow">
-                      <i className="fa-solid fa-chevron-right"></i>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="showcase-preview">
-                <div className="preview-mockup">
-                  <div className="mockup-browser">
-                    <div className="browser-header">
-                      <div className="browser-dots">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                      </div>
-                      <div className="browser-url">gnomon.app/mapa</div>
-                    </div>
-                    <div className="browser-content">
-                      {features.map((feature, index) => (
-                        <img
-                          key={index}
-                          src={feature.image}
-                          alt={feature.title}
-                          className={`preview-image ${activeFeature === index ? 'active' : ''}`}
-                          loading="lazy" // ✅ Lazy loading
-                          decoding="async" // ✅ Decodificação assíncrona
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* ===== FEATURES GRID ===== */}
         <section 
@@ -467,8 +383,10 @@ export function Intro() {
           <div className="container">
             <div className="about-content">
               <div className="about-text">
-                <span className="section-badge">Nossa Missão</span>
-                <h2>Transformando a Experiência Universitária</h2>
+                <div className="section-header">
+                  <span className="section-badge">Nossa Missão</span>
+                  <h2>Transformando a Experiência Universitária</h2>
+                </div>
                 <p>
                   O Gnomon nasceu da necessidade real de resolver um problema comum: <strong>a dificuldade de 
                   navegação em ambientes acadêmicos complexos</strong>. Sabemos que os primeiros dias no campus 
@@ -515,17 +433,15 @@ export function Intro() {
 
         {/* ===== TEAM ===== */}
         {/* ✅ Lazy load apenas quando visível */}
-        {(teamVisible || !isMobile) && (
-          <section 
-            id="team" 
-            ref={teamRef}
-            className={`team-section ${teamVisible ? 'is-visible' : ''}`}
-          >
-            <div className="container">
+                  <section
+                    id="team"
+                    ref={teamRef}
+                    className={`team-section ${teamVisible ? 'is-visible' : ''}`}
+                  >            <div className="container">
               <div className="section-header">
-                <span className="section-badge">Time</span>
+                <span className="section-badge section-badge-time">Time</span>
                 <h2>Conheça Quem Faz Acontecer</h2>
-                <p>Jovens afeiçoados por tecnologia e inovação</p>
+                <p className="team-description-paragraph">Jovens afeiçoados por tecnologia e inovação</p>
               </div>
 
               <div className="team-grid">
@@ -565,7 +481,7 @@ export function Intro() {
                     />
                     <div className="photo-overlay">
                       <div className="social-links">
-                        <a href="#" aria-label="LinkedIn de David">
+                        <a href="https://www.linkedin.com/in/david-roberto-31724a376/" aria-label="LinkedIn de David" target="_blank" rel="noopener noreferrer">
                           <i className="fab fa-linkedin"></i>
                         </a>
                         <a href="https://github.com/DavidRdS" aria-label="GitHub de David" target="_blank" rel="noopener noreferrer">
@@ -609,7 +525,6 @@ export function Intro() {
               </div>
             </div>
           </section>
-        )}
 
         {/* ===== FINAL CTA ===== */}
         <section id="final-cta">
@@ -639,6 +554,6 @@ export function Intro() {
       </main>
 
       <Footer />
-    </>
+    </div>
   );
 }

@@ -1,3 +1,8 @@
+.intro-page-wrapper {
+  position: relative;
+  isolation: isolate; /* Cria um novo contexto de empilhamento */
+}
+
 /* ============================================
    MOBILE-FIRST HERO SECTION
    ============================================ */
@@ -8,7 +13,6 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(135deg, #828282 0%, #000e74 50%);
 }
 
 .hero-background {
@@ -216,8 +220,7 @@
   box-shadow: var(--shadow-sm); /* ✅ Sombra menor em mobile */
   border: 1px solid var(--border-color);
   opacity: 0;
-  transform: translateY(20px); /* ✅ Transform menor */
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity 0.4s ease;
 }
 
 .stats-section.is-visible .stat-card {
@@ -256,223 +259,7 @@
   font-weight: 500;
 }
 
-/* ============================================
-   SHOWCASE SECTION - MOBILE FIRST
-   ============================================ */
-.showcase-section {
-  padding: 60px 16px; /* ✅ Padding menor */
-  background: var(--background);
-  overflow: hidden;
-}
 
-.section-header {
-  text-align: center;
-  max-width: 100%; /* ✅ Full width em mobile */
-  margin: 0 auto 40px; /* ✅ Margin menor */
-  padding: 0 8px;
-}
-
-.section-badge {
-  display: inline-block;
-  padding: 6px 14px; /* ✅ Padding menor */
-  background: var(--primary-subtle);
-  color: var(--primary);
-  border-radius: var(--radius-full);
-  font-size: 0.75rem; /* ✅ Fonte menor */
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 12px;
-  border: 1px solid var(--primary);
-}
-
-.section-header h2 {
-  font-size: clamp(1.5rem, 6vw, 3.5rem); /* ✅ Base menor */
-  font-weight: 800;
-  color: var(--text);
-  margin: 0 0 12px 0;
-  line-height: 1.2;
-}
-
-.section-header p {
-  font-size: 1rem; /* ✅ Fonte menor */
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.showcase-content {
-  display: flex; /* ✅ Flex column em mobile */
-  flex-direction: column;
-  gap: 30px; /* ✅ Gap menor */
-  align-items: stretch;
-  max-width: 1400px;
-  margin: 0 auto;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-}
-
-.showcase-section.is-visible .showcase-content {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.showcase-features {
-  display: flex;
-  flex-direction: column;
-  gap: 12px; /* ✅ Gap menor */
-}
-
-.showcase-feature {
-  display: flex;
-  align-items: center;
-  gap: 12px; /* ✅ Gap menor */
-  padding: 16px; /* ✅ Padding menor */
-  background: var(--card-background);
-  border-radius: var(--radius-md);
-  border: 2px solid var(--border-color);
-  cursor: pointer;
-  transition: all 0.2s ease; /* ✅ Transição mais rápida */
-  position: relative;
-  min-height: 80px; /* ✅ Touch target */
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* ✅ Remover ::before em mobile (performance) */
-.showcase-feature.active {
-  border-color: var(--primary);
-  background: var(--primary-subtle);
-  box-shadow: var(--shadow-sm);
-}
-
-.feature-icon {
-  width: 48px; /* ✅ Ícone menor */
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--primary);
-  color: white;
-  border-radius: var(--radius-sm);
-  font-size: 1.2rem; /* ✅ Fonte menor */
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.showcase-feature.active .feature-icon {
-  background: var(--info);
-}
-
-.feature-content {
-  flex: 1;
-  min-width: 0; /* ✅ Prevenir overflow */
-}
-
-.feature-content h3 {
-  font-size: 1.1rem; /* ✅ Fonte menor */
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 4px 0;
-}
-
-.feature-content p {
-  font-size: 0.85rem; /* ✅ Fonte menor */
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* ✅ Limitar a 2 linhas */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.feature-arrow {
-  color: var(--text-secondary);
-  font-size: 1rem;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.showcase-feature.active .feature-arrow {
-  color: var(--primary);
-  transform: translateX(3px);
-}
-
-.showcase-preview {
-  position: relative;
-  /* ✅ Remover perspective em mobile */
-  order: -1; /* ✅ Preview primeiro em mobile */
-}
-
-.preview-mockup {
-  /* ✅ Remover transform-style em mobile */
-  transition: none; /* ✅ Sem transição em mobile */
-}
-
-.mockup-browser {
-  background: var(--background-secondary-dark);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-md); /* ✅ Sombra simplificada */
-}
-
-.browser-header {
-  background: var(--card-background-dark);
-  padding: 10px 12px; /* ✅ Padding menor */
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.browser-dots {
-  display: flex;
-  gap: 4px; /* ✅ Gap menor */
-}
-
-.browser-dots span {
-  width: 10px; /* ✅ Dots menores */
-  height: 10px;
-  border-radius: 50%;
-  background: var(--text-disabled);
-}
-
-.browser-dots span:nth-child(1) { background: var(--error); }
-.browser-dots span:nth-child(2) { background: var(--warning); }
-.browser-dots span:nth-child(3) { background: var(--success); }
-
-.browser-url {
-  flex: 1;
-  background: var(--background-dark);
-  padding: 4px 10px; /* ✅ Padding menor */
-  border-radius: 4px;
-  color: var(--text-tertiary);
-  font-size: 0.75rem; /* ✅ Fonte menor */
-  font-family: 'Courier New', monospace;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.browser-content {
-  background: var(--background-secondary);
-  aspect-ratio: 16/10;
-  position: relative;
-  overflow: hidden;
-}
-
-.preview-image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transition: opacity 0.4s ease; /* ✅ Transição mais rápida */
-}
-
-.preview-image.active {
-  opacity: 1;
-}
 
 /* ============================================
    FEATURES GRID - MOBILE FIRST
@@ -497,7 +284,6 @@
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   opacity: 0;
-  transform: translateY(20px);
   border: 1px solid var(--border-color);
 }
 
@@ -666,8 +452,7 @@
   border-radius: var(--radius-md);
   padding: 24px; /* ✅ Padding menor */
   opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity 0.4s ease;
 }
 
 .testimonials-section.is-visible .testimonial-card {
@@ -743,6 +528,10 @@
   flex-direction: column; /* ✅ Column em mobile */
   gap: 40px;
   align-items: stretch;
+}
+
+.about-text {
+  text-align: center; /* Centraliza o badge e o resto do texto no mobile e desktop */
 }
 
 .about-text .section-badge {
@@ -858,10 +647,16 @@
    ============================================ */
 .team-section {
   padding: 60px 16px;
-  background: var(--background-secondary);
-  /* ✅ Lazy rendering */
-  content-visibility: auto;
-  contain-intrinsic-size: 800px;
+  .team-description-paragraph {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 10px auto 0 auto; /* Center and add top margin */
+  max-width: 600px; /* Limit width for better readability */
+  line-height: 1.6;
+}
+
+background: var(--background-secondary);
 }
 
 .team-grid {
@@ -879,7 +674,6 @@
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   opacity: 0;
-  transform: translateY(20px);
   border: 1px solid var(--border-color);
 }
 
@@ -907,20 +701,20 @@
   transition: transform 0.3s ease; /* ✅ Transição mais rápida */
 }
 
-/* ✅ Overlay simplificado em mobile (não mostra no hover) */
-
+/* ✅ Overlay visível por padrão para mobile, com hover apenas no desktop */
 .photo-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     135deg, 
-    rgba(61, 143, 255, 0.85) 0%,  /* ← 85% opacidade no gradiente */
+    rgba(61, 143, 255, 0.85) 0%,
     rgba(56, 189, 248, 0.85) 100%
   );
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
+  opacity: 0.7; /* Tornar visível por padrão */
+  pointer-events: auto; /* Permitir cliques por padrão */
   transition: opacity var(--duration-normal);
 }
 
@@ -974,6 +768,29 @@
   color: var(--text-secondary);
   line-height: 1.5;
   margin: 0;
+}
+
+@media (max-width: 768px) {
+  /* ✅ Desabilitar social links no time section em mobile */
+  .team-section .social-links {
+    display: none;
+  }
+
+  /* ✅ Remover overlay azul e reduzir tamanho dos cards em mobile */
+  .team-section .photo-overlay {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .team-grid {
+    max-width: 300px; /* Reduzir max-width para cards menores */
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 /* ============================================
@@ -1192,48 +1009,7 @@
     border-color: var(--primary);
   }
   
-  /* Showcase */
-  .showcase-content {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: 60px;
-  }
-  
-  .showcase-preview {
-    order: 0;
-    perspective: 1000px;
-  }
-  
-  .preview-mockup {
-    transform-style: preserve-3d;
-  }
-  
-  .showcase-preview:hover .preview-mockup {
-    transform: rotateY(-5deg) rotateX(2deg);
-  }
-  
-  .showcase-feature::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
-    border-radius: var(--radius-lg);
-    opacity: 0;
-    transition: opacity var(--duration-normal);
-    z-index: -1;
-  }
-  
-  .showcase-feature:hover::before {
-    opacity: 0.1;
-  }
-  
-  .showcase-feature:hover .feature-icon {
-    transform: scale(1.1);
-  }
-  
-  .feature-content p {
-    -webkit-line-clamp: unset;
-  }
+
   
   /* How it Works */
   .steps-timeline {
@@ -1273,7 +1049,7 @@
   }
   
   .about-text h2 {
-    text-align: left;
+    /* text-align: left; */
   }
   
   .visual-card::before {
@@ -1285,6 +1061,10 @@
     gap: 40px;
   }
   
+  /* Team */
+  @media (min-width: 768px) {
+  /* ... (outras regras de desktop) ... */
+
   /* Team */
   .team-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -1298,6 +1078,12 @@
   .team-card:hover .team-photo img {
     transform: scale(1.1);
   }
+
+  /* Esconde o overlay por padrão no desktop e mostra no hover */
+  .photo-overlay {
+    opacity: 0;
+    pointer-events: none;
+  }
   
   .team-card:hover .photo-overlay {
     opacity: 0.7;
@@ -1307,6 +1093,9 @@
   .team-card:hover .social-links {
     transform: translateY(0);
   }
+
+  /* ... (outras regras de desktop) ... */
+}
   
   /* Final CTA */
   .cta-primary-large {
@@ -1393,5 +1182,92 @@
   section {
     page-break-inside: avoid;
     padding: 20px;
+  }
+}
+
+/* ============================================
+   INTRO SUMMARY NAVIGATION
+   ============================================ */
+.intro-summary-navigation {
+  text-align: center;
+  padding: 20px 16px;
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.summary-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 22px; /* Increased padding */
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 1rem; /* Increased font size */
+  font-weight: 600; /* Increased font weight */
+  color: var(--text); /* Changed text color for prominence */
+  transition: all 0.3s ease; /* Smoother transition */
+  cursor: pointer;
+  box-shadow: var(--shadow-sm); /* Added subtle shadow */
+  text-decoration: none; /* Ensure no underline if it becomes a link */
+}
+
+.summary-item:hover {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%); /* Gradient background on hover */
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-3px) scale(1.02); /* More pronounced hover effect */
+  box-shadow: var(--shadow-md);
+}
+
+.summary-item:hover {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%); /* Gradient background on hover */
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-3px) scale(1.02); /* More pronounced hover effect */
+  box-shadow: var(--shadow-md);
+}
+
+.summary-item-time {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+.summary-item-time {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+.summary-item-beneficios,
+.summary-item-simples-rapido,
+.summary-item-depoimentos {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .intro-summary-navigation {
+    padding: 15px 10px;
+    margin-top: 15px;
+    gap: 8px;
+  }
+
+  .summary-item {
+    font-size: 0.8rem;
+    padding: 6px 14px;
   }
 }
