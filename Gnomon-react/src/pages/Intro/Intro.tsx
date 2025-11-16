@@ -161,13 +161,7 @@ export function Intro() {
       </a>
 
       <main id="main-content">
-        <div className="intro-summary-navigation">
-          <span className="summary-item summary-item-beneficios">Benefícios</span>
-          <span className="summary-item summary-item-simples-rapido">Simples e Rápido</span>
-          <span className="summary-item summary-item-depoimentos">Depoimentos</span>
-          <span className="summary-item">Nossa Missão</span>
-          <span className="summary-item summary-item-time">Time</span>
-        </div>
+
         {/* ===== HERO SECTION ===== */}
         <section id="hero" ref={heroRef}>
           <div className="hero-background">
