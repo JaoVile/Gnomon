@@ -17,8 +17,8 @@ theme: isLight ? 'light' : 'dark',
 routePrimary: get('--route-primary') || '#1f6fe5',
 routeAccessible: get('--route-accessible') || '#77a88d',
 routeRestricted: get('--route-restricted') || '#ff6b6b',
-accent: get('--cor-destaque') || '#1f6fe5',
-bg3d: get('--sp-ink') || '#0b0f11',
+accent: get('--primary') || '#1f6fe5',
+bg3d: get('--sp-ink') || get('--background-dark') || '#0b0f11',
 }
 }
 

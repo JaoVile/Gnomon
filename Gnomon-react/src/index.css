@@ -65,14 +65,14 @@
     135deg,
     hsla(54, 100%, 50%, 0.2) 0%,
     rgba(66, 88, 127, 0.2) 50%,
-    rgba(0, 0, 0, 0.5) 100%
+    rgba(2, 0, 55, 0.5) 100%
   );
   
   --video-gradient-light: linear-gradient(
     135deg,
-    hsla(54, 100%, 50%, 0.2) 0%,
-    rgba(66, 88, 127, 0.2) 50%,
-    rgba(0, 0, 0, 0.5) 100%
+    hsla(225, 100%, 16%, 0.7) 40%,
+    rgba(37, 37, 37, 0.6) 70%,
+    rgba(96, 94, 0, 0.6) 100%
   );
 
   /* 🎨 WAYFINDING */
@@ -126,6 +126,7 @@
   --z-dropdown: 100;
   --z-sticky: 500;
   --z-fixed: 1000;
+  --z-scroll-progress: 1001; /* Ensure scroll progress is above fixed elements */
   --z-modal: 2000;
   --z-toast: 3000;
 
@@ -226,7 +227,6 @@ html, body {
 }
 
 body {
-  background-color: var(--background);
   color: var(--text);
   font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
@@ -314,6 +314,12 @@ p {
 button, a, input, select, textarea {
   min-height: 44px;
   min-width: 44px;
+}
+
+#root {
+  background-color: var(--background);
+  position: relative;
+  isolation: isolate;
 }
 
 /* ============================================================================
@@ -592,7 +598,7 @@ button, a, input, select, textarea {
   background-size: 200% 100%;
   transform-origin: left;
   transform: scaleX(0);
-  z-index: var(--z-fixed);
+  z-index: var(--z-scroll-progress); /* Use new z-index variable */
   transition: transform 0.1s ease-out;
   animation: gradient-shift 3s linear infinite;
 }
@@ -1285,15 +1291,71 @@ header nav .cta-button:active {
   }
 
   header nav .cta-button {
-    padding: 10px 20px;
+    padding: 10px 16px; /* Adjusted padding */
     font-size: 14px;
+  }
+}
+
+/* For very small screens */
+@media (max-width: 420px) {
+  header .container {
+    padding: 0 12px; /* reduce container padding */
+  }
+
+  .logo-container {
+    gap: 6px;
+    font-size: 1rem; /* smaller "GNOMON" */
+  }
+
+  .logo-container img {
+    height: 32px;
+    width: 32px;
+  }
+
+  header nav {
+    gap: 6px; /* smaller gap */
+  }
+
+  header nav .cta-button {
+    padding: 8px 10px; /* smaller button padding */
+    font-size: 13px; /* smaller button text */
+    height: 36px;
+    min-height: 36px;
+  }
+
+  .theme-switcher {
+    gap: 4px;
+  }
+
+  .theme-switcher i {
+    font-size: 0.8rem;
+  }
+
+  .theme-switch {
+    width: 40px;
+    height: 22px;
+  }
+
+  .slider {
+    width: 16px;
+    height: 16px;
+    top: 2px;
+    left: 2px;
+  }
+
+  .theme-switch-checkbox:checked + .theme-switch .slider {
+    transform: translateX(18px);
   }
 }
 /* ============================================================================
    FOOTER - VERSÃO ORIGINAL MELHORADA
    ============================================================================ */
 footer {
-  background-color: var(--background-secondary);
+  position: relative; /* Garante o empilhamento correto */
+  z-index: 2; /* Acima das partículas (z-index: 1) */
+  background-color: rgba(from var(--background-secondary) r g b / 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--text-secondary);
   padding: 60px 0 0;
   border-top: 1px solid var(--border-color);

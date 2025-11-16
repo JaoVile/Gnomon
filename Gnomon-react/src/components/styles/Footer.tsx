@@ -89,7 +89,7 @@ export default function Footer() {
                   <strong>David Roberto</strong>
                   <span>DBA, QA e Engenheiro de Segurança</span>
                   <div className="social-mini">
-                    <a href="#" aria-label="LinkedIn"><i className="fab fa-linkedin"></i></a>
+                    <a href="https://www.linkedin.com/in/david-roberto-31724a376/" aria-label="LinkedIn de David" target="_blank" rel="noopener noreferrer"><i className="fab fa-linkedin"></i></a>
                     <a href="https://github.com/DavidRdS" aria-label="GitHub de David" target="_blank" rel="noopener noreferrer"><i className="fab fa-github"></i></a>
                   </div>
                 </div>

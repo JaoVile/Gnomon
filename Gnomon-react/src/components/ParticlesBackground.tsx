@@ -2,6 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { type Container, type ISourceOptions } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
+import { useThemeVars } from "../libs/useThemeVars";
+import { useTheme } from "./ThemeContext";
+
+// ✅ Define um tipo para as variáveis de tema que esperamos receber.
+interface ThemeVariables {
+  primary: string;
+  text: string;
+}
 
 // ✅ Detectar se é mobile
 const isMobileDevice = (): boolean => {
@@ -29,10 +37,12 @@ const isLowPowerMode = async (): Promise<boolean> => {
   }
 };
 
-export function ParticlesBackground() {
+export function ParticlesBackground({ color }: { color?: string }) {
   const [init, setInit] = useState(false);
   const [shouldRender, setShouldRender] = useState(true);
   const isMobile = useMemo(() => isMobileDevice(), []);
+  const { theme } = useTheme();
+  const themeVars = useThemeVars();
 
   // ✅ Inicializar engine apenas uma vez
   useEffect(() => {
@@ -40,19 +50,6 @@ export function ParticlesBackground() {
     if (prefersReducedMotion()) {
       setShouldRender(false);
       return;
-    }
-
-    // ✅ Verificar bateria em mobile
-    if (isMobile) {
-      isLowPowerMode()
-        .then((isLowPower: boolean) => { // ✅ Tipagem explícita
-          if (isLowPower) {
-            setShouldRender(false);
-          }
-        })
-        .catch(() => {
-          // Fallback: continuar renderizando
-        });
     }
 
     // ✅ Inicializar apenas se deve renderizar
@@ -63,7 +60,7 @@ export function ParticlesBackground() {
         setInit(true);
       });
     }
-  }, [isMobile, shouldRender]);
+  }, [shouldRender]);
 
   // ✅ Callback otimizado
   const particlesLoaded = async (container?: Container): Promise<void> => {
@@ -109,10 +106,10 @@ export function ParticlesBackground() {
       
       particles: {
         color: {
-          value: "#ffffff",
+          value: color || (theme === 'light' ? (themeVars as unknown as ThemeVariables).primary : (themeVars as unknown as ThemeVariables).text),
         },
         links: {
-          color: "#ffffff",
+          color: color || (theme === 'light' ? (themeVars as unknown as ThemeVariables).primary : (themeVars as unknown as ThemeVariables).text),
           distance: isMobile ? 100 : 150,
           enable: true,
           opacity: isMobile ? 0.1 : 0.15,
@@ -152,8 +149,7 @@ export function ParticlesBackground() {
       pauseOnOutsideViewport: true,
       smooth: true,
       manualParticles: [],
-    }),
-    [isMobile],
+    }), [isMobile, theme, themeVars, color] // ✅ Adiciona dependências do tema e cor
   );
 
   // ✅ Não renderizar se não deve ou não inicializou
@@ -167,9 +163,9 @@ export function ParticlesBackground() {
       particlesLoaded={particlesLoaded}
       options={options}
       style={{
-        position: 'absolute',
+        position: 'fixed',
         inset: 0,
-        zIndex: 1,
+        zIndex: -1,
         pointerEvents: 'none',
         willChange: 'transform, opacity',
       }}

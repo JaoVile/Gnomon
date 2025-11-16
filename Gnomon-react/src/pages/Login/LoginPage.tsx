@@ -50,7 +50,7 @@ export function LoginPage() {
             localStorage.setItem('authToken', responseData.token);
             navigate('/mapa');
 
-        } catch (error: any) {
+        } catch (error: Error) {
             console.error('Erro no login:', error);
             // Define a mensagem de erro para ser exibida na tela
             setError(error.message);
@@ -116,9 +116,6 @@ export function LoginPage() {
                         {isLoading ? 'Entrando...' : 'Entrar'}
                     </button>
 
-                    <div className="signup-link">
-                        <p>Não tem uma conta? <Link to="/cadastro">Cadastre-se</Link></p>
-                    </div>
                 </form>
             </div>
         </div>
