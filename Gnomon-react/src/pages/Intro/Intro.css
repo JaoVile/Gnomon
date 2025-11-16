@@ -337,6 +337,10 @@
   background: var(--background);
 }
 
+#how-it-works .section-header {
+  text-align: center;
+}
+
 .steps-timeline {
   max-width: 900px;
   margin: 0 auto;
@@ -661,6 +665,10 @@
 }
 
 background: var(--background-secondary);
+}
+
+.team-section .section-header {
+  text-align: center;
 }
 
 .team-grid {
