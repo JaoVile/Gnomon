@@ -435,6 +435,16 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.testimonials-section .section-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.testimonials-section .section-header {
+  text-align: center;
+}
+
 .testimonials-section .section-header h2 {
   color: white;
 }
