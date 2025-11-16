@@ -1,17 +1,29 @@
-// src/components/CtaButton.tsx
 import { Link } from 'react-router-dom';
+import type { CSSProperties, ReactNode } from 'react'; // ✅ CORRIGIDO
 
-// Usando TypeScript para definir quais props o componente aceita
 interface CtaButtonProps {
-    to: string;
-    children: React.ReactNode;
-    style?: React.CSSProperties; // Prop opcional para estilos inline
+  to: string;
+  children: ReactNode;
+  style?: CSSProperties;
+  className?: string;
+  onClick?: () => void;
 }
 
-export default function CtaButton({ to, children, style }: CtaButtonProps) {
-    return (
-        <Link to={to} className="cta-button" style={style}>
-            {children}
-        </Link>
-    );
+export default function CtaButton({ 
+  to, 
+  children, 
+  style, 
+  className = '',
+  onClick 
+}: CtaButtonProps) {
+  return (
+    <Link 
+      to={to} 
+      className={`cta-button ${className}`.trim()}
+      style={style}
+      onClick={onClick}
+    >
+      {children}
+    </Link>
+  );
 }

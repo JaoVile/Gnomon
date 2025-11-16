@@ -271,6 +271,7 @@ Possibilidades de Monetização:
 Este projeto é licenciado sob a Licença MIT. Veja o arquivo LICENSE para mais detalhes. =/
 ```
 
+
 ```
 Gnomon_Local
 ├─ Gnomon-backend
@@ -325,29 +326,40 @@ Gnomon_Local
 │  ├─ dist
 │  │  ├─ assets
 │  │  │  ├─ css
-│  │  │  │  └─ index-BzZf2Eq-.css
+│  │  │  │  └─ index-DGNrutcD.css
 │  │  │  ├─ jpg
 │  │  │  │  ├─ David-CmwEhJiK.jpg
 │  │  │  │  ├─ Joao-BTAKBEAu.jpg
 │  │  │  │  └─ Lucas-BdnrgAPR.jpg
 │  │  │  ├─ js
-│  │  │  │  ├─ index-CaY0pGpp.js
-│  │  │  │  └─ react-vendor-ItDNz60Q.js
+│  │  │  │  ├─ index-C12ciEcs.js
+│  │  │  │  └─ react-vendor-Dg7zgMfl.js
+│  │  │  ├─ mp4
+│  │  │  │  └─ Nassau_Intro-D3b6Mo67.mp4
 │  │  │  └─ png
-│  │  │     ├─ Gnomon Logo _ SEM NOME-DMDDslfa.png
-│  │  │     └─ Mapa-BH3cG4p0.png
+│  │  │     └─ Gnomon Logo _ SEM NOME-DMDDslfa.png
 │  │  ├─ Gnomon_Icon.png
 │  │  ├─ Gnomon_Sem_Nome_Icon.png
 │  │  ├─ index.html
+│  │  ├─ maps
+│  │  │  ├─ Campus_2D_DETALHE.png
+│  │  │  ├─ generate-edges.js
+│  │  │  ├─ nodes-2d-detalhe.json
+│  │  │  └─ path-graph.json
 │  │  ├─ models
 │  │  │  └─ Campus.glb
-│  │  ├─ nav
-│  │  │  ├─ edges.json
-│  │  │  ├─ entries.json
-│  │  │  └─ rooms.json
-│  │  └─ nav2d
-│  │     ├─ entries.json
-│  │     └─ nodes.json
+│  │  └─ places
+│  │     ├─ auditorio.jpg
+│  │     ├─ banheiro.jpg
+│  │     ├─ banheiro2.jpg
+│  │     ├─ biblioteca.jpg
+│  │     ├─ cantina.png
+│  │     ├─ cra.jpg
+│  │     ├─ entrada1.jpg
+│  │     ├─ entrada2.jpeg
+│  │     ├─ laboratorios.jpg
+│  │     ├─ patio.jpg
+│  │     └─ sala.png
 │  ├─ eslint.config.js
 │  ├─ index.html
 │  ├─ package-lock.json
@@ -362,15 +374,19 @@ Gnomon_Local
 │  │  │  └─ path-graph.json
 │  │  ├─ models
 │  │  │  └─ Campus.glb
-│  │  └─ places
-│  │     ├─ auditorio.jpg
-│  │     ├─ banheiro.jpg
-│  │     ├─ banheiro2.jpg
-│  │     ├─ biblioteca.jpg
-│  │     ├─ cra.jpg
-│  │     ├─ entrada1.jpg
-│  │     ├─ laboratorios.jpg
-│  │     └─ patio.jpg
+│  │  ├─ places
+│  │  │  ├─ auditorio.jpg
+│  │  │  ├─ banheiro.jpg
+│  │  │  ├─ banheiro2.jpg
+│  │  │  ├─ biblioteca.jpg
+│  │  │  ├─ cantina.png
+│  │  │  ├─ cra.jpg
+│  │  │  ├─ entrada1.jpg
+│  │  │  ├─ entrada2.jpeg
+│  │  │  ├─ laboratorios.jpg
+│  │  │  ├─ patio.jpg
+│  │  │  └─ sala.png
+│  │  └─ sundial_pattern.svg
 │  ├─ README.md
 │  ├─ scripts
 │  │  └─ connect-pois.js
@@ -384,24 +400,28 @@ Gnomon_Local
 │  │  │  ├─ GnomonLogoSemNome.png
 │  │  │  ├─ Joao.jpg
 │  │  │  ├─ Lucas.jpg
-│  │  │  └─ Mapa.png
+│  │  │  ├─ Mapa.png
+│  │  │  └─ Nassau_Intro.mp4
 │  │  ├─ components
 │  │  │  ├─ Campus3d.tsx
 │  │  │  ├─ CtaButton.tsx
-│  │  │  ├─ Footer.tsx
 │  │  │  ├─ GpsMarker.css
 │  │  │  ├─ GpsMarker.tsx
-│  │  │  ├─ Header.tsx
-│  │  │  ├─ JsonExporter.tsx
+│  │  │  ├─ Map2D.css
 │  │  │  ├─ Map2D.tsx
-│  │  │  ├─ PointsHistory.tsx
+│  │  │  ├─ ParticlesBackground.tsx
+│  │  │  ├─ RouteInstructions.css
 │  │  │  ├─ RouteInstructions.tsx
+│  │  │  ├─ styles
+│  │  │  │  ├─ Footer.tsx
+│  │  │  │  └─ Header.tsx
 │  │  │  ├─ Toast.css
 │  │  │  └─ Toast.tsx
 │  │  ├─ hooks
 │  │  │  ├─ useMapData.ts
 │  │  │  ├─ useNavigation2D.ts
-│  │  │  └─ usePathfinding.ts
+│  │  │  ├─ usePathfinding.ts
+│  │  │  └─ useScrollAnimation.ts
 │  │  ├─ index.css
 │  │  ├─ libs
 │  │  │  └─ useThemeVars.ts

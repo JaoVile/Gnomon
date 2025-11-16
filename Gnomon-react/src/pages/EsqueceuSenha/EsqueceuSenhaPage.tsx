@@ -8,7 +8,7 @@ import './EsqueceuSenhaPage.css';
 // Variável de ambiente para a URL da API, com um valor padrão para desenvolvimento local
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-export default function EsqueceuSenhaPage() {
+export function EsqueceuSenhaPage() {
     const [email, setEmail] = useState('');
     const navigate = useNavigate();
 

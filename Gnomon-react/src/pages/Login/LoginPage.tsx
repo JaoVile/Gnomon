@@ -8,7 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
 import './LoginPage.css'; 
 
-export default function LoginPage() {
+export function LoginPage() {
     // Estados para controlar os campos do formulário
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

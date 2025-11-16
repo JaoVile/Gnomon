@@ -1,5 +1,4 @@
 // src/components/RouteInstructions.tsx
-import React from 'react';
 import './RouteInstructions.css'; // ✅ ADICIONE ESTA LINHA
 import type { TurnInstruction } from './Map2D';
 

@@ -1,146 +1,644 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState, lazy, Suspense } from 'react';
+import { useScrollAnimation } from '../../hooks/useScrollAnimation';
+import Header from '../../components/styles/Header';
+import Footer from '../../components/styles/Footer';
+import CtaButton from '../../components/CtaButton';
+import fotoLucas from '../../assets/Lucas.jpg';
+import fotoDavid from '../../assets/David.jpg';
+import fotoJoao from '../../assets/Joao.jpg';
+import './Intro.css';
+import videoBg from '../../assets/Nassau_Intro.mp4';
 
-import Header from '../../components/Header'
-import Footer from '../../components/Footer'
-import CtaButton from '../../components/CtaButton'
-import fotoLucas from '../../assets/Lucas.jpg'
-import fotoDavid from '../../assets/David.jpg'
-import fotoJoao from '../../assets/Joao.jpg'
-import './Intro.css'
+// ✅ Lazy load do componente pesado de partículas
+const ParticlesBackground = lazy(() => 
+  import('../../components/ParticlesBackground').then(module => ({
+    default: module.ParticlesBackground
+  }))
+);
 
-export default function HomePage() {
-// Prefetch do GLB para o mapa abrir mais rápido
-useEffect(() => {
-const id = 'prefetch-campus-glb'
-let link = document.getElementById(id) as HTMLLinkElement | null
+// ✅ Hook para detectar mobile
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => 
+    window.innerWidth < 768
+  );
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
-if (!link) {
-  link = document.createElement('link')
-  link.id = id
-  link.rel = 'prefetch'
-  // 'as' é opcional para prefetch; pode deixar sem
-  // link.as = 'fetch'
-  link.href = '/models/Campus.glb'
-  link.crossOrigin = 'anonymous'
-  document.head.appendChild(link)
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile;
 }
 
-// Cleanup deve retornar void
-return () => {
-  // Em dev (StrictMode) o effect roda duas vezes; cheque antes de remover
-  if (link && link.parentNode) {
-    link.parentNode.removeChild(link)
-    // ou: link.remove()
-  }
+// ✅ Hook para detectar se usuário prefere motion reduzido
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  return prefersReducedMotion;
 }
-}, [])
 
-return (
-<>
-<Header />
+export function Intro() {
+  const heroRef = useRef<HTMLElement>(null);
+  const [activeFeature, setActiveFeature] = useState(0);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  
+  const isMobile = useIsMobile();
+  const prefersReducedMotion = usePrefersReducedMotion();
+  
+  const { ref: featuresRef, isVisible: featuresVisible } = useScrollAnimation();
+  const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation();
+  const { ref: showcaseRef, isVisible: showcaseVisible } = useScrollAnimation();
+  const { ref: teamRef, isVisible: teamVisible } = useScrollAnimation();
+  const { ref: testimonialsRef, isVisible: testimonialsVisible } = useScrollAnimation();
 
+  // ✅ Prefetch APENAS em desktop e quando idle
+  useEffect(() => {
+    if (isMobile) return; // Não prefetch em mobile
 
-  <main>
-    <section id="hero">
-      <div className="container">
-        <h1>Seu Guia Definitivo para o Campus</h1>
-        <p>
-          O Gnomon foi criado para simplificar sua vida acadêmica, ajudando você a encontrar
-          qualquer sala, laboratório ou serviço com facilidade e rapidez.
-        </p>
+    // Usar requestIdleCallback se disponível
+    const prefetchWhenIdle = () => {
+      const prefetchResources = [
+        { href: '/models/Campus.glb', as: 'fetch' },
+        { href: '/maps/path-graph.json', as: 'fetch' },
+      ];
 
-        <CtaButton to="/mapa" style={{ fontSize: '1.2em', padding: '15px 40px' }}>
-          Comece a Explorar
-        </CtaButton>
-      </div>
-    </section>
+      const links: HTMLLinkElement[] = [];
+      
+      prefetchResources.forEach(({ href, as }) => {
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = href;
+        link.as = as;
+        link.crossOrigin = 'anonymous';
+        document.head.appendChild(link);
+        links.push(link);
+      });
 
-    <section id="features">
-      <div className="container">
-        <h2>Tudo o que você precisa, em um só lugar.</h2>
-        <div className="features-grid">
-          <div className="feature-item">
-            <i className="fa-solid fa-map-location-dot"></i>
-            <h3>Nunca mais se perca</h3>
-            <p>
-              Nossa principal missão é resolver a dificuldade de localização no ambiente acadêmico.
-              Encontre qualquer ponto do campus de forma intuitiva.
+      return () => {
+        links.forEach(link => link.remove());
+      };
+    };
+
+    // Esperar 2s antes de fazer prefetch
+    const timer = setTimeout(() => {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(prefetchWhenIdle);
+      } else {
+        prefetchWhenIdle();
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [isMobile]);
+
+  // ✅ Auto-rotate features - pausar quando não visível ou em mobile com motion reduzido
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+    
+    const interval = setInterval(() => {
+      setActiveFeature(prev => (prev + 1) % 3);
+    }, isMobile ? 7000 : 5000); // Mais lento em mobile para economizar bateria
+    
+    return () => clearInterval(interval);
+  }, [isMobile, prefersReducedMotion]);
+
+  // ✅ Pausar auto-rotate quando tab não está visível
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Pausar animações quando tab não está visível
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  const stats = [
+    { value: '100%', label: 'Cobertura do Campus', icon: 'fa-map-marked-alt' },
+    { value: '<5s', label: 'Tempo de Resposta', icon: 'fa-bolt' },
+    { value: '24/7', label: 'Disponibilidade', icon: 'fa-clock' },
+  ];
+
+  const features = [
+    {
+      icon: 'fa-map-location-dot',
+      title: 'Navegação Inteligente',
+      description: 'Sistema de rotas otimizado que calcula o melhor caminho para seu destino em tempo real.',
+      image: '/places/navegacao2d.png'
+    },
+    {
+      icon: 'fa-cube',
+      title: 'Visualização 3D',
+      description: 'Explore o campus em três dimensões para uma orientação visual completa e imersiva.',
+      image: '/places/modelo3d.png'
+    },
+    {
+      icon: 'fa-mobile-screen-button',
+      title: 'Acesso Universal',
+      description: 'PWA responsivo que funciona em qualquer dispositivo, online ou offline.',
+      image: '/places/laboratorios.jpg'
+    }
+  ];
+
+  const testimonials = [
+    {
+      text: 'No meu primeiro dia, estava completamente perdido. O Gnomon me salvou!',
+      author: 'Estudante de Engenharia',
+      role: '1º Período'
+    },
+    {
+      text: 'Ferramenta essencial para encontrar os laboratórios rapidamente entre as aulas.',
+      author: 'Estudante de TI',
+      role: '4º Período'
+    },
+    {
+      text: 'Intuitivo e rápido. Deveria ter existido desde sempre!',
+      author: 'Estudante de Design',
+      role: '2º Período'
+    }
+  ];
+
+  return (
+    <>
+      <Header />
+      <a href="#main-content" className="skip-to-content">
+        Pular para conteúdo principal
+      </a>
+
+      <main id="main-content">
+        {/* ===== HERO SECTION ===== */}
+        <section id="hero" ref={heroRef}>
+          <div className="hero-background">
+            <video 
+              autoPlay 
+              loop 
+              muted 
+              playsInline 
+              className="hero-video"
+              poster="/places/patio.jpg" // ✅ Poster enquanto carrega
+              onLoadedData={() => setIsVideoLoaded(true)}
+              preload={isMobile ? "none" : "metadata"} // ✅ Não preload em mobile
+            >
+              <source src={videoBg} type="video/mp4" />
+            </video>
+            <div className="hero-overlay"></div>
+          </div>
+
+          {/* ✅ Partículas APENAS em desktop */}
+          {!isMobile && !prefersReducedMotion && (
+            <Suspense fallback={null}>
+              <ParticlesBackground />
+            </Suspense>
+          )}
+
+          {/* ✅ Shapes reduzidas em mobile */}
+          {!prefersReducedMotion && (
+            <div className="floating-shapes">
+              <div className="shape shape-1"></div>
+              {!isMobile && <div className="shape shape-2"></div>}
+              {!isMobile && <div className="shape shape-3"></div>}
+            </div>
+          )}
+
+          <div className="container hero-content">
+            <div className="hero-badge">
+              <i className="fa-solid fa-compass"></i>
+              <span>Navegação de Campus Inteligente</span>
+            </div>
+            
+            <h1 className="hero-title">
+              Navegue pelo Campus com
+              <span className="gradient-text"> Confiança Total</span>
+            </h1>
+            
+            <p className="hero-subtitle">
+              Sistema de navegação indoor/outdoor que transforma a experiência universitária.
+              Encontre salas, laboratórios e serviços em segundos.
             </p>
-          </div>
-          <div className="feature-item">
-            <i className="fa fa-blind"></i>
-            <h3>Descrição e Ajuda</h3>
-            <p>Já se sentiu perdido na área? Cola com a gente que é sucesso.</p>
-          </div>
-          <div className="feature-item">
-            <i className="fa-solid fa-mobile-screen-button"></i>
-            <h3>Autonomia na sua mão</h3>
-            <p>
-              Feito para ser um aplicativo web progressivo (PWA), funciona em qualquer dispositivo
-              sem precisar instalar nada.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <section id="about-project">
-      <div className="container about" id="about">
-        <div className="about-text">
-          <h2>Sobre o Projeto</h2>
-          <p>
-            O Gnomon nasceu da necessidade de criar uma experiência de boas-vindas mais fluida
-            para novos integrantes da comunidade acadêmica. A transição para um novo campus pode
-            gerar ansiedade e perda de tempo. Nosso objetivo é eliminar essa fricção, oferecendo um
-            guia digital completo, rápido e que funciona até mesmo sem internet. Queremos proporcionar
-            autonomia e segurança para que todos possam se concentrar no que realmente importa:
-            o aprendizado e a colaboração.
-          </p>
-        </div>
-        <div className="about-image">
-          <i className="fas fa-university"></i>
-        </div>
-      </div>
-    </section>
+            {/* ✅ APENAS UM CTA - REMOVIDO LOGIN */}
+            <div className="hero-cta-group">
+              <CtaButton to="/mapa" className="cta-primary">
+                <span>Começar Agora</span>
+                <i className="fa-solid fa-arrow-right"></i>
+              </CtaButton>
+            </div>
 
-    <section id="team">
-      <div className="container">
-        <h2>Nossa Equipe</h2>
-        <div className="team-grid">
-          <div className="team-member">
-            <div className="photo"><img src={fotoLucas} alt="Lucas Hiago" /></div>
-            <h3>Lucas Hiago</h3>
-            <p>Desenvolvedor & Testes</p>
+            {/* Quick Stats */}
+            <div className="hero-stats">
+              <div className="stat-item">
+                <i className="fa-solid fa-map-marked-alt"></i>
+                <span>Mapa Completo 2D</span>
+              </div>
+              <div className="stat-item">
+                <i className="fa-solid fa-bolt"></i>
+                <span>Busca Instantânea</span>
+              </div>
+              <div className="stat-item">
+                <i className="fa-solid fa-mobile"></i>
+                <span>100% Responsivo</span>
+              </div>
+            </div>
           </div>
-          <div className="team-member">
-            <div className="photo"><img src={fotoDavid} alt="David Roberto" /></div>
-            <h3>David Roberto</h3>
-            <p>Desenvolvedor & Banco de Dados</p>
-          </div>
-          <div className="team-member">
-            <div className="photo"><img src={fotoJoao} alt="João Marcos" /></div>
-            <h3>João Marcos</h3>
-            <p>Gerente & Desenvolvedor</p>
-          </div>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <section id="final-cta">
-      <div className="container">
-        <h2>Pronto para navegar pelo campus sem estresse?</h2>
-        <p style={{ marginBottom: '30px' }}>
-          Abra o guia interativo agora e transforme sua experiência na universidade.
-        </p>
-        <CtaButton to="/mapa" style={{ fontSize: '1.2em', padding: '15px 40px' }}>
-          Acessar o Guia
-        </CtaButton>
-      </div>
-    </section>
-  </main>
+        {/* ===== STATS SECTION ===== */}
+        <section 
+          id="stats" 
+          ref={statsRef}
+          className={`stats-section ${statsVisible ? 'is-visible' : ''}`}
+        >
+          <div className="container">
+            <div className="stats-grid">
+              {stats.map((stat, index) => (
+                <div 
+                  key={index} 
+                  className="stat-card"
+                  style={{ '--delay': `${index * 0.1}s` } as React.CSSProperties}
+                >
+                  <i className={`fa-solid ${stat.icon}`}></i>
+                  <div className="stat-value">{stat.value}</div>
+                  <div className="stat-label">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-  <Footer />
-</>
-)
+        {/* ===== FEATURES SHOWCASE ===== */}
+        <section 
+          id="features-showcase" 
+          ref={showcaseRef}
+          className={`showcase-section ${showcaseVisible ? 'is-visible' : ''}`}
+        >
+          <div className="container">
+            <div className="section-header">
+              <span className="section-badge">Funcionalidades</span>
+              <h2>Tudo que você precisa para navegar</h2>
+              <p>Recursos pensados para tornar sua jornada no campus mais eficiente</p>
+            </div>
+
+            <div className="showcase-content">
+              <div className="showcase-features">
+                {features.map((feature, index) => (
+                  <div
+                    key={index}
+                    className={`showcase-feature ${activeFeature === index ? 'active' : ''}`}
+                    onMouseEnter={() => !isMobile && setActiveFeature(index)}
+                    onClick={() => isMobile && setActiveFeature(index)} // ✅ Touch em mobile
+                  >
+                    <div className="feature-icon">
+                      <i className={`fa-solid ${feature.icon}`}></i>
+                    </div>
+                    <div className="feature-content">
+                      <h3>{feature.title}</h3>
+                      <p>{feature.description}</p>
+                    </div>
+                    <div className="feature-arrow">
+                      <i className="fa-solid fa-chevron-right"></i>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="showcase-preview">
+                <div className="preview-mockup">
+                  <div className="mockup-browser">
+                    <div className="browser-header">
+                      <div className="browser-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </div>
+                      <div className="browser-url">gnomon.app/mapa</div>
+                    </div>
+                    <div className="browser-content">
+                      {features.map((feature, index) => (
+                        <img
+                          key={index}
+                          src={feature.image}
+                          alt={feature.title}
+                          className={`preview-image ${activeFeature === index ? 'active' : ''}`}
+                          loading="lazy" // ✅ Lazy loading
+                          decoding="async" // ✅ Decodificação assíncrona
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== FEATURES GRID ===== */}
+        <section 
+          id="features" 
+          ref={featuresRef}
+          className={`features-section ${featuresVisible ? 'is-visible' : ''}`}
+        >
+          <div className="container">
+            <div className="section-header">
+              <span className="section-badge">Benefícios</span>
+              <h2>Por que escolher o Gnomon?</h2>
+            </div>
+
+            <div className="features-grid">
+              <div className="feature-card">
+                <div className="feature-icon-wrapper">
+                  <i className="fa-solid fa-route"></i>
+                </div>
+                <h3>Rotas Otimizadas</h3>
+                <p>Algoritmo inteligente que calcula o caminho mais rápido considerando acessibilidade e preferências.</p>
+              </div>
+
+              <div className="feature-card">
+                <div className="feature-icon-wrapper">
+                  <i className="fa-solid fa-search-location"></i>
+                </div>
+                <h3>Busca Inteligente</h3>
+                <p>Encontre qualquer local digitando apenas parte do nome ou código da sala.</p>
+              </div>
+
+              <div className="feature-card">
+                <div className="feature-icon-wrapper">
+                  <i className="fa-solid fa-bookmark"></i>
+                </div>
+                <h3>Favoritos</h3>
+                <p>Salve seus locais mais visitados para acesso rápido.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== HOW IT WORKS ===== */}
+        <section id="how-it-works">
+          <div className="container">
+            <div className="section-header">
+              <span className="section-badge">Simples e Rápido</span>
+              <h2>Como Funciona</h2>
+            </div>
+
+            <div className="steps-timeline">
+              <div className="step">
+                <div className="step-number">1</div>
+                <div className="step-content">
+                  <h3>Busque o Local</h3>
+                  <p>Digite o nome da sala, laboratório ou serviço que procura ou escolha um ponto de referência</p>
+                </div>
+              </div>
+
+              <div className="step">
+                <div className="step-number">2</div>
+                <div className="step-content">
+                  <h3>Visualize a Rota</h3>
+                  <p>Veja o caminho em 2D com instruções passo a passo</p>
+                </div>
+              </div>
+
+              <div className="step">
+                <div className="step-number">3</div>
+                <div className="step-content">
+                  <h3>Chegue ao Destino</h3>
+                  <p>Siga as instruções visuais e chegue sem estresse</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== TESTIMONIALS ===== */}
+        <section 
+          id="testimonials" 
+          ref={testimonialsRef}
+          className={`testimonials-section ${testimonialsVisible ? 'is-visible' : ''}`}
+        >
+          <div className="container">
+            <div className="section-header">
+              <span className="section-badge">Depoimentos</span>
+              <h2>O que os estudantes ja relataram</h2>
+            </div>
+
+            <div className="testimonials-grid">
+              {testimonials.map((testimonial, index) => (
+                <div 
+                  key={index} 
+                  className="testimonial-card"
+                  style={{ '--delay': `${index * 0.15}s` } as React.CSSProperties}
+                >
+                  <div className="testimonial-quote">
+                    <i className="fa-solid fa-quote-left"></i>
+                  </div>
+                  <p className="testimonial-text">{testimonial.text}</p>
+                  <div className="testimonial-author">
+                    <div className="author-avatar">
+                      <i className="fa-solid fa-user"></i>
+                    </div>
+                    <div className="author-info">
+                      <div className="author-name">{testimonial.author}</div>
+                      <div className="author-role">{testimonial.role}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ===== ABOUT PROJECT ===== */}
+        <section id="about-project">
+          <div className="container">
+            <div className="about-content">
+              <div className="about-text">
+                <span className="section-badge">Nossa Missão</span>
+                <h2>Transformando a Experiência Universitária</h2>
+                <p>
+                  O Gnomon nasceu da necessidade real de resolver um problema comum: <strong>a dificuldade de 
+                  navegação em ambientes acadêmicos complexos</strong>. Sabemos que os primeiros dias no campus 
+                  podem ser estressantes, e queremos mudar isso.
+                </p>
+                <p>
+                  Desenvolvido por estudantes, para estudantes, nosso sistema combina tecnologia de ponta 
+                  com design intuitivo para criar uma ferramenta verdadeiramente útil no dia a dia acadêmico.
+                </p>
+                <ul className="about-highlights">
+                  <li>
+                    <i className="fa-solid fa-check"></i>
+                    <span>Desenvolvido com tecnologias modernas</span>
+                  </li>
+                  <li>
+                    <i className="fa-solid fa-check"></i>
+                    <span>Interface pensada para facilidade de uso</span>
+                  </li>
+                  <li>
+                    <i className="fa-solid fa-check"></i>
+                    <span>Constantemente atualizado com feedback real</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="about-visual">
+                <div className="visual-card">
+                  <i className="fas fa-university"></i>
+                  <div className="visual-stats">
+                    <div className="visual-stat">
+                      <span className="stat-number">10+</span>
+                      <span className="stat-label">Pontos Mapeados</span>
+                    </div>
+                    <div className="visual-stat">
+                      <span className="stat-number">2D</span>
+                      <span className="stat-label">Visualização</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== TEAM ===== */}
+        {/* ✅ Lazy load apenas quando visível */}
+        {(teamVisible || !isMobile) && (
+          <section 
+            id="team" 
+            ref={teamRef}
+            className={`team-section ${teamVisible ? 'is-visible' : ''}`}
+          >
+            <div className="container">
+              <div className="section-header">
+                <span className="section-badge">Time</span>
+                <h2>Conheça Quem Faz Acontecer</h2>
+                <p>Jovens afeiçoados por tecnologia e inovação</p>
+              </div>
+
+              <div className="team-grid">
+                <div className="team-card">
+                  <div className="team-photo">
+                    <img 
+                      src={fotoLucas} 
+                      alt="Lucas Hiago"
+                      loading="lazy" // ✅ Lazy loading
+                      decoding="async"
+                    />
+                    <div className="photo-overlay">
+                      <div className="social-links">
+                        <a href="https://www.linkedin.com/in/lucasbarbosadev42/" aria-label="LinkedIn de Lucas" target="_blank" rel="noopener noreferrer">
+                          <i className="fab fa-linkedin"></i>
+                        </a>
+                        <a href="https://github.com/Lucashiag0" aria-label="GitHub de Lucas" target="_blank" rel="noopener noreferrer">
+                          <i className="fab fa-github"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="team-info">
+                    <h3>Lucas Hiago</h3>
+                    <p className="team-role">Analista de Negócios e Designer de UX/UI</p>
+                    <p className="team-description">Responsável pelo planejamento estratégico e design da experiência do usuário</p>
+                  </div>
+                </div>
+
+                <div className="team-card">
+                  <div className="team-photo">
+                    <img 
+                      src={fotoDavid} 
+                      alt="David Roberto"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="photo-overlay">
+                      <div className="social-links">
+                        <a href="#" aria-label="LinkedIn de David">
+                          <i className="fab fa-linkedin"></i>
+                        </a>
+                        <a href="https://github.com/DavidRdS" aria-label="GitHub de David" target="_blank" rel="noopener noreferrer">
+                          <i className="fab fa-github"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="team-info">
+                    <h3>David Roberto</h3>
+                    <p className="team-role">DBA, QA e Engenheiro de Segurança</p>
+                    <p className="team-description">Responsavel pelos testes de segurança, qualidade e do banco de dados</p>
+                  </div>
+                </div>
+
+                <div className="team-card">
+                  <div className="team-photo">
+                    <img 
+                      src={fotoJoao} 
+                      alt="João Marcos"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="photo-overlay">
+                      <div className="social-links">
+                        <a href="https://www.linkedin.com/in/joao-marcos-ferreira-vilela/" aria-label="LinkedIn de João" target="_blank" rel="noopener noreferrer">
+                          <i className="fab fa-linkedin"></i>
+                        </a>
+                        <a href=" https://github.com/JaoVile" aria-label="GitHub de João" target="_blank" rel="noopener noreferrer">
+                          <i className="fab fa-github"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="team-info">
+                    <h3>João Marcos</h3>
+                    <p className="team-role">Gerente de Produtos, Arquiteto de software e Eng. DevOps</p>
+                    <p className="team-description">Responsável pela estrutura e implantação do sistema</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ===== FINAL CTA ===== */}
+        <section id="final-cta">
+          <div className="cta-background">
+            <div className="cta-pattern"></div>
+          </div>
+          <div className="container">
+            <div className="cta-content">
+              <h2>Pronto para Explorar o Campus?</h2>
+              <p>
+                Junte-se a dezenas de estudantes que já navegam pelo campus com confiança.
+                Comece agora gratuitamente.
+              </p>
+              <div className="cta-buttons">
+                <CtaButton to="/mapa" className="cta-primary-large">
+                  <span>Abrir Mapa Interativo</span>
+                  <i className="fa-solid fa-arrow-right"></i>
+                </CtaButton>
+              </div>
+              <p className="cta-note">
+                <i className="fa-solid fa-shield-halved"></i>
+                Não requer instalação • Funciona em qualquer dispositivo
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </>
+  );
 }

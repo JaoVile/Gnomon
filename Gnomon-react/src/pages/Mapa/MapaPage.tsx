@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
 import Campus3D from '../../components/Campus3d';
@@ -12,22 +12,10 @@ import { useThemeVars } from '../../libs/useThemeVars';
 import { useMapData } from '../../hooks/useMapData';
 import './MapaPage.css';
 
-export default function MapaPage() {
+export function MapaPage() {
   const [activeNav, setActiveNav] = useState('Mapa');
   const [mode, setMode] = useState<'2d' | '3d'>('2d');
   const [topDown] = useState(false);
-
-  const [isMobilePortrait, setIsMobilePortrait] = useState(false);
-  useLayoutEffect(() => {
-    const checkOrientation = () => {
-      const isMobile = window.innerWidth < 768;
-      const isPortrait = window.innerHeight > window.innerWidth;
-      setIsMobilePortrait(isMobile && isPortrait);
-    };
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    return () => window.removeEventListener('resize', checkOrientation);
-  }, []);
 
   const DETAIL_MAP = '/maps/Campus_2D_DETALHE.png';
   const { data: mapData } = useMapData();

@@ -83,6 +83,7 @@ export default defineConfig({
       '@components': path.resolve(__dirname, './src/components'),
       '@pages': path.resolve(__dirname, './src/pages'),
       '@libs': path.resolve(__dirname, './src/libs'),
+      '@hooks': path.resolve(__dirname, './src/hooks'),
       '@assets': path.resolve(__dirname, './src/assets'),
     },
   },
@@ -92,20 +93,32 @@ export default defineConfig({
     strictPort: false,
     host: true,
     open: false,
+    headers: {
+      'Cache-Control': 'no-cache',
+    },
     
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
+        timeout: 30000,
       },
     },
+
+    cors: true,
   },
 
   preview: {
     port: 4173,
     strictPort: true,
     host: true,
+    headers: {
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+    },
   },
 
   build: {
@@ -113,31 +126,72 @@ export default defineConfig({
     assetsDir: 'assets',
     sourcemap: false,
     minify: 'esbuild',
+    target: 'es2020',
     
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'particles-vendor': ['@tsparticles/react', '@tsparticles/slim', '@tsparticles/engine'],
         },
+        
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
-        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name?.split('.') || [];
+          const ext = info[info.length - 1];
+          
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(ext)) {
+            return 'assets/img/[name]-[hash].[ext]';
+          }
+          if (/woff2?|ttf|otf|eot/i.test(ext)) {
+            return 'assets/fonts/[name]-[hash].[ext]';
+          }
+          if (/mp4|webm|ogg|mp3|wav|flac|aac/i.test(ext)) {
+            return 'assets/media/[name]-[hash].[ext]';
+          }
+          if (/glb|gltf|obj|fbx/i.test(ext)) {
+            return 'assets/models/[name]-[hash].[ext]';
+          }
+          return 'assets/[ext]/[name]-[hash].[ext]';
+        },
       },
     },
     
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 400,
     reportCompressedSize: true,
     cssCodeSplit: true,
+    assetsInlineLimit: 4096,
   },
 
   esbuild: {
-    drop: ['console', 'debugger'],
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
     legalComments: 'none',
+    minifyIdentifiers: true,
+    minifySyntax: true,
+    minifyWhitespace: true,
   },
 
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: [
+      'react', 
+      'react-dom', 
+      'react-router-dom',
+      '@tsparticles/react',
+      '@tsparticles/slim',
+    ],
+    exclude: [],
   },
+
+  // ✅ REMOVIDO: a seção css que estava causando erro
+  // css: {
+  //   devSourcemap: false,
+  //   preprocessorOptions: {
+  //     css: {  // ❌ CSS não é válido aqui
+  //       charset: false,
+  //     },
+  //   },
+  // },
 
   envPrefix: 'VITE_',
   base: '/',

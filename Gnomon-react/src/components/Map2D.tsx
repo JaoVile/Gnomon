@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type TouchEvent as ReactTouchEvent } from 'react';
-import { useThemeVars } from '../libs/useThemeVars';
 import { useMapData, type MapData, type MapNode, type Poi } from '../hooks/useMapData';
 import { usePathfinding } from '../hooks/usePathfinding';
 import './Map2D.css';
@@ -52,7 +51,6 @@ export default function Map2D({
   const [popupPos, setPopupPos] = useState<{ left: number; top: number; orientation: 'down' | 'up' } | null>(null);
 
   const [showHints, setShowHints] = useState(true);
-  const { bg3d } = useThemeVars();
 
   useEffect(() => {
     if (path && path.length > 0) {

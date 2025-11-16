@@ -3,16 +3,16 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 // ========================================
 // PÁGINAS PÚBLICAS
 // ========================================
-import HomePage from './pages/Intro/Intro';
-import MapaPage from './pages/Mapa/MapaPage';
+import { Intro as HomePage } from './pages/Intro/Intro';
+import { MapaPage } from './pages/Mapa/MapaPage';
 
 // ========================================
 // AUTENTICAÇÃO E PERFIL (Admin/Staff)
 // ========================================
-import LoginPage from './pages/Login/LoginPage';
-import PerfilPage from './pages/Perfil/PerfilPage';
-import EsqueceuSenhaPage from './pages/EsqueceuSenha/EsqueceuSenhaPage';
-import RedefinirSenhaPage from './pages/RedefinirSenha/RedefinirSenha';
+import { LoginPage } from './pages/Login/LoginPage';
+import { PerfilPage } from './pages/Perfil/PerfilPage';
+import { EsqueceuSenhaPage } from './pages/EsqueceuSenha/EsqueceuSenhaPage';
+import { RedefinirSenha as RedefinirSenhaPage } from './pages/RedefinirSenha/RedefinirSenha';
 
 export default function App() {
   return (
