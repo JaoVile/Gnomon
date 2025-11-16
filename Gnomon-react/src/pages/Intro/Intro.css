@@ -583,6 +583,19 @@
   margin-bottom: 12px;
 }
 
+#about-project .section-header {
+  text-align: center;
+}
+
+#about-project .section-badge {
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary-dark);
+  padding: 6px 16px; /* Ensure consistent padding */
+  border-radius: var(--radius-full); /* Ensure consistent border-radius */
+  font-weight: 600; /* Ensure consistent font-weight */
+}
+
 .about-text h2 {
   font-size: clamp(1.5rem, 6vw, 3rem); /* ✅ Base menor */
   font-weight: 800;
