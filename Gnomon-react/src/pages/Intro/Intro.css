@@ -273,6 +273,15 @@
   text-align: center;
 }
 
+.features-section .section-badge {
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary-dark);
+  padding: 6px 16px; /* Ensure consistent padding */
+  border-radius: var(--radius-full); /* Ensure consistent border-radius */
+  font-weight: 600; /* Ensure consistent font-weight */
+}
+
 .features-grid {
   display: grid;
   grid-template-columns: 1fr; /* ✅ Uma coluna em mobile */
@@ -339,6 +348,15 @@
 
 #how-it-works .section-header {
   text-align: center;
+}
+
+#how-it-works .section-badge {
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary-dark);
+  padding: 6px 16px; /* Ensure consistent padding */
+  border-radius: var(--radius-full); /* Ensure consistent border-radius */
+  font-weight: 600; /* Ensure consistent font-weight */
 }
 
 .steps-timeline {
@@ -439,6 +457,15 @@
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.testimonials-section .section-badge {
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary-dark);
+  padding: 6px 16px; /* Ensure consistent padding */
+  border-radius: var(--radius-full); /* Ensure consistent border-radius */
+  font-weight: 600; /* Ensure consistent font-weight */
 }
 
 .testimonials-section .section-header {
@@ -675,6 +702,15 @@
 }
 
 background: var(--background-secondary);
+}
+
+.team-section .section-badge {
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary-dark);
+  padding: 6px 16px; /* Ensure consistent padding */
+  border-radius: var(--radius-full); /* Ensure consistent border-radius */
+  font-weight: 600; /* Ensure consistent font-weight */
 }
 
 .team-section .section-header {
