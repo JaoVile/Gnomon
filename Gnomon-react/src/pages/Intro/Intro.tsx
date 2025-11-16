@@ -435,7 +435,7 @@ export function Intro() {
               <div className="section-header">
                 <span className="section-badge section-badge-time">Time</span>
                 <h2>Conheça Quem Faz Acontecer</h2>
-                <p className="team-description-paragraph">Jovens afeiçoados por tecnologia e inovação</p>
+
               </div>
 
               <div className="team-grid">
