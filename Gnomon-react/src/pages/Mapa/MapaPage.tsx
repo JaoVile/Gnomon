@@ -41,7 +41,7 @@ export function MapaPage() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const { theme } = useTheme();
+  const { } = useTheme();
 
   const DETAIL_MAP = '/maps/Campus_2D_DETALHE.png';
   const { data: mapData } = useMapData();

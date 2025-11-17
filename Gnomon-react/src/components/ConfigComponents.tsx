@@ -39,7 +39,7 @@ export function ToggleSwitch({
   icon 
 }: ToggleSwitchProps) {
   return (
-    <div className className={`config-option ${disabled ? 'disabled' : ''}`}>
+    <div className={`config-option ${disabled ? 'disabled' : ''}`}>
       <div className="config-option-info">
         <label className="config-option-label">
           {icon && <span className="config-option-icon">{icon}</span>}
@@ -78,7 +78,7 @@ export function SelectOption({
   disabled = false 
 }: SelectOptionProps) {
   return (
-    <div className className={`config-option ${disabled ? 'disabled' : ''}`}>
+    <div className={`config-option ${disabled ? 'disabled' : ''}`}>
       <div className="config-option-info">
         <label className="config-option-label">{label}</label>
         {description && <p className="config-option-description">{description}</p>}

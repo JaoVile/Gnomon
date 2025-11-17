@@ -14,7 +14,7 @@ import { LoginPage } from './pages/Login/LoginPage';
 import { PerfilPage } from './pages/Perfil/PerfilPage';
 import { EsqueceuSenhaPage } from './pages/EsqueceuSenha/EsqueceuSenhaPage';
 import { RedefinirSenha as RedefinirSenhaPage } from './pages/RedefinirSenha/RedefinirSenha';
-import { ConfigPage } from './pages/configuracoes/ConfigPage';
+import { ConfigPage } from './pages/Configuracoes/ConfigPage';
 
 export default function App() {
   return (

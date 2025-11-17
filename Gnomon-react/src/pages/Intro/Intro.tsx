@@ -55,8 +55,6 @@ function usePrefersReducedMotion() {
 
 export function Intro() {
   const heroRef = useRef<HTMLElement>(null);
-  const [activeFeature, setActiveFeature] = useState(0);
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   
   const isMobile = useIsMobile();
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -172,7 +170,6 @@ export function Intro() {
               playsInline 
               className="hero-video"
               poster="/places/patio.jpg" // ✅ Poster enquanto carrega
-              onLoadedData={() => setIsVideoLoaded(true)}
               preload={isMobile ? "none" : "metadata"} // ✅ Não preload em mobile
               width="1920" // Explicit width
               height="1080" // Explicit height
