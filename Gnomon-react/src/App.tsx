@@ -3,16 +3,18 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 // ========================================
 // PÁGINAS PÚBLICAS
 // ========================================
-import HomePage from './pages/Intro/Intro';
-import MapaPage from './pages/Mapa/MapaPage';
+import { Intro as HomePage } from './pages/Intro/Intro';
+import { MapaPage } from './pages/Mapa/MapaPage';
+import { AjudaPage } from './pages/Ajuda/AjudaPage';
 
 // ========================================
 // AUTENTICAÇÃO E PERFIL (Admin/Staff)
 // ========================================
-import LoginPage from './pages/Login/LoginPage';
-import PerfilPage from './pages/Perfil/PerfilPage';
-import EsqueceuSenhaPage from './pages/EsqueceuSenha/EsqueceuSenhaPage';
-import RedefinirSenhaPage from './pages/RedefinirSenha/RedefinirSenha';
+import { LoginPage } from './pages/Login/LoginPage';
+import { PerfilPage } from './pages/Perfil/PerfilPage';
+import { EsqueceuSenhaPage } from './pages/EsqueceuSenha/EsqueceuSenhaPage';
+import { RedefinirSenha as RedefinirSenhaPage } from './pages/RedefinirSenha/RedefinirSenha';
+import { ConfigPage } from './pages/configuracoes/ConfigPage';
 
 export default function App() {
   return (
@@ -23,17 +25,18 @@ export default function App() {
         ======================================== */}
         <Route path="/" element={<HomePage />} />
         <Route path="/mapa" element={<MapaPage />} />
+        <Route path="/ajuda" element={<AjudaPage />} />
 
         {/* ========================================
             AUTENTICAÇÃO (Admin/Staff)
         ======================================== */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/config" element={<LoginPage />} /> {/* Alias para Staff/Admin */}
         
         {/* ========================================
             PERFIL (Requer Login)
         ======================================== */}
         <Route path="/perfil" element={<PerfilPage />} />
+        <Route path="/configuracoes" element={<ConfigPage />} />
 
         {/* ========================================
             RECUPERAÇÃO DE SENHA

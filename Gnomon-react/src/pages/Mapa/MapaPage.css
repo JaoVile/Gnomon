@@ -1,34 +1,43 @@
 :root {
   --header-height: 60px;
-  --footer-height: 64px;
-  --search-bar-height: 52px;
-  --controls-v-padding: 16px;
+  --search-container-height: 72px;
 }
 
 #map-app-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #000;
-  color: #fff;
+  overflow: hidden;
+  background-color: var(--background);
+  color: var(--text);
 }
 
 .top-bar {
   height: var(--header-height);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  background: rgba(28, 28, 30, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 20;
+  justify-content: space-between; /* Garante espaçamento entre os 3 itens */
+  padding: 0 1rem;
+  background: rgba(from var(--background-secondary) r g b / 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 30; /* Acima do backdrop */
+  position: relative;
 }
 
-.menu-icon, .profile-icon {
+.menu-icon {
   font-size: 20px;
   cursor: pointer;
+  color: var(--text-secondary);
+  transform: translateY(2px);
+}
+
+.profile-icon {
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transform: translate(25px, 10px);
 }
 
 .logo-container {
@@ -36,7 +45,8 @@
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: #fff;
+  color: var(--text);
+  /* REMOVIDO: position: absolute, left, transform para corrigir bug de hover */
 }
 
 .logo-container img {
@@ -49,109 +59,220 @@
   letter-spacing: 1px;
 }
 
+/* --- Popup Menu --- */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 25;
+  animation: fade-in 0.3s ease;
+}
+
+.header-menu-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background: var(--background-secondary);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  animation: slide-in-left 0.3s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  height: var(--header-height);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.popup-header h3 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.close-menu-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.popup-nav {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.popup-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.popup-nav-item:hover {
+  background-color: var(--background-interactive);
+}
+
+.popup-nav-item i {
+  width: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+/* --- Área de Conteúdo Principal --- */
 .content-area {
   flex: 1;
   position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
 #map-container {
+  flex: 1;
   width: 100%;
-  height: 100%;
+  z-index: 5;
+  /* Ensure children fill the container */
+  & > div {
+    height: 100%;
+    width: 100%;
+  }
 }
 
-.map-controls-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: var(--controls-v-padding);
-  pointer-events: none;
+/* Garante que os filhos diretos (Toast, etc) fiquem acima do mapa */
+.content-area > * {
   z-index: 10;
 }
 
-.search-bar {
+/* --- Barra de Busca --- */
+.search-bar-container {
   position: absolute;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 500px;
+  top: 16px; /* Desce a barra para não conflitar com o header */
+  left: 0;
+  right: 0;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.search-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(44, 44, 46, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 8px;
-  height: var(--search-bar-height);
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  padding: 2px 8px; /* Revertido ao tamanho original */
+  margin: 0 auto;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: var(--shadow-md);
   pointer-events: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .search-bar i {
-  color: #999;
-  margin-left: 8px;
+  color: var(--text-tertiary);
+  margin-left: 4px;
 }
 
 .search-bar input {
   flex: 1;
   background: transparent;
   border: none;
-  color: #fff;
-  font-size: 16px;
+  color: var(--text);
+  font-size: 12px; /* Revertido ao tamanho original */
   outline: none;
 }
 
 .search-bar input::placeholder {
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .view-toggle {
   display: flex;
-  background: rgba(0,0,0,0.3);
-  border-radius: 8px;
-  padding: 4px;
+  background: var(--background-interactive);
+  border-radius: 9999px;
+  padding: 2px; /* Espaçamento interno para o contêiner */
 }
 
 .view-toggle button {
   background: transparent;
   border: none;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 6px;
+  color: var(--text-secondary);
+  padding: 0 6px; /* Padding horizontal reduzido */
+  height: 18px; /* Altura reduzida */
+  line-height: 18px; /* Para centralizar o texto na nova altura */
+  border-radius: 9999px;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s;
+  font-size: 9px; /* Fonte bem pequena */
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.view-toggle button:hover:not(.active) {
+  color: var(--text); /* Melhora o feedback de hover */
 }
 
 .view-toggle button.active {
-  background: #0A84FF;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(from var(--primary) r g b / 0.4); /* Sombra mais suave e colorida */
+  transform: scale(1.05); /* Efeito de "pop" */
 }
 
-.bottom-controls {
+/* --- Controles Inferiores Sobrepostos --- */
+.bottom-controls-overlay {
+  position: absolute;
+  bottom: 110px; /* Posição mais elevada para destaque */
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px); /* Garante respiro nas laterais */
+  max-width: 420px; /* Um pouco mais de espaço */
   display: flex;
   flex-direction: column;
   gap: 12px;
-  align-items: flex-start;
-  padding-bottom: calc(var(--footer-height) + 8px);
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+  transition: all 0.3s ease-out; /* Animação para responsividade */
 }
 
-.origin-indicator, .route-controls button {
-  background: rgba(28, 28, 30, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.origin-indicator {
+  background: rgba(from var(--card-background) r g b / 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 10px 14px;
   pointer-events: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: var(--shadow-lg);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -170,51 +291,99 @@
 }
 
 .origin-indicator strong {
-  color: #0A84FF;
+  color: var(--primary);
 }
 
 .origin-indicator button {
   background: transparent;
   border: none;
-  color: #999;
+  color: var(--text-tertiary);
   cursor: pointer;
+}
+
+.route-controls {
+  display: flex;
+  justify-content: flex-end; /* Alinha os botões à direita */
+  gap: 8px;
+  width: 100%;
+  pointer-events: auto;
+  animation: slide-up 0.3s ease;
 }
 
 .route-controls button {
-  width: 100%;
+  background: rgba(from var(--card-background) r g b / 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
   justify-content: center;
-  background: #FF3B30;
-  border-color: #FF3B30;
-  color: #fff;
+  gap: 10px;
+  color: var(--text);
   font-weight: 600;
-}
-
-.bottom-nav {
-  height: var(--footer-height);
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background: rgba(28, 28, 30, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 20;
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: #999;
   cursor: pointer;
-  font-size: 12px;
+  transition: background-color 0.2s;
 }
 
-.nav-item i {
-  font-size: 20px;
+.route-controls button:active {
+    transform: scale(0.97); /* Efeito de clique */
 }
 
-.nav-item.active {
-  color: #0A84FF;
+.route-controls .clear-route-btn {
+  /* Cor vermelha removida, agora usa o estilo padrão do botão */
+  /* flex-grow removido para reduzir o tamanho lateral */
+}
+
+.route-controls .favorite-btn {
+  flex-shrink: 0; /* Não encolhe */
+  background: var(--primary);
+  border-color: transparent;
+  padding: 10px 12px;
+}
+
+.route-controls .favorite-btn i {
+  margin: 0;
+}
+
+/* --- Responsividade para Mobile --- */
+@media (max-width: 768px) {
+  .bottom-controls-overlay {
+    bottom: 80px; /* Mantém elevado no mobile */
+    width: calc(100% - 24px);
+  }
+
+  .route-controls {
+    gap: 8px;
+  }
+
+  .route-controls button {
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+  }
+  
+  .route-controls .favorite-btn {
+    padding: 12px 10px;
+  }
+}
+
+/* --- Watermark de Fundo --- */
+.map-background-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px; /* Tamanho do logo */
+  height: 600px;
+  background-image: url('/Gnomon_Sem_Nome_Icon.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.1; /* Sutileza do watermark */
+  z-index: 0; /* Atrás de tudo (partículas, mapa, etc) */
+  pointer-events: none; /* Não interfere com o mapa */
+  mix-blend-mode: multiply; /* ✅ Faz a mágica do fundo branco */
 }

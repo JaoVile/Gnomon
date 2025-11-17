@@ -5,7 +5,7 @@ import './RedefinirSenha.css';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
-export default function RedefinirSenhaPage() {
+export function RedefinirSenha() {
 const [password, setPassword] = useState('');
 const [confirmPassword, setConfirmPassword] = useState('');
 const [isLoading, setIsLoading] = useState(false);

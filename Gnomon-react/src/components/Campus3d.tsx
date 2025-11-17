@@ -131,7 +131,7 @@ export default function Campus3D({
   const onFlyEndRef = useRef(onFlyEnd);
   const onEntryClickRef = useRef(onEntryClick);
 
-  const { routePrimary, bg3d, theme } = useThemeVars();
+  const { routePrimary } = useThemeVars();
 
   useEffect(() => { entriesRef.current = entries; }, [entries]);
   useEffect(() => { markModeRef.current = markMode; }, [markMode]);

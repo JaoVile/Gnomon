@@ -14,7 +14,7 @@ interface UserData {
     avatar?: string;
 }
 
-export default function PerfilPage() {
+export function PerfilPage() {
     const navigate = useNavigate();
     const [userData, setUserData] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);

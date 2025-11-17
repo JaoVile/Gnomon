@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type TouchEvent as ReactTouchEvent } from 'react';
-import { useThemeVars } from '../libs/useThemeVars';
 import { useMapData, type MapData, type MapNode, type Poi } from '../hooks/useMapData';
 import { usePathfinding } from '../hooks/usePathfinding';
 import './Map2D.css';
@@ -9,6 +8,11 @@ export type Node2D = MapNode;
 
 export type TurnInstruction = { text: string; distance: number; icon: string };
 
+type AnimationOptions = {
+  routeAnimationDuration?: number;
+  showHintAnimations?: boolean;
+};
+
 type Props = {
   mapData?: MapData | null;
   mapImageUrl: string;
@@ -16,8 +20,12 @@ type Props = {
   path?: MapNode[] | null;
   originId?: string | null;
   onSelectOrigin?: (nodeId: string, label?: string) => void;
-  onRouteCalculated?: (path: MapNode[], instructions: TurnInstruction[]) => void;
+  onRouteCalculated?: (path: MapNode[], instructions: TurnInstruction[], destinationPoi: Poi) => void;
   showPoiLabels?: boolean;
+  initialZoomMultiplier?: number;
+  animationOptions?: AnimationOptions;
+  destinationToRoute?: string | null;
+  onDestinationRouted?: () => void;
 };
 
 type Transform = { x: number; y: number; scale: number };
@@ -31,7 +39,14 @@ export default function Map2D({
   onSelectOrigin = () => {},
   onRouteCalculated = () => {},
   showPoiLabels = false,
+  initialZoomMultiplier = 1.2,
+  animationOptions,
+  destinationToRoute,
+  onDestinationRouted = () => {},
 }: Props) {
+  // DEBUG: Log the received zoom multiplier
+  console.log('[Map2D] initialZoomMultiplier:', initialZoomMultiplier);
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [img, setImg] = useState<HTMLImageElement | null>(null);
@@ -52,7 +67,37 @@ export default function Map2D({
   const [popupPos, setPopupPos] = useState<{ left: number; top: number; orientation: 'down' | 'up' } | null>(null);
 
   const [showHints, setShowHints] = useState(true);
-  const { bg3d } = useThemeVars();
+
+  const routeAnimDuration = animationOptions?.routeAnimationDuration ?? 1000;
+  const showHintsAnim = animationOptions?.showHintAnimations ?? true;
+
+  // Efeito para calcular rota programaticamente
+  useEffect(() => {
+    if (destinationToRoute && originId && pathfinder && currentMapData) {
+        const destinationPoi = currentMapData.pois.find(p => p.nodeId === destinationToRoute);
+        if (!destinationPoi) {
+            console.error(`[Map2D] Rota histórica: POI de destino com nodeId "${destinationToRoute}" não encontrado.`);
+            onDestinationRouted();
+            return;
+        }
+
+        try {
+            const rawPath = pathfinder.findPath(originId, destinationToRoute);
+            const foundPath = normalizePathToNodes(rawPath);
+
+            if (foundPath && foundPath.length > 1) {
+                onRouteCalculated(foundPath, [], destinationPoi);
+            } else {
+                alert('❌ Não foi possível recalcular a rota do histórico.');
+            }
+        } catch (err) {
+            console.error('💥 Erro ao recalcular rota do histórico:', err);
+            alert('❌ Ocorreu um erro ao recalcular a rota do histórico.');
+        }
+        
+        onDestinationRouted(); // Reseta o gatilho no pai
+    }
+  }, [destinationToRoute, originId, pathfinder, currentMapData]);
 
   useEffect(() => {
     if (path && path.length > 0) {
@@ -64,14 +109,13 @@ export default function Map2D({
 
       animationRef.current = {
         startTime: performance.now(),
-        duration: 1000, // Animação de 1 segundo
+        duration: routeAnimDuration,
         pathLength,
       };
     } else {
-      // Reseta a animação se não houver rota
       animationRef.current = { startTime: 0, duration: 0, pathLength: 0 };
     }
-  }, [path]);
+  }, [path, routeAnimDuration]);
 
 
   useEffect(() => {
@@ -101,13 +145,13 @@ export default function Map2D({
       const iw = im.naturalWidth, ih = im.naturalHeight;
       const cw = c.clientWidth, ch = c.clientHeight;
       const initialScale = cw / iw;
-      const scale = initialScale * 1.2;
+      const scale = initialScale * initialZoomMultiplier;
       const x = (cw - iw * scale) / 2;
       const y = (ch - ih * scale) / 2;
       setTransform({ x, y, scale });
     };
     im.src = mapImageUrl;
-  }, [mapImageUrl]);
+  }, [mapImageUrl, initialZoomMultiplier]);
 
   useEffect(() => {
     resizeCanvas();
@@ -440,7 +484,7 @@ function goHere() {
 
     if (foundPath && foundPath.length > 1) {
       // Notifica o componente pai sobre a nova rota
-      onRouteCalculated(foundPath, []); // O segundo argumento são as instruções, que não estamos gerando aqui
+      onRouteCalculated(foundPath, [], poi);
     } else {
       alert('❌ Não foi possível calcular uma rota para este local.');
       console.error('❌ Caminho inválido ou muito curto:', foundPath);
@@ -460,7 +504,7 @@ function goHere() {
         position: 'relative', 
         touchAction: 'none', // ✅ PREVINE SCROLL/ZOOM PADRÃO
         cursor: isPanning.current ? 'grabbing' : 'grab', 
-        background: '#667281',
+        background: 'transparent', // ✅ Fundo transparente para ver as partículas
         userSelect: 'none',
         WebkitUserSelect: 'none'
       }}
@@ -528,11 +572,11 @@ function goHere() {
       {showHints && (
         <div className="interaction-hints">
           <div className="hint-item">
-            <i className="fa-solid fa-hand hint-icon pan-icon-animation"></i>
+            <i className={`fa-solid fa-hand hint-icon ${showHintsAnim ? 'pan-icon-animation' : ''}`}></i>
             <span className="hint-text">Arraste para mover</span>
           </div>
           <div className="hint-item">
-            <i className="fa-solid fa-magnifying-glass-plus hint-icon zoom-icon-animation"></i>
+            <i className={`fa-solid fa-magnifying-glass-plus hint-icon ${showHintsAnim ? 'zoom-icon-animation' : ''}`}></i>
             <span className="hint-text">Use a roda ou pinça para zoom</span>
           </div>
         </div>
@@ -592,7 +636,10 @@ function goHere() {
           height: '100%', 
           position: 'relative', 
           zIndex: 1, 
-          borderRadius: '16px',
+          /* Adiciona uma sombra sutil que segue o contorno do mapa (funciona melhor com PNG transparente) */
+          filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5))',
+          /* O borderRadius não é mais necessário se a imagem não for retangular */
+          // borderRadius: '16px', 
           touchAction: 'none', // ✅ PREVINE EVENTOS DE TOQUE PADRÃO
           userSelect: 'none',
           WebkitUserSelect: 'none'
