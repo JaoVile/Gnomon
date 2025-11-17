@@ -23,20 +23,6 @@ const prefersReducedMotion = (): boolean => {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 };
 
-// ✅ Detectar se está em modo economia de bateria (aproximado)
-const isLowPowerMode = async (): Promise<boolean> => {
-  try {
-    // @ts-ignore - API experimental
-    if (!navigator.getBattery) return false;
-    
-    // @ts-ignore
-    const battery = await navigator.getBattery();
-    return battery.charging === false && battery.level < 0.3;
-  } catch {
-    return false;
-  }
-};
-
 export function ParticlesBackground({ color }: { color?: string }) {
   const [init, setInit] = useState(false);
   const [shouldRender, setShouldRender] = useState(true);

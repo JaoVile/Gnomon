@@ -50,10 +50,14 @@ export function LoginPage() {
             localStorage.setItem('authToken', responseData.token);
             navigate('/mapa');
 
-        } catch (error: Error) {
+        } catch (error: unknown) {
             console.error('Erro no login:', error);
             // Define a mensagem de erro para ser exibida na tela
-            setError(error.message);
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError('Ocorreu um erro desconhecido.');
+            }
         } finally {
             // Garante que o estado de carregamento termine, mesmo se houver erro
             setIsLoading(false);

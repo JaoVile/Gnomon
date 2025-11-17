@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/styles/Header';
 import {
   ToggleSwitch,
-  SelectOption,
-  RangeSlider,
-  RadioGroup,
   ConfigSection
 } from '../../components/ConfigComponents';
 import './ConfigPage.css';

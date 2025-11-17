@@ -11,7 +11,6 @@ import Map2D, {
 import RouteInstructions from '../../components/RouteInstructions';
 import ParticlesBackground from '../../components/ParticlesBackground';
 import Toast from '../../components/Toast';
-import { useTheme } from '../../components/ThemeContext';
 import { useThemeVars } from '../../libs/useThemeVars';
 import { useMapData } from '../../hooks/useMapData';
 import { HistoricoPopup, type HistoryEntry } from '../../components/Historico/HistoricoPopup';
@@ -41,7 +40,7 @@ export function MapaPage() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
-  const { theme } = useTheme();
+
 
   const DETAIL_MAP = '/maps/Campus_2D_DETALHE.png';
   const { data: mapData } = useMapData();

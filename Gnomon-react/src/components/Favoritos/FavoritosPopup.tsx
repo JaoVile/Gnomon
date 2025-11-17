@@ -1,4 +1,3 @@
-import React from 'react';
 import './FavoritosPopup.css';
 
 // Estrutura de um item favorito

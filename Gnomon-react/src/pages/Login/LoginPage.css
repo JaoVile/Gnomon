@@ -105,14 +105,19 @@ body.light-mode .input-group input:focus {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
-    font-size: 0.9em;
+    font-size: 1em; /* Increased for better readability */
     text-align: right;
 }
 
 .options-group a {
     color: var(--primary);
     text-decoration: none;
-    width: 30%;
+    /* Removed width: 30%; to allow natural width */
+    transition: color var(--duration-normal) var(--ease-smooth);
+}
+
+.options-group a:hover {
+    color: var(--primary-dark); /* Subtle hover effect */
 }
 
 .remember-me {
@@ -122,7 +127,7 @@ body.light-mode .input-group input:focus {
 }
 
 .remember-me input[type="checkbox"] {
-    transform: scale(0.4);
+    transform: scale(0.3);
 }
 
 .login-button {
