@@ -87,3 +87,19 @@
     text-decoration: none;
     font-weight: 500;
 }
+
+.register-employee-button {
+    background-color: var(--cor-sucesso); /* Assuming a success color variable exists */
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.register-employee-button:hover {
+    background-color: var(--cor-sucesso-hover); /* Assuming a hover success color variable exists */
+}

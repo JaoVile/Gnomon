@@ -11,7 +11,7 @@ import { AjudaPage } from './pages/Ajuda/AjudaPage';
 // AUTENTICAÇÃO E PERFIL (Admin/Staff)
 // ========================================
 import { LoginPage } from './pages/Login/LoginPage';
-import { PerfilPage } from './pages/Perfil/PerfilPage';
+import { PerfilWrapper as PerfilPage } from './pages/Perfil/PerfilWrapper';
 import { EsqueceuSenhaPage } from './pages/EsqueceuSenha/EsqueceuSenhaPage';
 import { RedefinirSenha as RedefinirSenhaPage } from './pages/RedefinirSenha/RedefinirSenha';
 import { ConfigPage } from './pages/Configuracoes/ConfigPage';

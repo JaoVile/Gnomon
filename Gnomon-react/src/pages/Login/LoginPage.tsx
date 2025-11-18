@@ -3,7 +3,7 @@
  * @description Componente de página para autenticação de usuários.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
 import './LoginPage.css'; 
@@ -13,12 +13,24 @@ export function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
+
+    useEffect(() => {
+        const savedEmail = localStorage.getItem('rememberedEmail');
+        if (savedEmail) {
+            setEmail(savedEmail);
+            setRememberMe(true); // Assume "Lembrar-me" was checked if email is saved
+        }
+    }, []);
 
     // Estados para controlar o feedback da UI
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
     const navigate = useNavigate();
+
+    // Busca a URL base da API a partir das variáveis de ambiente
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
     /**
      * Manipula a submissão do formulário de login, enviando os dados para a API
@@ -33,7 +45,7 @@ export function LoginPage() {
         const loginData = { email, password };
 
         try {
-            const response = await fetch('http://localhost:3001/api/users/login', {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,7 +59,20 @@ export function LoginPage() {
                 throw new Error(responseData.message || 'Falha ao fazer login.');
             }
             
-            localStorage.setItem('authToken', responseData.token);
+            // Decide onde salvar o token com base na opção "Lembrar-me"
+            const storage = rememberMe ? localStorage : sessionStorage;
+            storage.setItem('authToken', responseData.token);
+
+            // Lógica para lembrar o e-mail
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+
+            // Limpa o localStorage se "Lembrar-me" não estiver marcado e o token estiver lá
+            if (!rememberMe) localStorage.removeItem('authToken');
+
             navigate('/mapa');
 
         } catch (error: unknown) {
@@ -106,7 +131,12 @@ export function LoginPage() {
                     </div>
                     <div className="options-group">
                         <div className="remember-me">
-                            <input type="checkbox" id="remember" name="remember" />
+                            <input 
+                                type="checkbox" 
+                                id="remember" 
+                                name="remember" 
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)} />
                             <label htmlFor="remember">Lembrar-me</label>
                         </div>
                         <Link to="/esqueceu-senha">Esqueceu a senha?</Link>

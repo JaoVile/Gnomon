@@ -1,10 +1,42 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 declare const process: {
   exit: (code: number) => void;
 };
 const prisma = new PrismaClient();
 
 async function main() {
+  console.log('Iniciando o processo de seed...');
+
+  // --- SEED DE ADMIN ---
+  const ADMIN_EMAIL = 'gnomon.map@gmail.com';
+  const ADMIN_PASSWORD = '12345';
+
+  // 1. Verificar se o usuário admin já existe
+  const existingAdmin = await prisma.admin.findUnique({
+    where: { email: ADMIN_EMAIL },
+  });
+
+  if (existingAdmin) {
+    console.log('Usuário administrador já existe. Nenhuma ação necessária.');
+  } else {
+    // 2. Criptografar a senha
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, salt);
+
+    // 3. Criar o novo usuário admin
+    await prisma.admin.create({
+      data: {
+        email: ADMIN_EMAIL,
+        password: hashedPassword,
+        name: 'Admin Gnomon',
+        role: 'ADMIN', // Definir como ADMIN
+        isActive: true,
+      },
+    });
+    console.log('✅ Usuário administrador criado com sucesso!');
+  }
+  // --- FIM SEED DE ADMIN ---
 // 1) Garante o Map (andar 0)
 let map = await prisma.map.findFirst({ where: { name: 'Campus 2D', floor: 0 } });
 if (!map) {

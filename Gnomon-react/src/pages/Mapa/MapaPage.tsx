@@ -13,6 +13,7 @@ import ParticlesBackground from '../../components/ParticlesBackground';
 import Toast from '../../components/Toast';
 import { useThemeVars } from '../../libs/useThemeVars';
 import { useMapData } from '../../hooks/useMapData';
+import { useAuth } from '../../hooks/useAuth'; // Importar o hook
 import { HistoricoPopup, type HistoryEntry } from '../../components/Historico/HistoricoPopup';
 import { FavoritosPopup, type FavoriteEntry } from '../../components/Favoritos/FavoritosPopup';
 import './MapaPage.css';
@@ -39,8 +40,16 @@ export function MapaPage() {
   const [topDown] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  
+  // Usando o hook de autenticação
+  const { user, isAuthenticated } = useAuth();
+  const [isEditMode, setIsEditMode] = useState(false);
 
-
+  // Estados para o editor de mapa
+  const [newNodes, setNewNodes] = useState([]);
+  const [newEdges, setNewEdges] = useState([]);
+  const [cursorCoords, setCursorCoords] = useState({ x: 0, y: 0 });
+  const [editTool, setEditTool] = useState('none'); // 'add_node', 'link_nodes'
 
   const DETAIL_MAP = '/maps/Campus_2D_DETALHE.png';
   const { data: mapData } = useMapData();
@@ -83,6 +92,34 @@ export function MapaPage() {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
+
+  // --- LÓGICA DO EDITOR DE MAPA ---
+  const handleMapClick = (coords: { x: number; y: number }) => {
+    if (!isEditMode) return;
+
+    if (editTool === 'add_node') {
+      const newNode = {
+        id: `conn_${newNodes.length + (mapData?.nodes.length || 0)}`,
+        ...coords
+      };
+      // @ts-ignore
+      setNewNodes(prev => [...prev, newNode]);
+      setToast({ message: `Nó adicionado em x:${coords.x}, y:${coords.y}`, type: 'success' });
+    }
+  };
+
+  const handleExportMapData = () => {
+    if (!mapData) return;
+    const output = {
+      ...mapData,
+      nodes: [...mapData.nodes, ...newNodes],
+      // A lógica de edges precisaria ser mais complexa
+    };
+    console.log("--- DADOS DO MAPA EXPORTADOS ---");
+    console.log(JSON.stringify(output, null, 2));
+    setToast({ message: 'Dados do mapa exportados para o console!', type: 'info' });
+  };
+
 
   // --- LÓGICA DE HISTÓRICO ---
   const addRouteToHistory = (entry: Omit<HistoryEntry, 'timestamp'>) => {
@@ -172,6 +209,7 @@ export function MapaPage() {
 
   // --- LÓGICA DE NAVEGAÇÃO ---
   const handleSelectOrigin = (nodeId: string, label?: string) => {
+    if (isEditMode) return; // Desabilita seleção de origem no modo de edição
     setOriginId(nodeId);
     setOriginLabel(label || null);
     setPath(null);
@@ -239,7 +277,7 @@ export function MapaPage() {
           <img src={logoIcon} alt="Ícone Gnomon" />
           <span>GNOMON</span>
         </Link>
-        <Link to="/perfil">
+        <Link to={isAuthenticated ? '/perfil' : '/login'}>
           <i className="fa-solid fa-user profile-icon"></i>
         </Link>
       </header>
@@ -281,6 +319,43 @@ export function MapaPage() {
       />
 
       <main className="content-area">
+        <div className="admin-buttons-container">
+            {isAuthenticated && user?.role === 'ADMIN' && (
+                <>
+                    <Link to="/perfil" className="admin-panel-button">
+                        <i className="fa-solid fa-shield-halved"></i>
+                        <span>Painel</span>
+                    </Link>
+                    <button onClick={() => setIsEditMode(!isEditMode)} className={`admin-edit-button ${isEditMode ? 'active' : ''}`}>
+                        <i className={`fa-solid ${isEditMode ? 'fa-times' : 'fa-pencil'}`}></i>
+                        <span>{isEditMode ? 'Sair' : 'Editar'}</span>
+                    </button>
+                </>
+            )}
+        </div>
+
+        {isEditMode && (
+            <div className="map-editor-ui">
+                <div className="editor-toolbar">
+                    <button onClick={() => setEditTool('add_node')} className={editTool === 'add_node' ? 'active' : ''} title="Adicionar Nó de Conexão">
+                        <i className="fa-solid fa-circle-plus"></i>
+                    </button>
+                    <button disabled title="Adicionar Ponto de Interesse (Em breve)">
+                        <i className="fa-solid fa-map-pin"></i>
+                    </button>
+                    <button disabled title="Ligar Nós (Em breve)">
+                        <i className="fa-solid fa-share-nodes"></i>
+                    </button>
+                    <button onClick={handleExportMapData} title="Exportar Dados do Mapa">
+                        <i className="fa-solid fa-file-export"></i>
+                    </button>
+                </div>
+                <div className="coords-display">
+                    X: {cursorCoords.x}, Y: {cursorCoords.y}
+                </div>
+            </div>
+        )}
+
         <div className="map-background-logo"></div>
 
         <div className="search-bar-container">
@@ -324,6 +399,7 @@ export function MapaPage() {
               strokeColor={routePrimary}
               path={path}
               originId={originId}
+              destinationPoi={destinationPoi} // Passa o POI de destino
               onSelectOrigin={handleSelectOrigin}
               onRouteCalculated={handleRouteCalculated}
               initialZoomMultiplier={isMobile ? 4.0 : 1.2}
@@ -332,6 +408,11 @@ export function MapaPage() {
                 : {}}
               destinationToRoute={destinationTrigger}
               onDestinationRouted={() => setDestinationTrigger(null)}
+              // Props para o modo de edição
+              isEditMode={isEditMode}
+              onMapClick={handleMapClick}
+              onCursorMove={setCursorCoords}
+              tempNodes={newNodes}
             />
           )}
         </div>

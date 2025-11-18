@@ -26,6 +26,13 @@ const resetPasswordSchema = z.object({
   password: z.string().min(6, 'Senha precisa ter no mínimo 6 caracteres.'),
 });
 
+const registerStaffSchema = z.object({
+  name: z.string().trim().min(1, 'Nome é obrigatório.'),
+  email: z.string().trim().toLowerCase().email('E-mail inválido.'),
+  password: z.string().min(6, 'Senha precisa ter no mínimo 6 caracteres.'),
+  role: z.enum(['STAFF', 'ADMIN']).default('STAFF'), // Default to STAFF, can be ADMIN if explicitly set by an ADMIN
+});
+
 export const loginUser = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { email, password } = loginSchema.parse(req.body);
@@ -201,6 +208,52 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<R
     return res.status(200).json(admin);
   } catch (error) {
     console.error('Erro no getUserProfile:', error);
+    return res.status(500).json({ message: 'Erro interno.' });
+  }
+};
+
+export const registerStaff = async (req: AuthRequest, res: Response): Promise<Response> => {
+  try {
+    // Check if the requesting user has permission to register staff
+    if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'STAFF')) {
+      return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para cadastrar funcionários.' });
+    }
+
+    const { name, email, password, role } = registerStaffSchema.parse(req.body);
+
+    // Only ADMIN can register other ADMINs
+    if (role === 'ADMIN' && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Acesso negado. Somente administradores podem cadastrar outros administradores.' });
+    }
+
+    // Check if user already exists
+    const existingAdmin = await prisma.admin.findUnique({ where: { email } });
+    if (existingAdmin) {
+      return res.status(409).json({ message: 'Já existe um funcionário com este e-mail.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newStaff = await prisma.admin.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role,
+        isActive: true,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Funcionário cadastrado com sucesso!',
+      user: { id: newStaff.id, name: newStaff.name, email: newStaff.email, role: newStaff.role },
+    });
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Erro de validação.', details: error.issues });
+    }
+    console.error('Erro no registerStaff:', error);
     return res.status(500).json({ message: 'Erro interno.' });
   }
 };

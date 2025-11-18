@@ -387,3 +387,126 @@
   pointer-events: none; /* Não interfere com o mapa */
   mix-blend-mode: multiply; /* ✅ Faz a mágica do fundo branco */
 }
+
+/* --- Botões de Admin --- */
+.admin-buttons-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 20;
+  display: flex;
+  gap: 10px;
+}
+
+.admin-panel-button,
+.admin-edit-button {
+  background-color: var(--primary);
+  color: white;
+  padding: 12px 16px;
+  border-radius: var(--radius-full);
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-panel-button:hover,
+.admin-edit-button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: var(--shadow-xl);
+  background-color: var(--primary-hover);
+}
+
+.admin-edit-button.active {
+  background-color: var(--error);
+}
+
+.admin-panel-button i,
+.admin-edit-button i {
+  font-size: 1.2em;
+}
+
+/* --- UI do Editor de Mapa --- */
+.map-editor-ui {
+  position: fixed;
+  top: calc(var(--header-height) + 10px);
+  left: 10px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.editor-toolbar,
+.coords-display {
+  background: rgba(from var(--card-background) r g b / 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  box-shadow: var(--shadow-lg);
+}
+
+.editor-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.editor-toolbar button {
+  background: var(--background-interactive);
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editor-toolbar button:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.editor-toolbar button.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.editor-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.coords-display {
+  padding: 8px 12px;
+  font-family: monospace;
+  font-size: 0.9em;
+  color: var(--text);
+}
+
+
+@media (max-width: 768px) {
+  .admin-buttons-container {
+    bottom: 10px;
+    right: 10px;
+  }
+  .admin-panel-button span,
+  .admin-edit-button span {
+    display: none; /* Oculta o texto em telas pequenas, mostrando só o ícone */
+  }
+  .admin-panel-button,
+  .admin-edit-button {
+    padding: 12px;
+    width: 48px;
+    height: 48px;
+    justify-content: center;
+  }
+}

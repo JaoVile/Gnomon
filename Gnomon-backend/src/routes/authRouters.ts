@@ -4,6 +4,7 @@ import {
   forgotPassword,
   resetPassword,
   getUserProfile,
+  registerStaff, // Importar a nova função
 } from '../controllers/AuthController';
 import { authMiddleware } from '../middleware/authMiddleware';
 
@@ -44,5 +45,12 @@ router.post('/reset-password', resetPassword);
  * @access  Privado
  */
 router.get('/profile', authMiddleware, getUserProfile);
+
+/**
+ * @route   POST /api/auth/register-staff
+ * @desc    Cadastra um novo funcionário (apenas para ADMIN/STAFF autenticados)
+ * @access  Privado (requer token JWT e role de ADMIN ou STAFF)
+ */
+router.post('/register-staff', authMiddleware, registerStaff);
 
 export default router;

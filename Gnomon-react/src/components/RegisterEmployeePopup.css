@@ -1,0 +1,139 @@
+/* src/components/RegisterEmployeePopup.css */
+
+.register-employee-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--overlay);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-modal);
+}
+
+.register-employee-popup-content {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    width: 90%;
+    max-width: 500px;
+    color: var(--text);
+    position: relative;
+    border: 1px solid var(--border-color);
+}
+
+.popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.popup-header h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: 1.8em;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-btn:hover {
+    color: var(--primary);
+}
+
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--text);
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background-color: var(--background-interactive);
+    color: var(--text);
+    font-size: 1em;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: var(--focus-ring);
+}
+
+/* Estilos unificados para o botão de submit */
+form button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    margin-top: 20px;
+}
+
+form button[type="submit"]:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+form button[type="submit"]:disabled {
+    background-color: var(--text-disabled);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: var(--error);
+    margin-top: 10px;
+    text-align: center;
+}
+
+.success-message {
+    color: var(--success);
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* Estilos para o formulário embutido */
+.register-employee-form-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.register-employee-form-container .popup-header {
+    justify-content: center;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+}
+
+.register-employee-form-container .popup-header h2 {
+    font-size: 2em;
+}
