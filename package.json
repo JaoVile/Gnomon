@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@types/google-one-tap": "^1.2.6"
+  }
+}
