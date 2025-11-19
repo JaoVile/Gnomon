@@ -13,9 +13,13 @@ import ParticlesBackground from '../../components/ParticlesBackground';
 import Toast from '../../components/Toast';
 import { useThemeVars } from '../../libs/useThemeVars';
 import { useMapData } from '../../hooks/useMapData';
+import { useMapSettings } from '../../contexts/MapSettingsContext';
 import { useAuth } from '../../hooks/useAuth'; // Importar o hook
 import { HistoricoPopup, type HistoryEntry } from '../../components/Historico/HistoricoPopup';
 import { FavoritosPopup, type FavoriteEntry } from '../../components/Favoritos/FavoritosPopup';
+import { StagedPointsPanel, type StagedPoint } from '../../components/StagedPointsPanel';
+import { ThemeSwitcher } from '../../components/ThemeSwitcher';
+import { BottomSheet } from '../../components/BottomSheet/BottomSheet';
 import './MapaPage.css';
 
 // Hook para detectar mobile
@@ -29,30 +33,30 @@ function useIsMobile() {
   return isMobile;
 }
 
+type EditTool = 'add_poi' | 'add_entrance' | 'add_connection' | 'none';
+
 const HISTORY_STORAGE_KEY = 'gnomon_route_history';
 const FAVORITES_STORAGE_KEY = 'gnomon_favorite_routes';
 
 export function MapaPage() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isFavoritosOpen, setIsFavoritosOpen] = useState(false);
-  const [mode, setMode] = useState<'2d' | '3d'>('2d');
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // Estado para o BottomSheet
+  const { mode } = useMapSettings(); // Usando o contexto
   const [topDown] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
-  // Usando o hook de autenticação
   const { user, isAuthenticated } = useAuth();
   const [isEditMode, setIsEditMode] = useState(false);
 
   // Estados para o editor de mapa
-  const [newNodes, setNewNodes] = useState([]);
-  const [newEdges, setNewEdges] = useState([]);
   const [cursorCoords, setCursorCoords] = useState({ x: 0, y: 0 });
-  const [editTool, setEditTool] = useState('none'); // 'add_node', 'link_nodes'
+  const [editTool, setEditTool] = useState<EditTool>('none');
+  const [stagedPoints, setStagedPoints] = useState<StagedPoint[]>([]);
 
-  const DETAIL_MAP = '/maps/Campus_2D_DETALHE.png';
-  const { data: mapData } = useMapData();
+
+  const { data: mapData, imageUrl, loading: mapLoading, error: mapError } = useMapData();
 
   const [originId, setOriginId] = useState<string | null>(null);
   const [originLabel, setOriginLabel] = useState<string | null>(null);
@@ -64,8 +68,49 @@ export function MapaPage() {
   const [routeHistory, setRouteHistory] = useState<HistoryEntry[]>([]);
   const [favorites, setFavorites] = useState<FavoriteEntry[]>([]);
   const [destinationTrigger, setDestinationTrigger] = useState<string | null>(null);
+  const [focusOnPoi, setFocusOnPoi] = useState<string | null>(null);
+  const [sheetPeekHeight, setSheetPeekHeight] = useState(0); // Novo estado para a altura do peek
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<Poi[]>([]);
 
   const { routePrimary } = useThemeVars();
+
+  // Efeito para ler a altura do peek do BottomSheet do CSS
+  useEffect(() => {
+    const root = document.documentElement;
+    const peekHeight = parseInt(getComputedStyle(root).getPropertyValue('--sheet-peek-height')) || 0;
+    setSheetPeekHeight(peekHeight);
+  }, []);
+
+  // Efeito para filtrar POIs com base no termo de busca
+  useEffect(() => {
+    if (!searchTerm || !mapData?.pois) {
+      setSearchResults([]);
+      return;
+    }
+    const filtered = mapData.pois.filter(poi =>
+      poi.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setSearchResults(filtered);
+  }, [searchTerm, mapData]);
+
+  // Função para lidar com a seleção de um resultado de busca
+  const handleSelectSearchResult = (poi: Poi) => {
+    setSearchTerm(''); // Limpa o termo de busca
+    setSearchResults([]); // Limpa os resultados
+
+    if (!originId) {
+      // Se não há origem, foca no POI e abre o popup
+      setFocusOnPoi(poi.id);
+      setIsSheetOpen(false); // Fecha o bottom sheet para focar no mapa
+    } else {
+      // Se há origem, calcula a rota
+      setDestinationTrigger(poi.nodeId);
+      setDestinationPoi(poi); // Define o POI de destino
+      setIsSheetOpen(false); // Fecha o bottom sheet após calcular a rota
+    }
+  };
 
   // Carregar histórico e favoritos do localStorage
   useEffect(() => {
@@ -84,9 +129,9 @@ export function MapaPage() {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsMenuOpen(false);
         setIsHistoryOpen(false);
         setIsFavoritosOpen(false);
+        setIsSheetOpen(false); // Fecha o bottom sheet também
       }
     };
     window.addEventListener('keydown', handleEsc);
@@ -95,31 +140,27 @@ export function MapaPage() {
 
   // --- LÓGICA DO EDITOR DE MAPA ---
   const handleMapClick = (coords: { x: number; y: number }) => {
-    if (!isEditMode) return;
+    if (!isEditMode || editTool === 'none') {
+      if (editTool === 'none' && isEditMode) {
+        setToast({ message: 'Selecione uma ferramenta de edição primeiro.', type: 'info' });
+      }
+      return;
+    }
+    
+    setStagedPoints(prev => [...prev, { ...coords, type: editTool }]);
+    setToast({ message: `Ponto adicionado: ${editTool}.`, type: 'success' });
+  };
 
-    if (editTool === 'add_node') {
-      const newNode = {
-        id: `conn_${newNodes.length + (mapData?.nodes.length || 0)}`,
-        ...coords
-      };
-      // @ts-ignore
-      setNewNodes(prev => [...prev, newNode]);
-      setToast({ message: `Nó adicionado em x:${coords.x}, y:${coords.y}`, type: 'success' });
+  const handleDeleteStagedPoint = (index: number) => {
+    setStagedPoints(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleClearAllStagedPoints = () => {
+    if (window.confirm('Tem certeza que deseja apagar todos os pontos marcados?')) {
+      setStagedPoints([]);
+      setToast({ message: 'Todos os pontos marcados foram removidos.', type: 'info' });
     }
   };
-
-  const handleExportMapData = () => {
-    if (!mapData) return;
-    const output = {
-      ...mapData,
-      nodes: [...mapData.nodes, ...newNodes],
-      // A lógica de edges precisaria ser mais complexa
-    };
-    console.log("--- DADOS DO MAPA EXPORTADOS ---");
-    console.log(JSON.stringify(output, null, 2));
-    setToast({ message: 'Dados do mapa exportados para o console!', type: 'info' });
-  };
-
 
   // --- LÓGICA DE HISTÓRICO ---
   const addRouteToHistory = (entry: Omit<HistoryEntry, 'timestamp'>) => {
@@ -209,7 +250,7 @@ export function MapaPage() {
 
   // --- LÓGICA DE NAVEGAÇÃO ---
   const handleSelectOrigin = (nodeId: string, label?: string) => {
-    if (isEditMode) return; // Desabilita seleção de origem no modo de edição
+    if (isEditMode) return;
     setOriginId(nodeId);
     setOriginLabel(label || null);
     setPath(null);
@@ -244,6 +285,17 @@ export function MapaPage() {
     setDestinationTrigger(entry.destinationId);
   };
 
+  const handleSelectFeaturedPlace = (place: { nodeId: string; poiId: string }) => {
+    setIsSheetOpen(false);
+    if (originId) {
+      // Se já tem uma origem, calcula a rota
+      setDestinationTrigger(place.nodeId);
+    } else {
+      // Se não, apenas foca no POI
+      setFocusOnPoi(place.poiId);
+    }
+  };
+
   const clearRoute = () => {
     setPath(null);
     setDestinationPoi(null);
@@ -260,46 +312,35 @@ export function MapaPage() {
     setToast({ message: 'Ponto de partida removido', type: 'info' });
   };
 
+  const featuredPlaces = [
+    { label: 'CRA', poiId: 'ref_cra', nodeId: 'R1_CRA', photoUrl: '/places/cra.jpg' },
+    { label: 'Auditório', poiId: 'ref_auditorio', nodeId: 'R6_AUDITORIO', photoUrl: '/places/auditorio.jpg' },
+    { label: 'Cantina', poiId: 'ref_cantina', nodeId: 'R9_CANTINA', photoUrl: '/places/cantina.png' },
+  ];
+
   const menuItems = [
-    { icon: 'fa-star', label: 'Favoritos', action: () => { setIsFavoritosOpen(true); setIsMenuOpen(false); } },
-    { icon: 'fa-clock-rotate-left', label: 'Histórico de rotas', action: () => { setIsHistoryOpen(true); setIsMenuOpen(false); }},
-    { icon: 'fa-circle-question', label: 'Ajuda', action: () => navigate('/ajuda') },
-    { icon: 'fa-sliders', label: 'Configuração', action: () => navigate('/configuracoes') },
+    { icon: 'fa-star', label: 'Favoritos', action: () => { setIsFavoritosOpen(true); setIsSheetOpen(false); } },
+    { icon: 'fa-clock-rotate-left', label: 'Histórico de rotas', action: () => { setIsHistoryOpen(true); setIsSheetOpen(false); }},
+    { icon: 'fa-circle-question', label: 'Ajuda', action: () => { navigate('/ajuda'); setIsSheetOpen(false); } },
+    { icon: 'fa-sliders', label: 'Configuração', action: () => { navigate('/configuracoes'); setIsSheetOpen(false); } },
   ];
 
   return (
     <div id="map-app-container">
-      {isMenuOpen && <div className="menu-backdrop" onClick={() => setIsMenuOpen(false)}></div>}
-      
       <header className="top-bar">
-        <i className="fa-solid fa-bars menu-icon" onClick={() => setIsMenuOpen(true)}></i>
-        <Link to="/" className="logo-container">
-          <img src={logoIcon} alt="Ícone Gnomon" />
-          <span>GNOMON</span>
-        </Link>
-        <Link to={isAuthenticated ? '/perfil' : '/login'}>
-          <i className="fa-solid fa-user profile-icon"></i>
-        </Link>
-      </header>
-
-      {isMenuOpen && (
-        <div className="header-menu-popup">
-          <div className="popup-header">
-            <h3>Menu</h3>
-            <button onClick={() => setIsMenuOpen(false)} className="close-menu-btn">
-              <i className="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-          <nav className="popup-nav">
-            {menuItems.map(item => (
-              <button key={item.label} onClick={item.action} className="popup-nav-item">
-                <i className={`fa-solid ${item.icon}`}></i>
-                <span>{item.label}</span>
-              </button>
-            ))}
+        <div className="container">
+          <Link to="/" className="logo-container">
+            <img src={logoIcon} alt="Ícone Gnomon" />
+            <span>GNOMON</span>
+          </Link>
+          <nav className="header-nav">
+            <ThemeSwitcher />
+            <Link to={isAuthenticated ? '/perfil' : '/login'} className="profile-link">
+              <i className="fa-solid fa-user profile-icon"></i>
+            </Link>
           </nav>
         </div>
-      )}
+      </header>
 
       <HistoricoPopup
         isOpen={isHistoryOpen}
@@ -318,7 +359,68 @@ export function MapaPage() {
         onRemoveFavorite={handleRemoveFavorite}
       />
 
-      <main className="content-area">
+      <StagedPointsPanel
+        isVisible={isEditMode}
+        points={stagedPoints}
+        onDeletePoint={handleDeleteStagedPoint}
+        onClearAll={handleClearAllStagedPoints}
+        onClose={() => setIsEditMode(false)}
+      />
+
+      <main className={`content-area ${isEditMode ? 'edit-mode-active' : ''}`}>
+        <div className="top-left-ui-container">
+          {toast && (
+            <Toast
+              message={toast.message}
+              type={toast.type}
+              onClose={() => setToast(null)}
+            />
+          )}
+
+          <div className="compact-route-display">
+            <div className="route-step">
+              <div className={`route-step-marker ${originId ? 'complete' : 'pending'}`}>
+                <i className={`fa-solid ${originId ? 'fa-check' : 'fa-location-dot'}`}></i>
+              </div>
+              <div className="route-step-info">
+                <span className="route-step-label">Origem</span>
+                <span className="route-step-value">
+                  {originLabel || 'Selecione seu local'}
+                </span>
+              </div>
+              {originId && (
+                <button onClick={clearOrigin} className="clear-origin-btn" title="Remover ponto de partida">
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              )}
+            </div>
+
+            {path && destinationPoi && (
+              <>
+                <div className="route-step-connector"></div>
+                <div className="route-step">
+                  <div className="route-step-marker complete">
+                    <i className="fa-solid fa-map-pin"></i>
+                  </div>
+                  <div className="route-step-info">
+                    <span className="route-step-label">Destino</span>
+                    <span className="route-step-value">{destinationPoi.label}</span>
+                  </div>
+                  <button onClick={clearRoute} className="clear-route-btn" title="Limpar Rota">
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {originId && destinationPoi && (
+              <button onClick={addRouteToFavorites} className="favorite-route-btn" title="Adicionar rota aos favoritos">
+                <i className="fa-regular fa-star"></i>
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="admin-buttons-container">
             {isAuthenticated && user?.role === 'ADMIN' && (
                 <>
@@ -337,17 +439,14 @@ export function MapaPage() {
         {isEditMode && (
             <div className="map-editor-ui">
                 <div className="editor-toolbar">
-                    <button onClick={() => setEditTool('add_node')} className={editTool === 'add_node' ? 'active' : ''} title="Adicionar Nó de Conexão">
-                        <i className="fa-solid fa-circle-plus"></i>
+                    <button onClick={() => setEditTool('add_entrance')} className={editTool === 'add_entrance' ? 'active' : ''} title="Adicionar Entrada">
+                        <i className="fa-solid fa-door-open"></i>
                     </button>
-                    <button disabled title="Adicionar Ponto de Interesse (Em breve)">
+                    <button onClick={() => setEditTool('add_poi')} className={editTool === 'add_poi' ? 'active' : ''} title="Adicionar Ponto de Referência">
                         <i className="fa-solid fa-map-pin"></i>
                     </button>
-                    <button disabled title="Ligar Nós (Em breve)">
-                        <i className="fa-solid fa-share-nodes"></i>
-                    </button>
-                    <button onClick={handleExportMapData} title="Exportar Dados do Mapa">
-                        <i className="fa-solid fa-file-export"></i>
+                    <button onClick={() => setEditTool('add_connection')} className={editTool === 'add_connection' ? 'active' : ''} title="Adicionar Nó de Conexão">
+                        <i className="fa-solid fa-circle-plus"></i>
                     </button>
                 </div>
                 <div className="coords-display">
@@ -358,26 +457,7 @@ export function MapaPage() {
 
         <div className="map-background-logo"></div>
 
-        <div className="search-bar-container">
-          <div className="search-bar">
-            <i className="fa-solid fa-magnifying-glass"></i>
-            <input type="search" placeholder="Buscar local, sala ou serviço..." />
-            <div className="view-toggle">
-              <button className={mode === '2d' ? 'active' : ''} onClick={() => setMode('2d')}>2D</button>
-              <button className={mode === '3d' ? 'active' : ''} onClick={() => setMode('3d')}>3D</button>
-            </div>
-          </div>
-        </div>
-
         <ParticlesBackground color="#3498db" />
-
-        {toast && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={() => setToast(null)}
-          />
-        )}
 
         {turnInstructions.length > 0 && (
           <RouteInstructions
@@ -390,16 +470,18 @@ export function MapaPage() {
         )}
         
         <div id="map-container">
-          {mode === '3d' ? (
+          {mapLoading && <div className="map-loading-overlay">Carregando mapa...</div>}
+          {mapError && <div className="map-loading-overlay error">Erro ao carregar o mapa: {mapError}</div>}
+          {!mapLoading && !mapError && mode === '3d' ? (
             <Campus3D url="/models/Campus.glb" topDown={topDown} />
           ) : (
             <Map2D
               mapData={mapData}
-              mapImageUrl={DETAIL_MAP}
+              mapImageUrl={imageUrl}
               strokeColor={routePrimary}
               path={path}
               originId={originId}
-              destinationPoi={destinationPoi} // Passa o POI de destino
+              destinationPoi={destinationPoi}
               onSelectOrigin={handleSelectOrigin}
               onRouteCalculated={handleRouteCalculated}
               initialZoomMultiplier={isMobile ? 4.0 : 1.2}
@@ -408,39 +490,86 @@ export function MapaPage() {
                 : {}}
               destinationToRoute={destinationTrigger}
               onDestinationRouted={() => setDestinationTrigger(null)}
-              // Props para o modo de edição
+              focusOnPoi={focusOnPoi}
+              onFocusDone={() => setFocusOnPoi(null)}
+              onPanStart={() => setIsSheetOpen(false)}
               isEditMode={isEditMode}
+              editTool={editTool}
               onMapClick={handleMapClick}
               onCursorMove={setCursorCoords}
-              tempNodes={newNodes}
+              isBottomSheetOpen={isSheetOpen} // Passa o estado do BottomSheet
+              bottomSheetPeekHeight={sheetPeekHeight} // Passa a altura do peek
             />
           )}
         </div>
+      </main>
 
-        <div className="bottom-controls-overlay">
-          {originId && !path && (
-            <div className="origin-indicator">
-              <span>
-                Você está em: <strong>{originLabel || 'Local selecionado'}</strong>
-              </span>
-              <button onClick={clearOrigin} title="Remover ponto de partida">
-                <i className="fa-solid fa-xmark"></i>
-              </button>
+      <BottomSheet 
+        isOpen={isSheetOpen} 
+        onClose={() => setIsSheetOpen(false)}
+        onOpen={() => setIsSheetOpen(true)}
+      >
+        <div className="route-finder">
+          <h2>Encontre sua rota</h2>
+          <p className="search-prompt">Digite aqui para onde você quer ir</p>
+          <div className="search-input-container">
+            <div className="input-wrapper">
+              <i className="fas fa-search search-icon"></i>
+              <input
+                type="text"
+                placeholder="Buscar local..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => setIsSheetOpen(true)} // Abre o sheet ao focar
+              />
             </div>
-          )}
+            {searchTerm && (
+              <button className="clear-search-btn" onClick={() => setSearchTerm('')}>
+                <i className="fas fa-times"></i>
+              </button>
+            )}
+          </div>
 
-          {path && (
-            <div className="route-controls">
-              <button onClick={clearRoute} className="clear-route-btn">
-                <i className="fa-solid fa-xmark"></i> Limpar Rota
-              </button>
-              <button onClick={addRouteToFavorites} className="favorite-btn" title="Adicionar rota aos favoritos">
-                <i className="fa-regular fa-star"></i>
-              </button>
+          {searchTerm && searchResults.length > 0 && (
+            <div className="search-results-list">
+              {searchResults.map(poi => (
+                <button 
+                  key={poi.id} 
+                  className="search-result-item" 
+                  onClick={() => handleSelectSearchResult(poi)}
+                >
+                  <span>{poi.label}</span>
+                  <i className="fas fa-chevron-right"></i>
+                </button>
+              ))}
             </div>
           )}
         </div>
-      </main>
+
+        <div className="sheet-divider"></div>
+
+        <div className="featured-places">
+          <h2>Lugares mais acessados</h2>
+          <div className="featured-places-list">
+            {featuredPlaces.map(place => (
+              <button key={place.poiId} className="featured-place-button" onClick={() => handleSelectFeaturedPlace(place)}>
+                <img src={place.photoUrl} alt={place.label} className="featured-place-photo" />
+                <span className="featured-place-label">{place.label}</span>
+                <i className="fa-solid fa-chevron-right"></i>
+              </button>
+            ))}
+          </div>
+        </div>
+        <nav className="popup-nav">
+          {menuItems.map(item => (
+            <button key={item.label} onClick={item.action} className="popup-nav-item">
+              <i className={`fa-solid ${item.icon}`}></i>
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </BottomSheet>
     </div>
   );
 }
+
