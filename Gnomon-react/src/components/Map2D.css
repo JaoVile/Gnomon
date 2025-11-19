@@ -59,7 +59,7 @@
   border-radius: 12px;
   width: 168px; /* Reduced by 40% from 280px (max-width) */
   /* height: auto; */ /* Let content define height */
-  z-index: 6;
+  z-index: 35;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   pointer-events: auto;
   opacity: 0;
@@ -162,11 +162,12 @@
 
 .popup-button {
   flex: 1;
-  padding: 10px;
+  padding: 6px 8px;
+  font-size: 0.85rem;
   border-radius: 8px;
-  border: 1px solid #2c2c2e;
-  background: #2c2c2e;
-  color: #fff;
+  border: 1px solid var(--border-color);
+  background: var(--background-secondary);
+  color: var(--text);
   cursor: pointer;
   font-weight: 600;
   display: flex;
@@ -177,14 +178,14 @@
 }
 
 .popup-button.primary {
-  border-color: #0A84FF;
-  background: #0A84FF;
+  border-color: var(--primary);
+  background: var(--primary);
 }
 
 .popup-button.primary:disabled {
-  border-color: #444;
-  background: #333;
-  color: #888;
+  border-color: var(--border-color);
+  background: var(--background-interactive);
+  color: var(--text-tertiary);
   cursor: not-allowed;
   opacity: 0.5;
 }
@@ -194,7 +195,7 @@
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: #9aa3af;
+  color: var(--text-secondary);
   cursor: pointer;
 }
 
@@ -218,12 +219,12 @@
 .map-legend {
   position: absolute;
   top: 50%; /* Verticalmente centralizado */
-  left: 20px; /* Na borda esquerda */
+  left: 5%; /* Na borda esquerda */
   transform: translateY(-50%); /* Ajuste para centralização vertical */
   background: rgba(from var(--card-background) r g b / 0.6); /* Usa variável de tema com opacidade */
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 30; /* Ajustado para ficar abaixo do BottomSheet backdrop */
+  z-index: 25; /* Ajustado para ficar abaixo do BottomSheet backdrop */
   font-size: 0.8em; /* Reduzido */
   color: var(--text); /* Usa variável de tema */
   display: flex;
