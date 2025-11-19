@@ -583,8 +583,9 @@
 }
 
 .route-finder h2 {
-  font-size: 1.8rem; /* Increased by 50% from 1.2rem */
-  margin-bottom: 1rem;
+  font-size: 2.0rem; /* Increased again */
+  margin-bottom: 0.5rem; /* Adjusted to move up */
+  margin-top: -0.5rem; /* Adjusted to move up */
   color: var(--text-secondary);
 }
 
