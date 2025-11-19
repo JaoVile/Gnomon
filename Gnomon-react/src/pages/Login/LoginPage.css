@@ -147,6 +147,31 @@ body.light-mode .input-group input:focus {
     text-decoration: none;
     font-weight: 600;
 }
+
+.back-link-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-to-map-button {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.back-to-map-button:hover {
+    background-color: var(--background-interactive);
+    color: var(--text);
+}
+
 /* Estilo para a mensagem de erro */
 .error-message {
     color: var(--error);
@@ -156,4 +181,33 @@ body.light-mode .input-group input:focus {
     text-align: center;
     margin-bottom: 20px;
     border: 1px solid var(--error);
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: var(--text-secondary);
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.divider:not(:empty)::before {
+    margin-right: .25em;
+}
+
+.divider:not(:empty)::after {
+    margin-left: .25em;
+}
+
+.google-login-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
 }

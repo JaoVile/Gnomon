@@ -15,13 +15,15 @@ type AnimationOptions = {
 
 type Coords = { x: number; y: number };
 
+type EditTool = 'add_poi' | 'add_entrance' | 'add_connection' | 'link_nodes' | 'delete_node' | 'none';
+
 type Props = {
   mapData?: MapData | null;
   mapImageUrl: string;
   strokeColor?: string;
   path?: MapNode[] | null;
   originId?: string | null;
-  destinationPoi?: Poi | null; // Pass destination POI as a prop
+  destinationPoi?: Poi | null;
   onSelectOrigin?: (nodeId: string, label?: string) => void;
   onRouteCalculated?: (path: MapNode[], instructions: TurnInstruction[], destinationPoi: Poi) => void;
   showPoiLabels?: boolean;
@@ -29,11 +31,20 @@ type Props = {
   animationOptions?: AnimationOptions;
   destinationToRoute?: string | null;
   onDestinationRouted?: () => void;
+  focusOnPoi?: string | null;
+  onFocusDone?: () => void;
+  onPanStart?: () => void;
+  // Props para o BottomSheet
+  isBottomSheetOpen?: boolean;
+  bottomSheetPeekHeight?: number;
   // Props do modo de edição
   isEditMode?: boolean;
+  editTool?: EditTool;
   onMapClick?: (coords: Coords) => void;
+  onNodeClick?: (nodeId: string) => void;
   onCursorMove?: (coords: Coords) => void;
-  tempNodes?: { id: string; x: number; y: number }[];
+  tempNodes?: Node2D[];
+  tempPois?: Poi[];
 };
 
 type Transform = { x: number; y: number; scale: number };
@@ -52,11 +63,20 @@ export default function Map2D({
   animationOptions,
   destinationToRoute,
   onDestinationRouted = () => {},
+  focusOnPoi,
+  onFocusDone = () => {},
+  onPanStart = () => {},
+  // Props para o BottomSheet
+  isBottomSheetOpen = false,
+  bottomSheetPeekHeight = 0,
   // Props do modo de edição
   isEditMode = false,
+  editTool = 'none',
   onMapClick = () => {},
+  onNodeClick = () => {},
   onCursorMove = () => {},
   tempNodes = [],
+  tempPois = [],
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -75,6 +95,7 @@ export default function Map2D({
   const lastPos = useRef({ x: 0, y: 0 });
   const lastTouchDist = useRef(0);
   const animationRef = useRef({ startTime: 0, duration: 0, pathLength: 0 });
+  const transformAnimRef = useRef<number | null>(null);
 
   const [popup, setPopup] = useState<{ poiId: string; label: string; x: number; y: number; photoUrl?: string } | null>(null);
   const [popupPos, setPopupPos] = useState<{ left: number; top: number; orientation: 'down' | 'up' | 'left' | 'right' } | null>(null);
@@ -83,6 +104,78 @@ export default function Map2D({
 
   const routeAnimDuration = animationOptions?.routeAnimationDuration ?? 1000;
   const showHintsAnim = animationOptions?.showHintAnimations ?? true;
+
+  const mapLegendItems = [
+    { label: 'Direção', type: 'color', color: '#D9ED92' }, // Verde amarelado bem claro
+    { label: 'Auditório', type: 'color', color: '#FFB3BA' },   // Vermelho claro
+    { label: 'Cantina', type: 'color', color: '#4682B4' }, // Azul marinho um pouco claro (SteelBlue)
+    { label: 'Laboratórios', type: 'color', color: '#00FFFF' }, // Ciano
+    { label: 'Biblioteca', type: 'color', color: '#FFFF00' }, // Amarelo
+    { label: 'Banheiros', type: 'color', color: '#DDA0DD' }, // Lilás um pouco roxo (Plum)
+    { label: 'Salas', type: 'color', color: '#FFFACD' }, // Amarelo claro bem pouco marrom (LemonChiffon)
+    { label: 'Entradas', type: 'icon', icon: 'pin', color: '#EA4335' }, // Vermelho do Google Maps pin
+    { label: 'Referências', type: 'icon', icon: 'pin', color: '#FFD700' }, // Amarelo para referências
+  ];
+
+  // Função para animar a transformação (pan/zoom)
+  const zoomTo = (targetX: number, targetY: number, targetScale: number, duration = 500) => {
+    if (transformAnimRef.current) {
+      cancelAnimationFrame(transformAnimRef.current);
+    }
+
+    const startTransform = { ...transform };
+    const container = containerRef.current;
+    if (!container) return;
+
+    const cw = container.clientWidth;
+    const ch = container.clientHeight;
+
+    // Calcula o X/Y final para centralizar o ponto
+    const finalX = cw / 2 - targetX * targetScale;
+    const finalY = ch / 2 - targetY * targetScale;
+
+    const animStartTime = performance.now();
+
+    const animate = (time: number) => {
+      const elapsed = time - animStartTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easeProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI); // Ease-in-out
+
+      const nextX = startTransform.x + (finalX - startTransform.x) * easeProgress;
+      const nextY = startTransform.y + (finalY - startTransform.y) * easeProgress;
+      const nextScale = startTransform.scale + (targetScale - startTransform.scale) * easeProgress;
+
+      setTransform({ x: nextX, y: nextY, scale: nextScale });
+
+      if (progress < 1) {
+        transformAnimRef.current = requestAnimationFrame(animate);
+      } else {
+        transformAnimRef.current = null;
+      }
+    };
+
+    transformAnimRef.current = requestAnimationFrame(animate);
+  };
+
+  // Efeito para focar em um POI
+  useEffect(() => {
+    if (focusOnPoi && currentMapData) {
+      const poi = currentMapData.pois.find(p => p.id === focusOnPoi);
+      if (poi) {
+        const node = currentMapData.nodes.find(n => n.id === poi.nodeId);
+        if (node) {
+          zoomTo(node.x, node.y, 2); // Dá um zoom fixo de 2x
+
+          // Abre o popup após a animação
+          setTimeout(() => {
+            const pos = worldToScreen(node.x, node.y);
+            setPopup({ poiId: poi.id, label: poi.label, x: pos.sx, y: pos.sy, photoUrl: poi.photoUrl });
+          }, 500); // Mesmo tempo da animação de zoom
+        }
+      }
+      onFocusDone(); // Reseta o gatilho no pai
+    }
+  }, [focusOnPoi, currentMapData]);
 
   // Efeito para calcular rota programaticamente
   useEffect(() => {
@@ -180,94 +273,109 @@ export default function Map2D({
       return;
     }
 
-    // Função que calcula e define a posição final do popup
-    const calculateAndSetPosition = () => {
-      if (!popupRef.current || !containerRef.current) {
-        // Se as referências do DOM não estiverem prontas, tenta novamente no próximo frame
-        requestAnimationFrame(calculateAndSetPosition);
-        return;
-      }
-
-      const popupEl = popupRef.current;
-      const containerEl = containerRef.current;
-
-      const W = popupEl.offsetWidth;
-      const H = popupEl.offsetHeight;
-
-      // Se as dimensões ainda forem 0, o layout não ocorreu. Espera o próximo frame.
-      if (W === 0 || H === 0) {
-        requestAnimationFrame(calculateAndSetPosition);
-        return;
-      }
-
-      const cw = containerEl.clientWidth;
-      const ch = containerEl.clientHeight;
-      const pad = 16;
-      const pinGap = 24;
-      const { x: pinX, y: pinY } = popup;
-
-      let finalLeft, finalTop, finalOrientation;
-
-      // 1. Tenta 'abaixo'
-      const belowTop = pinY + pinGap;
-      if (belowTop + H <= ch - pad) {
-        finalTop = belowTop;
-        finalOrientation = 'down';
-        finalLeft = Math.min(Math.max(pinX - W / 2, pad), cw - W - pad);
-        setPopupPos({ left: finalLeft, top: finalTop, orientation: finalOrientation });
-        return;
-      }
-
-      // 2. Tenta 'acima'
-      const aboveTop = pinY - H - pinGap;
-      if (aboveTop >= pad) {
-        finalTop = aboveTop;
-        finalOrientation = 'up';
-        finalLeft = Math.min(Math.max(pinX - W / 2, pad), cw - W - pad);
-        setPopupPos({ left: finalLeft, top: finalTop, orientation: finalOrientation });
-        return;
-      }
-
-      // 3. Tenta à 'direita'
-      const rightLeft = pinX + pinGap;
-      if (rightLeft + W <= cw - pad) {
-        finalLeft = rightLeft;
-        finalOrientation = 'right';
-        finalTop = Math.min(Math.max(pinY - H / 2, pad), ch - H - pad);
-        setPopupPos({ left: finalLeft, top: finalTop, orientation: finalOrientation });
-        return;
-      }
-
-      // 4. Tenta à 'esquerda'
-      const leftLeft = pinX - W - pinGap;
-      if (leftLeft >= pad) {
-        finalLeft = leftLeft;
-        finalOrientation = 'left';
-        finalTop = Math.min(Math.max(pinY - H / 2, pad), ch - H - pad);
-        setPopupPos({ left: finalLeft, top: finalTop, orientation: finalOrientation });
-        return;
-      }
-
-      // 5. Fallback: Se nenhuma posição for ideal, posiciona no lado com mais espaço vertical.
-      finalOrientation = (pinY > ch / 2) ? 'up' : 'down';
-      finalTop = (finalOrientation === 'up') ? pad : ch - H - pad;
-      finalLeft = Math.min(Math.max(pinX - W / 2, pad), cw - W - pad);
-      setPopupPos({ left: finalLeft, top: finalTop, orientation: finalOrientation });
-    };
-
-    // Pré-carrega a imagem antes de calcular a posição para garantir que a altura esteja correta
-    if (popup.photoUrl) {
-      const img = new Image();
-      img.src = popup.photoUrl;
-      // Roda o cálculo após o carregamento (ou erro) da imagem
-      img.onload = calculateAndSetPosition;
-      img.onerror = calculateAndSetPosition;
-    } else {
-      // Se não houver imagem, calcula no próximo frame de animação para garantir que o DOM esteja pronto
-      requestAnimationFrame(calculateAndSetPosition);
-    }
-  }, [popup]);
-
+          const calculateAndSetPosition = () => {
+            if (!popupRef.current || !containerRef.current) return;
+    
+            const popupEl = popupRef.current;
+            const containerEl = containerRef.current;
+            
+            const W = popupEl.offsetWidth;
+            const H = popupEl.offsetHeight;
+    
+            if (W === 0 || H === 0) {
+              requestAnimationFrame(calculateAndSetPosition);
+              return;
+            }
+    
+            const cw = containerEl.clientWidth;
+            let ch = containerEl.clientHeight;
+            const pad = 16;
+            const pinGap = 24;
+            
+            // Ajusta a altura disponível se o BottomSheet estiver fechado/peeked
+            let effectiveBottomPadding = pad;
+            if (!isBottomSheetOpen && bottomSheetPeekHeight > 0) {
+              effectiveBottomPadding = Math.max(pad, bottomSheetPeekHeight + 10); // 10px de margem acima do peek
+            }
+    
+            const { x: pinX, y: pinY } = popup;
+    
+            const positions = {
+              bottom: { top: pinY + pinGap, left: pinX - W / 2, orientation: 'down' as const },
+              top: { top: pinY - H - pinGap, left: pinX - W / 2, orientation: 'up' as const },
+              right: { top: pinY - H / 2, left: pinX + pinGap, orientation: 'right' as const },
+              left: { top: pinY - H / 2, left: pinX - W - pinGap, orientation: 'left' as const },
+            };
+    
+            const isFullyVisible = (pos: {top: number, left: number}) => {
+              return pos.left >= pad && pos.left + W <= cw - pad && pos.top >= pad && pos.top + H <= ch - effectiveBottomPadding;
+            };
+    
+            let chosenKey: string | null = null;
+            const preferredOrder = ['bottom', 'top', 'right', 'left'];
+    
+            for (const key of preferredOrder) {
+              if (isFullyVisible(positions[key as keyof typeof positions])) {
+                chosenKey = key;
+                break;
+              }
+            }
+    
+            let finalLeft, finalTop, finalOrientation;
+    
+            if (chosenKey) {
+              const pos = positions[chosenKey as keyof typeof positions];
+              finalLeft = pos.left;
+              finalTop = pos.top;
+              finalOrientation = pos.orientation;
+            } else {
+              // Fallback to original logic if no position is perfect
+              let bestPosition = { score: -1, finalLeft: 0, finalTop: 0, finalOrientation: 'down' as 'down' | 'up' | 'left' | 'right' };
+    
+              for (const key in positions) {
+                const pos = positions[key as keyof typeof positions];
+                
+                let left = Math.min(Math.max(pos.left, pad), cw - W - pad);
+                let top = Math.min(Math.max(pos.top, pad), ch - H - effectiveBottomPadding); // Ajustado aqui
+    
+                const visibleWidth = Math.max(0, Math.min(left + W, cw - pad) - Math.max(left, pad));
+                const visibleHeight = Math.max(0, Math.min(top + H, ch - effectiveBottomPadding) - Math.max(top, pad)); // Ajustado aqui
+                const visibleArea = visibleWidth * visibleHeight;
+                
+                let score = visibleArea;
+    
+                if (key === 'bottom') score *= 1.1;
+    
+                if (score > bestPosition.score) {
+                  bestPosition = {
+                    score,
+                    finalLeft: left,
+                    finalTop: top,
+                    finalOrientation: pos.orientation,
+                  };
+                }
+              }
+              finalLeft = bestPosition.finalLeft;
+              finalTop = bestPosition.finalTop;
+              finalOrientation = bestPosition.finalOrientation;
+            }
+            
+            setPopupPos({ 
+              left: finalLeft, 
+              top: finalTop, 
+              orientation: finalOrientation
+            });
+          };
+    
+          if (popup.photoUrl) {
+            const img = new Image();
+            img.src = popup.photoUrl;
+            img.onload = calculateAndSetPosition;
+            img.onerror = calculateAndSetPosition;
+          } else {
+            requestAnimationFrame(calculateAndSetPosition);
+          }
+        }, [popup, isBottomSheetOpen, bottomSheetPeekHeight]);
   function worldToScreen(x: number, y: number) {
     return { sx: transform.x + x * transform.scale, sy: transform.y + y * transform.scale };
   }
@@ -278,38 +386,28 @@ export default function Map2D({
   function normalizePoiType(t?: string) { return String(t ?? '').trim().toLowerCase(); }
   function getPoiVisual(poiType?: string) {
     const isEntrance = normalizePoiType(poiType).includes('entr');
-    // Vermelho para entrada, Amarelo para outros POIs
     return { isEntrance, color: isEntrance ? '#FF3B30' : '#FFCC00', radius: isEntrance ? 10 : 8 };
   }
 
-  // Função de fallback para desenhar círculos estilizados e garantir a visibilidade
   function drawPin(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) {
-    const r = size; // O raio agora é o próprio 'size'
-    const h = size * 2.5; // Altura total
+    const r = size;
+    const h = size * 2.5;
 
     ctx.save();
     ctx.beginPath();
-
-    // Desenha a forma de gota invertida
-    ctx.moveTo(x, y); // Ponta inferior
+    ctx.moveTo(x, y);
     ctx.arc(x, y - h + r, r, Math.PI * 0.85, Math.PI * 0.15, false);
-    
     ctx.closePath();
-
-    // Preenchimento e Sombra
     ctx.fillStyle = color;
     ctx.shadowColor = 'rgba(0,0,0,0.4)';
     ctx.shadowBlur = 6;
     ctx.shadowOffsetY = 2;
     ctx.fill();
-
-    // Círculo branco interno para dar o efeito de "pin do Google Maps"
     ctx.shadowColor = 'transparent';
     ctx.beginPath();
     ctx.arc(x, y - h + r, r * 0.4, 0, Math.PI * 2);
     ctx.fillStyle = 'white';
     ctx.fill();
-
     ctx.restore();
   }
 
@@ -342,7 +440,7 @@ export default function Map2D({
     ctx.stroke();
     ctx.restore();
 
-    ctx.setLineDash([]); // Reset dash
+    ctx.setLineDash([]);
   }
 
   function drawGpsMarker(ctx: CanvasRenderingContext2D, x: number, y: number, inv: number) {
@@ -401,7 +499,12 @@ export default function Map2D({
         return;
       }
 
-      // Desenha os POIs com a nova lógica de cor e estilo
+      // Desenha a rota primeiro para que fique por baixo dos pins
+      if (pathToDraw && pathToDraw.length > 0) {
+        drawRoute(ctx, pathToDraw, strokeColor);
+      }
+
+      // Desenha os POIs existentes
       if (currentMapData?.pois?.length) {
         ctx.font = `${12 * inv}px Inter, system-ui, sans-serif`;
         for (const poi of currentMapData.pois) {
@@ -411,12 +514,8 @@ export default function Map2D({
           const defaultVisuals = getPoiVisual(poi.type);
           let pinColor = defaultVisuals.color;
 
-          // Lógica de cor baseada no estado
-          if (originId === poi.nodeId) {
-            pinColor = '#0A84FF'; // Azul para Origem
-          } else if (destinationPoi?.nodeId === poi.nodeId) {
-            pinColor = '#34C759'; // Verde para Destino
-          }
+          if (originId === poi.nodeId) pinColor = '#0A84FF';
+          else if (destinationPoi?.nodeId === poi.nodeId) pinColor = '#34C759';
 
           const size = defaultVisuals.radius * inv;
           drawPin(ctx, node.x, node.y, size, pinColor);
@@ -428,7 +527,7 @@ export default function Map2D({
         }
       }
       
-      // Apenas no modo de edição, desenha todos os nós de conexão
+      // Apenas no modo de edição, desenha todos os nós de conexão existentes
       if (isEditMode) {
         const connNodes = currentMapData.nodes.filter(n => n.id.startsWith('conn_'));
         for (const node of connNodes) {
@@ -442,21 +541,28 @@ export default function Map2D({
         }
       }
 
-      // Desenha os nós temporários do modo de edição
-      if (isEditMode && tempNodes.length > 0) {
-        for (const node of tempNodes) {
+      // Desenha os nós e POIs temporários do modo de edição
+      if (isEditMode) {
+        // Desenha POIs temporários
+        for (const poi of tempPois) {
+          const node = tempNodes.find(n => n.id === poi.nodeId);
+          if (!node) continue;
+          const visual = getPoiVisual(poi.type);
+          drawPin(ctx, node.x, node.y, visual.radius * inv, '#A020F0'); // Roxo para temporários
+          ctx.fillStyle = '#FFF';
+          ctx.fillText(`[NOVO] ${poi.label}`, node.x + (visual.radius + 4) * inv, node.y + 4 * inv);
+        }
+        // Desenha nós de conexão temporários
+        const tempConnNodes = tempNodes.filter(n => !tempPois.some(p => p.nodeId === n.id));
+        for (const node of tempConnNodes) {
           ctx.beginPath();
-          ctx.fillStyle = 'rgba(255, 100, 0, 0.8)'; // Cor laranja para nós temporários
+          ctx.fillStyle = 'rgba(255, 100, 0, 0.8)';
           ctx.strokeStyle = '#FFF';
           ctx.lineWidth = 1.5 * inv;
           ctx.arc(node.x, node.y, 5 * inv, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
         }
-      }
-
-      if (pathToDraw && pathToDraw.length > 0) {
-        drawRoute(ctx, pathToDraw, strokeColor);
       }
 
       if (originId && currentMapData) {
@@ -474,7 +580,7 @@ export default function Map2D({
     }
   }, [
     img, currentMapData, pathToDraw, strokeColor, transform,
-    showPoiLabels, originId, isEditMode, tempNodes, destinationPoi
+    showPoiLabels, originId, isEditMode, tempNodes, tempPois, destinationPoi
   ]);
 
   useEffect(() => {
@@ -487,9 +593,7 @@ export default function Map2D({
     renderLoop();
 
     return () => {
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, [draw]);
 
@@ -507,7 +611,7 @@ export default function Map2D({
     const canvas = canvasRef.current;
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      if (popup) setPopup(null); // Fecha o popup ao dar zoom
+      if (popup) setPopup(null);
       const { x, y } = getPointerPos(e);
       const scaleAmount = e.deltaY > 0 ? 0.9 : 1.1;
       setTransform(prev => {
@@ -521,45 +625,50 @@ export default function Map2D({
       canvas.addEventListener('wheel', handleWheel, { passive: false });
       return () => canvas.removeEventListener('wheel', handleWheel);
     }
-  }, [popup]); // Adiciona popup como dependência para recriar o listener
+  }, [popup]);
 
   const handleCanvasClick = (e: ReactMouseEvent<HTMLCanvasElement>) => {
-    if (isDragging.current) {
-      return;
-    }
+    if (isDragging.current) return;
     
     const { x: sx, y: sy } = getPointerPos(e);
     const { x, y } = screenToWorld(sx, sy);
 
     if (isEditMode) {
-        onMapClick({ x: Math.round(x), y: Math.round(y) });
+      if (editTool === 'delete_node') {
+        const nodeToDelete = pickTempNodeNear(x, y, 30 / transform.scale);
+        if (nodeToDelete) {
+          onNodeClick(nodeToDelete.id);
+        }
         return;
+      }
+      onMapClick({ x: Math.round(x), y: Math.round(y) });
+      return;
     }
 
     if (!currentMapData) {
-        console.warn('⚠️ Dados do mapa não carregados');
-        setPopup(null);
-        return;
+      console.warn('⚠️ Dados do mapa não carregados');
+      setPopup(null);
+      return;
     }
 
     const poi = pickPoiNear(x, y, 40 / transform.scale);
     
     if (poi) {
-        const node = currentMapData.nodes.find(n => n.id === poi.nodeId);
-        if (!node) {
-            console.error('❌ Nó do POI não encontrado:', poi.nodeId);
-            setPopup(null);
-            return;
-        }
-        const pos = worldToScreen(node.x, node.y);
-        
-        if (popup?.poiId === poi.id) {
-            setPopup(null);
-        } else {
-            setPopup({ poiId: poi.id, label: poi.label, x: pos.sx, y: pos.sy, photoUrl: poi.photoUrl });
-        }
-    } else {
+      const node = currentMapData.nodes.find(n => n.id === poi.nodeId);
+      if (!node) {
+        console.error('❌ Nó do POI não encontrado:', poi.nodeId);
         setPopup(null);
+        return;
+      }
+      const pos = worldToScreen(node.x, node.y);
+      
+      if (popup?.poiId === poi.id) {
+        setPopup(null);
+      } else {
+        setPopup({ poiId: poi.id, label: poi.label, x: pos.sx, y: pos.sy, photoUrl: poi.photoUrl });
+      }
+    } else {
+      setPopup(null);
     }
   }
 
@@ -572,6 +681,18 @@ export default function Map2D({
       const d = Math.hypot(node.x - x, node.y - y);
       if ((!best || d < best.d) && d <= maxDist) {
         best = { ...poi, d };
+      }
+    }
+    return best;
+  }
+
+  function pickTempNodeNear(x: number, y: number, maxDist: number) {
+    if (!tempNodes) return null;
+    let best: (Node2D & { d: number }) | null = null;
+    for (const node of tempNodes) {
+      const d = Math.hypot(node.x - x, node.y - y);
+      if ((!best || d < best.d) && d <= maxDist) {
+        best = { ...node, d };
       }
     }
     return best;
@@ -639,7 +760,7 @@ export default function Map2D({
         height: '100%', 
         position: 'relative', 
         touchAction: 'none',
-        cursor: isEditMode ? 'crosshair' : (isPanning.current ? 'grabbing' : 'grab'), 
+        cursor: isEditMode ? (editTool === 'delete_node' ? 'not-allowed' : 'crosshair') : (isPanning.current ? 'grabbing' : 'grab'), 
         background: 'transparent',
         userSelect: 'none',
         WebkitUserSelect: 'none'
@@ -656,6 +777,7 @@ export default function Map2D({
 
         if (!isDragging.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
           isDragging.current = true;
+          onPanStart();
         }
         
         if (isDragging.current) {
@@ -684,7 +806,7 @@ export default function Map2D({
           isPanning.current = true; 
           lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; 
         } else if (e.touches.length === 2) { 
-          isPanning.current = false; // É um zoom
+          isPanning.current = false;
           if (popup) setPopup(null);
           const dx = e.touches[0].clientX - e.touches[1].clientX;
           const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -699,6 +821,7 @@ export default function Map2D({
 
           if (!isDragging.current && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
             isDragging.current = true;
+            onPanStart();
           }
 
           if (isDragging.current) {
@@ -735,16 +858,27 @@ export default function Map2D({
         if (isEditMode) {
           onCursorMove({ x: Math.round(x), y: Math.round(y) });
         }
-      }}
-      
-      onTouchEnd={() => {
-        isPanning.current = false;
-        lastTouchDist.current = 0;
-      }}
-    >
-      {showHints && !isEditMode && (
-        <div className="interaction-hints">
-          <div className="hint-item">
+                  }}
+                              onTouchEnd={() => {
+                                isPanning.current = false;
+                                lastTouchDist.current = 0;
+                              }}
+                            >
+                                        <div className="map-legend">
+                                          <h4>Legenda</h4>
+                                          {mapLegendItems.map((item, index) => (
+                                            <div key={index} className="map-legend-item">
+                                              {item.type === 'color' ? (
+                                                <span className="map-legend-color-swatch" style={{ backgroundColor: item.color }}></span>
+                                              ) : (
+                                                <i className={`fas fa-map-marker-alt map-legend-icon`} style={{ color: item.color }}></i>
+                                              )}
+                                              <span>{item.label}</span>
+                                            </div>
+                                          ))}
+                                        </div>                        
+                              {showHints && !isEditMode && (
+                                <div className="interaction-hints">          <div className="hint-item">
             <i className={`fa-solid fa-hand hint-icon ${showHintsAnim ? 'pan-icon-animation' : ''}`}></i>
             <span className="hint-text">Arraste para mover</span>
           </div>
@@ -765,9 +899,9 @@ export default function Map2D({
             left: popupPos.left, 
             top: popupPos.top, 
           } : {
-            opacity: 0, // Começa invisível para medição
+            opacity: 0,
           }}
-          onClick={(e) => e.stopPropagation()} // Impede que cliques dentro do popup o fechem
+          onClick={(e) => e.stopPropagation()}
         >
           {popupPos && (
             <>
@@ -791,10 +925,17 @@ export default function Map2D({
             )}
 
             <div className="popup-buttons">
-              <button onClick={setAsOrigin} className="popup-button">
+              <button 
+                onClick={setAsOrigin} 
+                className={`popup-button ${!originId ? 'needs-action' : ''}`}
+              >
                 <i className="fa-solid fa-location-dot"></i> Estou aqui
               </button>
-              <button onClick={goHere} disabled={!originId} className="popup-button primary">
+              <button 
+                onClick={goHere} 
+                disabled={!originId} 
+                className={`popup-button primary ${originId ? 'needs-action' : ''}`}
+              >
                 <i className="fa-solid fa-route"></i> Ir para cá
               </button>
             </div>
@@ -814,7 +955,7 @@ export default function Map2D({
           width: '100%', 
           height: '100%', 
           position: 'relative', 
-          zIndex: 1, 
+          zIndex: 2, 
           filter: 'drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5))',
           touchAction: 'none',
           userSelect: 'none',

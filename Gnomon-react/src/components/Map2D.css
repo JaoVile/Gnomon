@@ -67,6 +67,13 @@
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
+@media (max-width: 768px) {
+  .popup {
+    min-width: auto; /* Permite que o popup encolha em telas pequenas */
+    max-width: 90vw; /* Garante que o popup caiba na tela */
+  }
+}
+
 .popup.show {
   opacity: 1;
   transform: scale(1);
@@ -190,4 +197,92 @@
   background: transparent;
   color: #9aa3af;
   cursor: pointer;
+}
+
+/* --- Animações de Destaque para Botões --- */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(from var(--primary) r g b / 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 16px 4px rgba(from var(--primary) r g b / 0.7);
+    transform: scale(1.05);
+  }
+}
+
+.popup-button.needs-action {
+  animation: pulse-glow 1.5s infinite ease-in-out;
+}
+
+/* Map Legend Styles */
+.map-legend {
+  position: absolute;
+  top: 50%; /* Verticalmente centralizado */
+  left: 20px; /* Na borda esquerda */
+  transform: translateY(-50%); /* Ajuste para centralização vertical */
+  background: rgba(from var(--card-background) r g b / 0.6); /* Usa variável de tema com opacidade */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 30; /* Ajustado para ficar abaixo do BottomSheet backdrop */
+  font-size: 0.8em; /* Reduzido */
+  color: var(--text); /* Usa variável de tema */
+  display: flex;
+  flex-direction: column;
+  gap: 3px; /* Reduzido */
+  padding: 6px 10px; /* Reduzido */
+  border-radius: 6px; /* Reduzido */
+  box-shadow: 0 1px 5px rgba(0,0,0,0.1); /* Mais sutil */
+  border: 1px solid var(--border-color); /* Usa variável de tema */
+}
+
+.map-legend h4 {
+  margin: 0 0 3px 0; /* Ajustado */
+  font-size: 1em; /* Ajustado */
+  font-weight: bold;
+  color: var(--text-secondary); /* Usa variável de tema */
+}
+
+.map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Reduzido */
+}
+
+.map-legend-color-swatch {
+  display: inline-block;
+  width: 14px; /* Reduzido */
+  height: 14px; /* Reduzido */
+  border-radius: 3px; /* Reduzido */
+  border: 1px solid var(--border-color); /* Usa variável de tema */
+}
+
+.map-legend h4 {
+  margin: 0 0 3px 0; /* Ajustado */
+  font-size: 1em; /* Ajustado */
+  font-weight: bold;
+  color: var(--text-secondary); /* Usa variável de tema */
+}
+
+.map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Reduzido */
+}
+
+.map-legend-color-swatch {
+  display: inline-block;
+  width: 14px; /* Reduzido */
+  height: 14px; /* Reduzido */
+  border-radius: 3px; /* Reduzido */
+  border: 1px solid var(--border-color); /* Usa variável de tema */
+}
+
+.map-legend-icon {
+  font-size: 14px; /* Reduzido */
+  width: 14px; /* Reduzido */
+  height: 14px; /* Reduzido */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

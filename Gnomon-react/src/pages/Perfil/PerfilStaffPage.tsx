@@ -2,7 +2,6 @@
 
 import { useState } from 'react'; // Importar useState
 import { Link } from 'react-router-dom';
-import placeholderAvatar from '../../assets/Gnomon Logo _ SEM NOME.png'; // Imagem de placeholder
 import { RegisterEmployeePopup } from '../../components/RegisterEmployeePopup'; // Importar o popup
 import './PerfilStaffPage.css'; // Atualizado para o novo nome
 

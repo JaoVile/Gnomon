@@ -1,5 +1,6 @@
 // src/hooks/useMapData.ts
 import { useEffect, useState } from 'react';
+import { useMap } from '../contexts/MapContext';
 
 // ✅ TIPOS PRINCIPAIS (ÚNICA FONTE DE VERDADE)
 export type MapNode = {
@@ -41,35 +42,44 @@ export type Node2D = MapNode;
 export type POI = Poi;
 
 // Configuração dos mapas
-const mapDetails = {
-  imageUrl: '/maps/Campus_2D_DETALHE.png',
-  nodesUrl: '/maps/nodes-2d-detalhe.json',
-  pathGraphUrl: '/maps/path-graph.json',
+const mapConfigs = {
+  cima: {
+    imageUrl: '/maps/Campus_2D_CIMA.png',
+    nodesUrl: '/maps/cima/nodes.json',
+    pathGraphUrl: '/maps/cima/path-graph.json',
+  },
+  detalhe: {
+    imageUrl: '/maps/Campus_2D_DETALHE.png',
+    nodesUrl: '/maps/detalhe/nodes.json',
+    pathGraphUrl: '/maps/detalhe/path-graph.json',
+  }
 };
 
 export function useMapData() {
+  const { mapType } = useMap();
   const [mapInfo, setMapInfo] = useState<MapInfo>({
     data: null,
-    imageUrl: mapDetails.imageUrl,
+    imageUrl: mapConfigs[mapType].imageUrl,
   });
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('🔄 useMapData: Iniciando carregamento...');
+    const mapDetails = mapConfigs[mapType];
+    console.log(`🔄 useMapData: Iniciando carregamento para o mapa "${mapType}"...`);
     setLoading(true);
     setError(null);
 
     Promise.all([
       fetch(mapDetails.nodesUrl)
         .then((res) => {
-          console.log('📡 Fetch nodes-2d-detalhe.json:', res.status);
+          console.log(`📡 Fetch ${mapDetails.nodesUrl}:`, res.status);
           if (!res.ok) throw new Error(`HTTP ${res.status}: ${mapDetails.nodesUrl}`);
           return res.json();
         })
         .then((data) => {
-          console.log('✅ nodes-2d-detalhe.json carregado:', {
+          console.log(`✅ ${mapDetails.nodesUrl} carregado:`, {
             nodes: data.nodes?.length || 0,
             edges: data.edges?.length || 0,
             pois: data.pois?.length || 0
@@ -79,16 +89,16 @@ export function useMapData() {
       
       fetch(mapDetails.pathGraphUrl)
         .then((res) => {
-          console.log('📡 Fetch path-graph.json:', res.status);
+          console.log(`📡 Fetch ${mapDetails.pathGraphUrl}:`, res.status);
           if (!res.ok) {
-            console.warn('⚠️ path-graph.json não encontrado, usando grafo principal');
+            console.warn(`⚠️ ${mapDetails.pathGraphUrl} não encontrado, usando grafo principal`);
             return null;
           }
           return res.json();
         })
         .then((data) => {
           if (data) {
-            console.log('✅ path-graph.json carregado:', {
+            console.log(`✅ ${mapDetails.pathGraphUrl} carregado:`, {
               nodes: data.nodes?.length || 0,
               edges: data.edges?.length || 0
             });
@@ -96,7 +106,7 @@ export function useMapData() {
           return data;
         })
         .catch((err) => {
-          console.warn('⚠️ Erro ao carregar path-graph.json:', err.message);
+          console.warn(`⚠️ Erro ao carregar ${mapDetails.pathGraphUrl}:`, err.message);
           return null;
         })
     ])
@@ -147,7 +157,7 @@ export function useMapData() {
         setMapInfo(prev => ({ ...prev, data: null }));
         setLoading(false);
       });
-  }, []);
+  }, [mapType]);
 
   return { ...mapInfo, loading, error };
 }

@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
-import './LoginPage.css'; 
+import './LoginPage.css';
 
 export function LoginPage() {
     // Estados para controlar os campos do formulário
@@ -151,6 +151,12 @@ export function LoginPage() {
                     </button>
 
                 </form>
+
+                <div className="back-link-container">
+                    <Link to="/mapa" className="back-to-map-button">
+                        <i className="fas fa-arrow-left"></i> Voltar para o Mapa
+                    </Link>
+                </div>
             </div>
         </div>
     );

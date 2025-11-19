@@ -1,6 +1,5 @@
 // src/hooks/useAuth.ts
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 interface UserData {
     id: number;
@@ -19,7 +18,6 @@ interface AuthState {
 }
 
 export function useAuth(): AuthState {
-    const navigate = useNavigate();
     const [user, setUser] = useState<UserData | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);

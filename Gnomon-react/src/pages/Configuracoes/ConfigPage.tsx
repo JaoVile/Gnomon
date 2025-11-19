@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/styles/Header';
 import {
   ToggleSwitch,
-  ConfigSection
+  ConfigSection,
+  RadioGroup,
 } from '../../components/ConfigComponents';
 import './ConfigPage.css';
+import { useMap } from '../../contexts/MapContext';
+import { useMapSettings } from '../../contexts/MapSettingsContext';
 
 interface UserPreferences {
   // Navegação
@@ -30,6 +33,8 @@ export function ConfigPage() {
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { mapType, toggleMapType } = useMap();
+  const { mode, setMode } = useMapSettings();
 
   // Carregar preferências salvas
   useEffect(() => {
@@ -93,6 +98,31 @@ export function ConfigPage() {
         </div>
 
         <div className="config-options-list">
+
+          {/* SEÇÃO: VISUALIZAÇÃO DO MAPA */}
+          <ConfigSection 
+            title="🗺️ Visualização do Mapa" 
+            description="Escolha o modo de visualização e o tipo de planta"
+          >
+            <RadioGroup
+              label="Modo de Visualização"
+              value={mode}
+              onChange={(value) => setMode(value as '2d' | '3d')}
+              options={[
+                { value: '2d', label: '2D' },
+                { value: '3d', label: '3D' },
+              ]}
+            />
+            <div className="map-type-selector">
+              <p>Tipo de planta: <strong>{mapType === 'cima' ? 'Planta Baixa' : 'Detalhado'}</strong></p>
+              <button 
+                className="btn-secondary"
+                onClick={toggleMapType}
+              >
+                Alterar para {mapType === 'cima' ? 'Detalhado' : 'Planta Baixa'}
+              </button>
+            </div>
+          </ConfigSection>
           
           {/* SEÇÃO: NAVEGAÇÃO */}
           <ConfigSection 
