@@ -312,7 +312,7 @@ export default function Map2D({
             };
     
             let chosenKey: string | null = null;
-            const preferredOrder = ['bottom', 'top', 'right', 'left'];
+            const preferredOrder = ['top', 'bottom', 'right', 'left'];
     
             for (const key of preferredOrder) {
               if (isFullyVisible(positions[key as keyof typeof positions])) {
