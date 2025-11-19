@@ -13,138 +13,44 @@
 }
 
 .top-bar {
-  height: var(--header-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* Garante espaçamento entre os 3 itens */
-  padding: 0 1rem;
+  height: var(--header-height, 60px);
   background: rgba(from var(--background-secondary) r g b / 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
-  z-index: 30; /* Acima do backdrop */
-  position: relative;
+  position: fixed;
+  inset: 0 0 auto 0;
+  width: 100%;
+  z-index: 100;
 }
 
-.menu-icon {
-  font-size: 20px;
-  cursor: pointer;
-  color: var(--text-secondary);
-  transform: translateY(2px);
-}
-
-.profile-icon {
-  font-size: 20px;
-  cursor: pointer;
-  color: var(--text-secondary);
-  transform: translate(25px, 10px);
-}
-
-.logo-container {
+.top-bar .container {
   display: flex;
   align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  color: var(--text);
-  /* REMOVIDO: position: absolute, left, transform para corrigir bug de hover */
-}
-
-.logo-container img {
-  height: 32px;
-}
-
-.logo-container span {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-/* --- Popup Menu --- */
-.menu-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 25;
-  animation: fade-in 0.3s ease;
-}
-
-.header-menu-popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 280px;
-  background: var(--background-secondary);
-  z-index: 30;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid var(--border-color);
-  box-shadow: var(--shadow-lg);
-  animation: slide-in-left 0.3s ease;
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slide-in-left {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-
-.popup-header {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 0 1rem;
-  height: var(--header-height);
-  border-bottom: 1px solid var(--border-color);
+  height: 100%;
+  gap: 16px;
+  max-width: 1200px; /* Adicionado */
+  margin: 0 auto; /* Adicionado */
 }
 
-.popup-header h3 {
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.profile-link {
+  color: var(--text-secondary);
   font-size: 1.2rem;
-  margin: 0;
-}
-
-.close-menu-btn {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-.popup-nav {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.popup-nav-item {
+  transition: color 0.2s;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  background: none;
-  border: none;
-  color: var(--text);
-  text-align: left;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
+  justify-content: center;
 }
 
-.popup-nav-item:hover {
-  background-color: var(--background-interactive);
-}
-
-.popup-nav-item i {
-  width: 20px;
-  text-align: center;
-  color: var(--text-secondary);
+.profile-link:hover {
+  color: var(--primary);
 }
 
 /* --- Área de Conteúdo Principal --- */
@@ -154,6 +60,11 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: padding-right 0.3s ease-in-out;
+}
+
+.content-area.edit-mode-active {
+  padding-right: 360px; /* Same as panel width */
 }
 
 #map-container {
@@ -172,7 +83,129 @@
   z-index: 10;
 }
 
+/* --- Novo Contêiner da UI no Canto Superior Esquerdo --- */
+.top-left-ui-container {
+  position: absolute;
+  top: calc(var(--header-height, 60px) + 16px);
+  left: 16px;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: calc(100% - 32px); /* Evita que os elementos fiquem muito largos */
+  pointer-events: none; /* Permite interação com o mapa por baixo */
+}
+
+/* --- Compact Route Display --- */
+.compact-route-display {
+  background: rgba(from var(--card-background) r g b / 0.6); /* Opacidade ajustada para "flutuar" */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 10px; /* Ligeiramente menor */
+  padding: 8px 12px; /* Reduzido */
+  pointer-events: auto; /* Reativa interação para o display em si */
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* Reduzido */
+  animation: slide-in-from-left 0.4s ease;
+  max-width: 250px; /* Limita a largura para ser "reduzido" */
+}
+
+.compact-route-display .route-step {
+  position: relative; /* Para posicionar os botões de limpar */
+  padding-right: 25px; /* Espaço para o botão de limpar */
+  gap: 10px; /* Reduzido */
+}
+
+.compact-route-display .route-step-info {
+  flex-grow: 1; /* Permite que o texto ocupe o espaço disponível */
+}
+
+.compact-route-display .route-step-label {
+  font-size: 0.7rem; /* Menor para o modo compacto */
+}
+
+.compact-route-display .route-step-value {
+  font-size: 0.85rem; /* Menor para o modo compacto */
+  white-space: nowrap; /* Evita quebra de linha */
+  overflow: hidden; /* Esconde o excesso */
+  text-overflow: ellipsis; /* Adiciona reticências */
+}
+
+.compact-route-display .route-step-marker {
+  width: 20px; /* Menor */
+  height: 20px; /* Menor */
+  font-size: 0.7rem; /* Ícone menor */
+}
+
+.compact-route-display .route-step-connector {
+  margin-left: 9px; /* Ajusta para o novo tamanho do marcador */
+  height: 14px; /* Menor */
+}
+
+.compact-route-display .clear-origin-btn,
+.compact-route-display .clear-route-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 0.8rem; /* Menor */
+  padding: 2px; /* Menor */
+  line-height: 1;
+  pointer-events: auto; /* Reativa interação para os botões */
+}
+
+.compact-route-display .clear-origin-btn:hover,
+.compact-route-display .clear-route-btn:hover {
+  color: var(--error);
+  transition: color 0.1s ease-in-out; /* Adicionado para suavizar, ou remover se o problema persistir */
+}
+
+.compact-route-display .favorite-route-btn {
+  background: var(--primary);
+  border: none;
+  border-radius: 6px; /* Menor */
+  color: white;
+  padding: 6px 10px; /* Reduzido */
+  font-size: 0.8rem; /* Menor */
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px; /* Reduzido */
+  cursor: pointer;
+  transition: background-color 0.2s;
+  pointer-events: auto; /* Reativa interação para os botões */
+}
+
+.compact-route-display .favorite-route-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.compact-route-display .favorite-route-btn i {
+  font-size: 1.1em; /* Ligeiramente menor */
+}
+
+@keyframes slide-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 /* --- Barra de Busca --- */
+/* Estas regras são para a barra de busca antiga, que não está mais em uso direto */
 .search-bar-container {
   position: absolute;
   top: 16px; /* Desce a barra para não conflitar com o header */
@@ -247,23 +280,7 @@
   transform: scale(1.05); /* Efeito de "pop" */
 }
 
-/* --- Controles Inferiores Sobrepostos --- */
-.bottom-controls-overlay {
-  position: absolute;
-  bottom: 110px; /* Posição mais elevada para destaque */
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 40px); /* Garante respiro nas laterais */
-  max-width: 420px; /* Um pouco mais de espaço */
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
-  pointer-events: none;
-  z-index: 10;
-  transition: all 0.3s ease-out; /* Animação para responsividade */
-}
-
+/* --- Controles de Rota e Indicador de Origem (Agora no canto superior esquerdo) --- */
 .origin-indicator {
   background: rgba(from var(--card-background) r g b / 0.8);
   backdrop-filter: blur(12px);
@@ -276,18 +293,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  animation: slide-up 0.3s ease;
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  animation: slide-in-from-left 0.4s ease;
 }
 
 .origin-indicator strong {
@@ -303,11 +309,11 @@
 
 .route-controls {
   display: flex;
-  justify-content: flex-end; /* Alinha os botões à direita */
+  justify-content: flex-start; /* Alinha à esquerda por padrão */
   gap: 8px;
   width: 100%;
   pointer-events: auto;
-  animation: slide-up 0.3s ease;
+  animation: slide-in-from-left 0.4s ease;
 }
 
 .route-controls button {
@@ -333,8 +339,7 @@
 }
 
 .route-controls .clear-route-btn {
-  /* Cor vermelha removida, agora usa o estilo padrão do botão */
-  /* flex-grow removido para reduzir o tamanho lateral */
+  /* Estilo padrão já é suficiente */
 }
 
 .route-controls .favorite-btn {
@@ -350,13 +355,20 @@
 
 /* --- Responsividade para Mobile --- */
 @media (max-width: 768px) {
-  .bottom-controls-overlay {
-    bottom: 80px; /* Mantém elevado no mobile */
-    width: calc(100% - 24px);
+  .content-area.edit-mode-active {
+    padding-right: 0;
   }
 
-  .route-controls {
-    gap: 8px;
+  .top-left-ui-container {
+    top: calc(var(--header-height, 60px) + 10px); /* Ajustado para mobile */
+    left: 10px;
+    right: 10px; /* Ocupa a largura toda com margens */
+    max-width: calc(100% - 20px);
+  }
+
+  .search-bar-container {
+    /* A barra de busca pode precisar de ajustes se o layout superior ficar muito cheio */
+    /* Por enquanto, vamos deixar como está e ver o comportamento */
   }
 
   .route-controls button {
@@ -393,7 +405,7 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 20;
+  z-index: 15;
   display: flex;
   gap: 10px;
 }
@@ -434,9 +446,9 @@
 /* --- UI do Editor de Mapa --- */
 .map-editor-ui {
   position: fixed;
-  top: calc(var(--header-height) + 10px);
+  top: calc(var(--header-height, 60px) + 10px);
   left: 10px;
-  z-index: 20;
+  z-index: 15;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -509,4 +521,326 @@
     height: 48px;
     justify-content: center;
   }
+}
+
+/* Estilos para o conteúdo dentro do BottomSheet */
+.popup-nav {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.popup-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.popup-nav-item:hover {
+  background-color: var(--background-interactive);
+}
+
+.popup-nav-item i {
+  width: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.featured-places {
+  padding: 1rem;
+}
+
+.featured-places h2 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.featured-places .placeholder {
+  text-align: center;
+  color: var(--text-tertiary);
+  padding: 2rem;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+/* --- Estilos para o "Encontre sua rota" --- */
+.route-finder {
+  padding: 16px;
+  background-color: var(--background-secondary);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.route-finder h2 {
+  font-size: 1.8rem; /* Increased by 50% from 1.2rem */
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.route-step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.route-step-marker {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.route-step-marker.pending {
+  background-color: var(--background-interactive);
+  color: var(--text-secondary);
+  border: 2px solid var(--border-color);
+}
+
+.route-step-marker.complete {
+  background-color: var(--success);
+  color: white;
+  border: 2px solid var(--success);
+}
+
+.route-step-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.route-step-label {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.route-step-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.route-step-connector {
+  height: 20px;
+  width: 2px;
+  background-color: var(--border-color);
+  margin-left: 15px; /* Alinha com o centro do marcador */
+}
+
+.sheet-divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: 0 16px 24px;
+}
+
+/* --- Compact Route Display --- */
+.compact-route-display {
+  background: rgba(from var(--card-background) r g b / 0.6); /* Opacidade ajustada para "flutuar" */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 10px; /* Ligeiramente menor */
+  padding: 8px 12px; /* Reduzido */
+  pointer-events: auto; /* Reativa interação para o display em si */
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* Reduzido */
+  animation: slide-in-from-left 0.4s ease;
+  max-width: 250px; /* Limita a largura para ser "reduzido" */
+}
+
+.compact-route-display .route-step {
+  position: relative; /* Para posicionar os botões de limpar */
+  padding-right: 25px; /* Espaço para o botão de limpar */
+  gap: 10px; /* Reduzido */
+}
+
+.compact-route-display .route-step-info {
+  flex-grow: 1; /* Permite que o texto ocupe o espaço disponível */
+}
+
+.compact-route-display .route-step-label {
+  font-size: 0.7rem; /* Menor para o modo compacto */
+}
+
+.compact-route-display .route-step-value {
+  font-size: 0.85rem; /* Menor para o modo compacto */
+  white-space: nowrap; /* Evita quebra de linha */
+  overflow: hidden; /* Esconde o excesso */
+  text-overflow: ellipsis; /* Adiciona reticências */
+}
+
+.compact-route-display .route-step-marker {
+  width: 20px; /* Menor */
+  height: 20px; /* Menor */
+  font-size: 0.7rem; /* Ícone menor */
+}
+
+.compact-route-display .route-step-connector {
+  margin-left: 9px; /* Ajusta para o novo tamanho do marcador */
+  height: 14px; /* Menor */
+}
+
+.compact-route-display .clear-origin-btn,
+.compact-route-display .clear-route-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 0.8rem; /* Menor */
+  padding: 2px; /* Menor */
+  line-height: 1;
+  pointer-events: auto; /* Reativa interação para os botões */
+}
+
+.compact-route-display .clear-origin-btn:hover,
+.compact-route-display .clear-route-btn:hover {
+  color: var(--error);
+  transition: color 0.1s ease-in-out; /* Adicionado para suavizar, ou remover se o problema persistir */
+}
+
+.compact-route-display .favorite-route-btn {
+  background: var(--primary);
+  border: none;
+  border-radius: 6px; /* Menor */
+  color: white;
+  padding: 6px 10px; /* Reduzido */
+  font-size: 0.8rem; /* Menor */
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px; /* Reduzido */
+  cursor: pointer;
+  transition: background-color 0.2s;
+  pointer-events: auto; /* Reativa interação para os botões */
+}
+
+.compact-route-display .favorite-route-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+.compact-route-display .favorite-route-btn i {
+  font-size: 1.1em; /* Ligeiramente menor */
+}
+
+/* --- Estilos para o search-input-container dentro do BottomSheet --- */
+.route-finder .search-input-container {
+  display: flex;
+  align-items: center;
+  /* Removido gap: 8px; pois o ícone será posicionado absolutamente */
+  background: var(--background-interactive);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  padding: 10px 12px; /* Ajustado */
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm); /* Adicionado */
+}
+
+.route-finder .search-input-container .input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex; /* Para alinhar o input dentro do wrapper */
+  align-items: center;
+}
+
+.route-finder .search-input-container .search-icon {
+  color: var(--text-secondary);
+  font-size: 1.1em;
+  position: absolute; /* Posiciona o ícone absolutamente */
+  left: 12px; /* Ajusta a posição horizontal */
+  top: 50%; /* Centraliza verticalmente */
+  transform: translateY(-50%); /* Ajuste para centralização vertical */
+  pointer-events: none; /* Permite cliques passarem para o input */
+  z-index: 1; /* Garante que o ícone esteja acima do input */
+}
+
+.route-finder .search-input-container input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 1em;
+  outline: none;
+  padding: 0 0 0 30px; /* Adiciona padding-left para o ícone */
+  height: 1.5em; /* Altura explícita para alinhamento */
+  line-height: 1.5em; /* Line-height explícita para alinhamento */
+}
+
+.route-finder .search-input-container input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.route-finder .search-input-container .clear-search-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 1em;
+  padding: 0;
+  line-height: 1;
+}
+
+.route-finder .search-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  max-height: 200px; /* Limita a altura para rolagem */
+  overflow-y: auto;
+  padding-right: 4px; /* Espaço para a barra de rolagem */
+}
+
+.route-finder .search-results-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.route-finder .search-results-list::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 3px;
+}
+
+.route-finder .search-results-list::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.route-finder .search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.route-finder .search-result-item:hover {
+  background-color: var(--background-interactive);
+}
+
+.route-finder .search-result-item i {
+  color: var(--text-tertiary);
 }

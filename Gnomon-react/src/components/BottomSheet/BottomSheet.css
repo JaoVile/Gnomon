@@ -1,0 +1,160 @@
+:root {
+  --sheet-height: 50vh; /* Altura máxima alterada para 50% */
+  --sheet-peek-height: 60px; /* Altura visível quando fechado */
+  --sheet-color-bg: var(--card-background); /* Garante um fundo sólido */
+  --sheet-border-radius: 24px;
+}
+
+.bottom-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  z-index: 40;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  pointer-events: auto; /* Garante que o backdrop seja clicável */
+}
+
+.bottom-sheet-backdrop.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.bottom-sheet-container {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--sheet-height);
+  max-height: 100vh;
+  
+  /* Usa a variável de tema para o fundo para suportar modo claro/escuro */
+  background-color: var(--card-background); 
+  
+  border-top-left-radius: var(--sheet-border-radius);
+  border-top-right-radius: var(--sheet-border-radius);
+  
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.3);
+  border-top: 1px solid var(--border-color);
+  
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+
+  /* Estado "fechado" agora deixa uma parte visível */
+  transform: translateY(calc(100% - var(--sheet-peek-height)));
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bottom-sheet-container.open {
+  transform: translateY(0);
+}
+
+.bottom-sheet-header {
+  padding: 16px;
+  padding-bottom: 8px;
+  flex-shrink: 0;
+  cursor: grab;
+  text-align: center;
+  min-height: var(--sheet-peek-height); /* Garante que a área de toque seja confiável */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.bottom-sheet-header:active {
+  cursor: grabbing;
+}
+
+.drag-handle {
+  width: 24px; /* Decreased by 40% from 40px */
+  height: 3px; /* Decreased by 40% from 5px */
+  background-color: var(--border-color);
+  border-radius: 99px;
+  margin: 0 auto;
+}
+
+.bottom-sheet-title {
+  margin-top: 16px;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.bottom-sheet-content {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding: 8px 24px 24px;
+  background-color: var(--card-background); /* Explicitly set background */
+}
+
+/* Para customizar a barra de rolagem */
+.bottom-sheet-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bottom-sheet-content::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 4px;
+}
+
+.bottom-sheet-content::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* --- Estilos para Lugares em Destaque --- */
+.featured-places {
+  padding: 16px 0; /* Ajusta o padding */
+}
+
+.featured-places h2 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+  padding: 0 16px;
+}
+
+.featured-places-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.featured-place-button {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.featured-place-button:hover {
+  background-color: var(--background-hover);
+  transform: scale(1.02);
+}
+
+.featured-place-photo {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.featured-place-label {
+  flex-grow: 1;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.featured-place-button i {
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+}
