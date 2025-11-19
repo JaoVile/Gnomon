@@ -255,14 +255,14 @@ export function MapaPage() {
     setOriginLabel(label || null);
     setPath(null);
     setDestinationPoi(null);
-    setToast({ message: `📍 Ponto de partida: ${label || 'Local marcado'}`, type: 'success' });
+    // setToast({ message: `📍 Ponto de partida: ${label || 'Local marcado'}`, type: 'success' });
   };
 
   const handleRouteCalculated = (newPath: Node2D[], instructions: TurnInstruction[], destPoi: Poi) => {
     setPath(newPath);
     setTurnInstructions(instructions);
     setDestinationPoi(destPoi);
-    setToast({ message: '🗺️ Rota calculada com sucesso!', type: 'success' });
+    // setToast({ message: '🗺️ Rota calculada com sucesso!', type: 'success' });
     if (originId && originLabel) {
         addRouteToHistory({
           originId,

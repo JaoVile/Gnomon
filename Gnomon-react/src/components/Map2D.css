@@ -57,8 +57,8 @@
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  min-width: 220px;
-  max-width: 280px;
+  width: 168px; /* Reduced by 40% from 280px (max-width) */
+  /* height: auto; */ /* Let content define height */
   z-index: 6;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   pointer-events: auto;
@@ -69,8 +69,7 @@
 
 @media (max-width: 768px) {
   .popup {
-    min-width: auto; /* Permite que o popup encolha em telas pequenas */
-    max-width: 90vw; /* Garante que o popup caiba na tela */
+    width: 168px; /* Fixed width for mobile as well */
   }
 }
 
