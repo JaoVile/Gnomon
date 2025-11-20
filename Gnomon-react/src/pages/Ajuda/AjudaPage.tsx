@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AjudaPage.css';
-import Header from '../../components/styles/Header';
+import Header from '../../components/Header/Header';
 
 // --- DADOS PARA A PÁGINA DE AJUDA ---
 
@@ -113,7 +113,7 @@ export function AjudaPage() {
         </button>
 
         <div className="ajuda-header">
-          <h1>❔ Central de Ajuda</h1>
+          <h1> Central de Ajuda</h1>
           <p>Tudo o que você precisa saber para navegar pelo campus como um profissional.</p>
         </div>
 

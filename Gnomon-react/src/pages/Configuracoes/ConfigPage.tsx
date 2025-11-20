@@ -88,7 +88,7 @@ export function ConfigPage() {
       <Header />
       
       <main className="config-main-content">
-        <button onClick={() => navigate('/mapa')} className="btn-primary back-to-map-btn-styled">
+        <button onClick={() => navigate('/mapa')} className="back-to-map-btn">
           <i className="fa-solid fa-arrow-left"></i> Voltar para o Mapa
         </button>
 

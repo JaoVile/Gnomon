@@ -45,17 +45,20 @@
   align-items: center;
   gap: 8px;
   background: none;
-  border: none;
+  border: 1px solid var(--primary); /* Borda azul */
   color: var(--text-secondary);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
   margin-bottom: 24px;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  border-radius: 10px; /* Border radius de 10px */
+  padding: 8px 12px; /* Adicionar padding para a borda não ficar colada */
 }
 
 .back-to-map-btn:hover {
   color: var(--primary);
+  border-color: var(--primary-hover);
 }
 
 

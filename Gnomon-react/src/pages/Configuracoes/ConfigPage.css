@@ -14,16 +14,25 @@
   padding: calc(var(--header-h) + 40px) 20px 40px 20px;
 }
 
-.btn-primary.back-to-map-btn-styled {
-  margin-bottom: 24px;
+.back-to-map-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 15px; /* Ajuste o padding para um visual mais compacto se necessário */
+  background: none;
+  border: 1px solid var(--primary); /* Borda azul */
+  color: var(--text-secondary);
   font-size: 0.95rem;
-  font-weight: 600;
-  border-radius: 8px;
-  text-decoration: none; /* Garante que não tenha sublinhado se for um link */
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  border-radius: 10px; /* Border radius de 10px */
+  padding: 8px 12px; /* Adicionar padding para a borda não ficar colada */
+}
+
+.back-to-map-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary-hover);
 }
 
 .config-header {
