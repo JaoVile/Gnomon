@@ -91,6 +91,10 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
     sheetRef.current?.style.removeProperty('transition');
 
     const dragDuration = Date.now() - dragState.dragStartTime;
+    const isQuickFlick = dragDuration < 250;
+    const flickThreshold = 50;
+    const positionThreshold = getSheetHeight() * 0.4;
+
     const sheetHeight = getSheetHeight();
     const peekHeight = parseInt(getComputedStyle(sheetRef.current!).getPropertyValue('--sheet-peek-height'));
     const closedY = sheetHeight - peekHeight;
