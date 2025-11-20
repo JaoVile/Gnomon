@@ -189,7 +189,13 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
           onTouchMove={(e) => onDragMove(e)}
           onTouchEnd={onDragEnd}
         >
-          <div className="drag-handle"></div>
+          {isOpen ? (
+            <div className="close-button">
+              <i className="fa-solid fa-xmark"></i>
+            </div>
+          ) : (
+            <div className="drag-handle"></div>
+          )}
           {/* O título só aparece quando a aba está aberta para um look mais clean */}
           {isOpen && title && <h2 id="bottom-sheet-title" className="bottom-sheet-title">{title}</h2>}
         </header>

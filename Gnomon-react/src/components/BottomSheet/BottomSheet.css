@@ -1,6 +1,6 @@
 :root {
-  --sheet-height: 50vh; /* Altura máxima alterada para 50% */
-  --sheet-peek-height: 60px; /* Altura visível quando fechado */
+  --sheet-height: 50%; /* Altura máxima alterada para 50% */
+  --sheet-peek-height: 13%; /* Altura visível quando fechado */
   --sheet-color-bg: var(--card-background); /* Garante um fundo sólido */
   --sheet-border-radius: 24px;
 }
@@ -73,6 +73,28 @@
   background-color: var(--border-color);
   border-radius: 99px;
   margin: 5px auto 0 auto; /* Added margin-top */
+}
+
+.close-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: var(--error); /* Cor vermelha para fechar */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 5px auto 0 auto;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.close-button:hover {
+  background-color: var(--error-hover);
+}
+
+.close-button i {
+  color: white;
+  font-size: 1rem;
 }
 
 .bottom-sheet-title {
