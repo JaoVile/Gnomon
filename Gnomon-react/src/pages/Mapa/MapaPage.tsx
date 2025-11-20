@@ -2,23 +2,23 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid'; // Para IDs únicos
 import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
-import Campus3D from '../../components/Campus3d';
+import Campus3D from '../../components/Map3d/Campus3d';
 import Map2D, { 
   type TurnInstruction,
   type Node2D,
   type Poi
-} from '../../components/Map2D';
-import RouteInstructions from '../../components/RouteInstructions';
-import ParticlesBackground from '../../components/ParticlesBackground';
-import Toast from '../../components/Toast';
+} from '../../components/Map2d/Map2D';
+import RouteInstructions from '../../components/RoutesInstructions/RouteInstructions';
+import ParticlesBackground from '../../components/Particles/ParticlesBackground';
+import Toast from '../../components/Toast/Toast';
 import { useThemeVars } from '../../libs/useThemeVars';
 import { useMapData } from '../../hooks/useMapData';
 import { useMapSettings } from '../../contexts/MapSettingsContext';
 import { useAuth } from '../../hooks/useAuth'; // Importar o hook
 import { HistoricoPopup, type HistoryEntry } from '../../components/Historico/HistoricoPopup';
 import { FavoritosPopup, type FavoriteEntry } from '../../components/Favoritos/FavoritosPopup';
-import { StagedPointsPanel, type StagedPoint } from '../../components/StagedPointsPanel';
-import { ThemeSwitcher } from '../../components/ThemeSwitcher';
+import { StagedPointsPanel, type StagedPoint } from '../../components/StagedPoints/StagedPointsPanel';
+import { ThemeSwitcher } from '../../components/Theme/ThemeSwitcher';
 import { BottomSheet } from '../../components/BottomSheet/BottomSheet';
 import './MapaPage.css';
 
@@ -388,11 +388,6 @@ export function MapaPage() {
                   {originLabel || 'Selecione seu local'}
                 </span>
               </div>
-              {originId && (
-                <button onClick={clearOrigin} className="clear-origin-btn" title="Remover ponto de partida">
-                  <i className="fa-solid fa-xmark"></i>
-                </button>
-              )}
             </div>
 
             {path && destinationPoi && (
@@ -406,19 +401,21 @@ export function MapaPage() {
                     <span className="route-step-label">Destino</span>
                     <span className="route-step-value">{destinationPoi.label}</span>
                   </div>
-                  <button onClick={clearRoute} className="clear-route-btn" title="Limpar Rota">
-                    <i className="fa-solid fa-xmark"></i>
-                  </button>
                 </div>
               </>
             )}
+          </div>
 
-            {path && destinationPoi && (
+          {path && destinationPoi && (
+            <div className="floating-button-wrapper">
               <button onClick={addRouteToFavorites} className="floating-action-button favorite-route-btn" title="Adicionar rota aos favoritos">
                 <i className="fa-regular fa-star"></i>
               </button>
-            )}
-          </div>
+              <button onClick={clearOrigin} className="floating-action-button clear-route-main-btn" title="Limpar Rota">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="floating-buttons-container">
@@ -487,7 +484,7 @@ export function MapaPage() {
               destinationPoi={destinationPoi}
               onSelectOrigin={handleSelectOrigin}
               onRouteCalculated={handleRouteCalculated}
-              initialZoomMultiplier={isMobile ? 4.0 : 1.2}
+              initialZoomMultiplier={isMobile ? 1.5 : 1.2}
               animationOptions={isMobile 
                 ? { routeAnimationDuration: 500, showHintAnimations: true } 
                 : {}}
@@ -513,14 +510,12 @@ export function MapaPage() {
         onOpen={() => setIsSheetOpen(true)}
       >
         <div className="route-finder">
-          <h2>Encontre sua rota</h2>
-          <p className="search-prompt">Digite aqui para onde você quer ir</p>
           <div className="search-input-container">
             <div className="input-wrapper">
               <i className="fas fa-search search-icon"></i>
               <input
                 type="text"
-                placeholder="Buscar local..."
+                placeholder="Para onde vamos?"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => setIsSheetOpen(true)} // Abre o sheet ao focar

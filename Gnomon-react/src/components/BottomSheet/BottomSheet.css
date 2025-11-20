@@ -102,6 +102,20 @@
   background-color: transparent;
 }
 
+/* Animação de "rebote" quando o usuário tenta arrastar além do limite */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+.bottom-sheet-container.bouncing {
+  animation: bounce 0.3s ease-out;
+}
+
 /* --- Estilos para Lugares em Destaque --- */
 .featured-places {
   padding: 16px 0; /* Ajusta o padding */

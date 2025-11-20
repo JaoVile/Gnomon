@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './BottomSheet.css';
 
 type BottomSheetProps = {
@@ -12,11 +12,13 @@ type BottomSheetProps = {
 export function BottomSheet({ isOpen, onClose, onOpen, children, title }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const [isBouncing, setIsBouncing] = useState(false);
   const dragState = useRef({
     isDragging: false,
     dragStartTime: 0,
     startY: 0,
     currentTranslateY: 0,
+    initialTranslateY: 0, // Adicionado para rastrear a posição inicial
   }).current;
 
   const getSheetHeight = () => sheetRef.current?.getBoundingClientRect().height || 0;
@@ -36,6 +38,11 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
     dragState.dragStartTime = Date.now();
     const startY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     dragState.startY = startY;
+
+    // Captura o translateY atual, pois pode estar em transição
+    const transform = window.getComputedStyle(sheetRef.current!);
+    dragState.initialTranslateY = new DOMMatrix(transform.transform).m42;
+    
     sheetRef.current?.style.setProperty('transition', 'none');
   };
 
@@ -44,18 +51,26 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
 
     const currentY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     const deltaY = currentY - dragState.startY;
+    const newTranslateY = dragState.initialTranslateY + deltaY;
 
-    if (isOpen) {
-      const newTranslateY = deltaY;
-      // Impede que a folha seja arrastada para cima além da posição totalmente aberta (translateY = 0)
-      dragState.currentTranslateY = Math.max(0, newTranslateY);
-    } else { // Sheet is in closed/peeked state
-      const sheetHeight = getSheetHeight();
-      const peekHeight = parseInt(getComputedStyle(sheetRef.current!).getPropertyValue('--sheet-peek-height'));
-      const closedY = sheetHeight - peekHeight; // This is the translateY value when closed
-      const newTranslateY = closedY + deltaY;
-      // Impede que a folha seja arrastada para baixo além da posição fechada/peeked
-      dragState.currentTranslateY = Math.min(closedY, newTranslateY);
+    // Impede que a folha seja arrastada para além do topo da tela (translateY < 0)
+    const topLimit = 0; 
+    const sheetHeight = getSheetHeight();
+    const peekHeight = parseInt(getComputedStyle(sheetRef.current!).getPropertyValue('--sheet-peek-height'));
+    const closedY = sheetHeight - peekHeight; // Posição inicial/fechada
+
+    if (newTranslateY < topLimit) {
+      dragState.currentTranslateY = topLimit;
+      if (!isBouncing) {
+        setIsBouncing(true);
+        setTimeout(() => setIsBouncing(false), 300); // Duração da animação de bounce
+      }
+    } else if (newTranslateY > closedY) { // Limita o arrasto para baixo
+      dragState.currentTranslateY = closedY;
+      // Opcional: adicionar um bounce para baixo também, se desejado
+    }
+    else {
+      dragState.currentTranslateY = newTranslateY;
     }
     
     if (!animationFrameRef.current) {
@@ -77,24 +92,27 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
 
     const dragDuration = Date.now() - dragState.dragStartTime;
     const sheetHeight = getSheetHeight();
-    
-    const isQuickFlick = dragDuration < 250;
-    const flickThreshold = 50;
-    const positionThreshold = sheetHeight * 0.4;
+    const peekHeight = parseInt(getComputedStyle(sheetRef.current!).getPropertyValue('--sheet-peek-height'));
+    const closedY = sheetHeight - peekHeight;
 
-    const dragDistance = dragState.currentTranslateY - (isOpen ? 0 : sheetHeight);
+    const isQuickFlickUp = isQuickFlick && (dragState.currentTranslateY < dragState.initialTranslateY - flickThreshold);
+    const isQuickFlickDown = isQuickFlick && (dragState.currentTranslateY > dragState.initialTranslateY + flickThreshold);
 
+    // Se estava aberto, decide se deve fechar
     if (isOpen) {
-      if ((isQuickFlick && dragDistance > flickThreshold) || (!isQuickFlick && dragState.currentTranslateY > positionThreshold)) {
+      if (isQuickFlickDown || (!isQuickFlick && dragState.currentTranslateY > positionThreshold)) {
         onClose();
-      } else {
+      }
+      else {
+        onOpen(); // Volta para o estado aberto
+      }
+    // Se estava fechado, decide se deve abrir
+    } else {
+      if (isQuickFlickUp || (!isQuickFlick && dragState.currentTranslateY < closedY - positionThreshold)) {
         onOpen();
       }
-    } else {
-      if ((isQuickFlick && dragDistance < -flickThreshold) || (!isQuickFlick && dragState.currentTranslateY < sheetHeight - positionThreshold)) {
-        onOpen();
-      } else {
-        onClose();
+      else {
+        onClose(); // Volta para o estado fechado
       }
     }
   };
@@ -155,7 +173,7 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
       ></div>
       <div 
         ref={sheetRef}
-        className={`bottom-sheet-container ${isOpen ? 'open' : ''}`}
+        className={`bottom-sheet-container ${isOpen ? 'open' : ''} ${isBouncing ? 'bouncing' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="bottom-sheet-title"
