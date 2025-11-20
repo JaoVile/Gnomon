@@ -108,6 +108,12 @@
   flex-grow: 1;
   padding: 8px 24px 24px;
   background-color: var(--card-background); /* Explicitly set background */
+  transition: opacity 0.3s ease; /* Adiciona transição para a opacidade */
+}
+
+.bottom-sheet-content.disabled-interaction {
+  pointer-events: none; /* Desabilita cliques e interações */
+  opacity: 0.6; /* Reduz a opacidade para indicar inatividade */
 }
 
 /* Para customizar a barra de rolagem */

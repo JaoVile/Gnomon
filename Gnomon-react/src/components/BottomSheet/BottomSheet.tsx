@@ -203,7 +203,7 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
           {/* O título só aparece quando a aba está aberta para um look mais clean */}
           {isOpen && title && <h2 id="bottom-sheet-title" className="bottom-sheet-title">{title}</h2>}
         </header>
-        <div className="bottom-sheet-content">
+        <div className={`bottom-sheet-content ${!isOpen ? 'disabled-interaction' : ''}`}>
           {children}
         </div>
       </div>
