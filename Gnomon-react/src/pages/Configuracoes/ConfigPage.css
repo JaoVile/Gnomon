@@ -14,22 +14,16 @@
   padding: calc(var(--header-h) + 40px) 20px 40px 20px;
 }
 
-.back-to-map-btn {
+.btn-primary.back-to-map-btn-styled {
+  margin-bottom: 24px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: none;
-  border: none;
-  color: var(--text-secondary);
+  padding: 10px 15px; /* Ajuste o padding para um visual mais compacto se necessário */
   font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  margin-bottom: 24px;
-  transition: color 0.2s ease;
-}
-
-.back-to-map-btn:hover {
-  color: var(--primary);
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none; /* Garante que não tenha sublinhado se for um link */
 }
 
 .config-header {

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/styles/Header';
+import Header from '../../components/Header/Header';
 import {
   ToggleSwitch,
   ConfigSection,
   RadioGroup,
-} from '../../components/ConfigComponents';
+} from '../../components/ConfigComponents/ConfigComponents';
 import './ConfigPage.css';
 import { useMap } from '../../contexts/MapContext';
 import { useMapSettings } from '../../contexts/MapSettingsContext';
@@ -88,12 +88,12 @@ export function ConfigPage() {
       <Header />
       
       <main className="config-main-content">
-        <button onClick={() => navigate('/mapa')} className="back-to-map-btn">
+        <button onClick={() => navigate('/mapa')} className="btn-primary back-to-map-btn-styled">
           <i className="fa-solid fa-arrow-left"></i> Voltar para o Mapa
         </button>
 
         <div className="config-header">
-          <h1>⚙️ Configurações</h1>
+          <h1> Configurações</h1>
           <p>Personalize sua experiência de navegação no campus.</p>
         </div>
 
@@ -101,7 +101,7 @@ export function ConfigPage() {
 
           {/* SEÇÃO: VISUALIZAÇÃO DO MAPA */}
           <ConfigSection 
-            title="🗺️ Visualização do Mapa" 
+            title="Visualização do Mapa" 
             description="Escolha o modo de visualização e o tipo de planta"
           >
             <RadioGroup
@@ -126,7 +126,7 @@ export function ConfigPage() {
           
           {/* SEÇÃO: NAVEGAÇÃO */}
           <ConfigSection 
-            title="🧭 Navegação e Rotas" 
+            title="Navegação e Rotas" 
             description="Configure como as rotas são calculadas"
           >
             <ToggleSwitch
@@ -155,7 +155,7 @@ export function ConfigPage() {
 
           {/* SEÇÃO: PRIVACIDADE */}
           <ConfigSection 
-            title="🔒 Privacidade e Dados" 
+            title="Privacidade e Dados" 
             description="Controle seus dados e privacidade"
           >
             <ToggleSwitch
