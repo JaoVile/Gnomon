@@ -413,12 +413,15 @@ export function MapaPage() {
               </>
             )}
 
-            {originId && destinationPoi && (
-              <button onClick={addRouteToFavorites} className="favorite-route-btn" title="Adicionar rota aos favoritos">
+            {path && destinationPoi && (
+              <button onClick={addRouteToFavorites} className="floating-action-button favorite-route-btn" title="Adicionar rota aos favoritos">
                 <i className="fa-regular fa-star"></i>
               </button>
             )}
           </div>
+        </div>
+
+        <div className="floating-buttons-container">
         </div>
 
         <div className="admin-buttons-container">

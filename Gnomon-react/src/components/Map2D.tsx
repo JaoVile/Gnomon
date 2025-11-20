@@ -916,6 +916,9 @@ export default function Map2D({
             <img src={popup.photoUrl} alt={popup.label} className="popup-photo" />
           )}
           <div className="popup-content">
+            <button onClick={() => setPopup(null)} className="popup-close-icon-button">
+              <i className="fa-solid fa-xmark"></i>
+            </button>
             <div className="popup-title">{popup.label}</div>
 
             {originId && (
@@ -939,10 +942,6 @@ export default function Map2D({
                 <i className="fa-solid fa-route"></i> Ir para cá
               </button>
             </div>
-
-            <button onClick={() => setPopup(null)} className="popup-close-button">
-              Fechar
-            </button>
           </div>
         </div>
       )}

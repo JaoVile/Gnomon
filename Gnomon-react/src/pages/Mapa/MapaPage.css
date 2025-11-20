@@ -111,7 +111,7 @@
   flex-direction: column;
   gap: 6px; /* Reduzido */
   animation: slide-in-from-left 0.4s ease;
-  max-width: 250px; /* Limita a largura para ser "reduzido" */
+  max-width: 210px; /* Reduzido para ser mais compacto */
 }
 
 .compact-route-display .route-step {
@@ -167,31 +167,7 @@
   color: var(--error);
   transition: color 0.1s ease-in-out; /* Adicionado para suavizar, ou remover se o problema persistir */
 }
-
-.compact-route-display .favorite-route-btn {
-  background: var(--primary);
-  border: none;
-  border-radius: 6px; /* Menor */
-  color: white;
-  padding: 6px 10px; /* Reduzido */
-  font-size: 0.8rem; /* Menor */
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px; /* Reduzido */
-  cursor: pointer;
-  transition: background-color 0.2s;
-  pointer-events: auto; /* Reativa interação para os botões */
-}
-
-.compact-route-display .favorite-route-btn:hover {
-  background-color: var(--primary-hover);
-}
-
-.compact-route-display .favorite-route-btn i {
-  font-size: 1.1em; /* Ligeiramente menor */
-}
+/* Estilos do botão de favorito movidos para o botão flutuante */
 
 @keyframes slide-in-from-left {
   from {
@@ -398,6 +374,44 @@
   z-index: 0; /* Atrás de tudo (partículas, mapa, etc) */
   pointer-events: none; /* Não interfere com o mapa */
   mix-blend-mode: multiply; /* ✅ Faz a mágica do fundo branco */
+}
+
+
+/* --- Botões Flutuantes --- */
+.floating-buttons-container {
+  position: absolute;
+  top: calc(var(--header-height, 60px) + 16px);
+  right: 16px;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.floating-buttons-container > * {
+  pointer-events: auto;
+}
+
+.floating-action-button.favorite-route-btn {
+  background: var(--primary);
+  color: white;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.floating-action-button.favorite-route-btn:hover {
+  transform: scale(1.1);
+  background-color: var(--primary-hover);
 }
 
 /* --- Botões de Admin --- */
@@ -646,102 +660,6 @@
   height: 1px;
   background-color: var(--border-color);
   margin: 0 16px 24px;
-}
-
-/* --- Compact Route Display --- */
-.compact-route-display {
-  background: rgba(from var(--card-background) r g b / 0.6); /* Opacidade ajustada para "flutuar" */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: 10px; /* Ligeiramente menor */
-  padding: 8px 12px; /* Reduzido */
-  pointer-events: auto; /* Reativa interação para o display em si */
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 6px; /* Reduzido */
-  animation: slide-in-from-left 0.4s ease;
-  max-width: 250px; /* Limita a largura para ser "reduzido" */
-}
-
-.compact-route-display .route-step {
-  position: relative; /* Para posicionar os botões de limpar */
-  padding-right: 25px; /* Espaço para o botão de limpar */
-  gap: 10px; /* Reduzido */
-}
-
-.compact-route-display .route-step-info {
-  flex-grow: 1; /* Permite que o texto ocupe o espaço disponível */
-}
-
-.compact-route-display .route-step-label {
-  font-size: 0.7rem; /* Menor para o modo compacto */
-}
-
-.compact-route-display .route-step-value {
-  font-size: 0.85rem; /* Menor para o modo compacto */
-  white-space: nowrap; /* Evita quebra de linha */
-  overflow: hidden; /* Esconde o excesso */
-  text-overflow: ellipsis; /* Adiciona reticências */
-}
-
-.compact-route-display .route-step-marker {
-  width: 20px; /* Menor */
-  height: 20px; /* Menor */
-  font-size: 0.7rem; /* Ícone menor */
-}
-
-.compact-route-display .route-step-connector {
-  margin-left: 9px; /* Ajusta para o novo tamanho do marcador */
-  height: 14px; /* Menor */
-}
-
-.compact-route-display .clear-origin-btn,
-.compact-route-display .clear-route-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  font-size: 0.8rem; /* Menor */
-  padding: 2px; /* Menor */
-  line-height: 1;
-  pointer-events: auto; /* Reativa interação para os botões */
-}
-
-.compact-route-display .clear-origin-btn:hover,
-.compact-route-display .clear-route-btn:hover {
-  color: var(--error);
-  transition: color 0.1s ease-in-out; /* Adicionado para suavizar, ou remover se o problema persistir */
-}
-
-.compact-route-display .favorite-route-btn {
-  background: var(--primary);
-  border: none;
-  border-radius: 6px; /* Menor */
-  color: white;
-  padding: 6px 10px; /* Reduzido */
-  font-size: 0.8rem; /* Menor */
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px; /* Reduzido */
-  cursor: pointer;
-  transition: background-color 0.2s;
-  pointer-events: auto; /* Reativa interação para os botões */
-}
-
-.compact-route-display .favorite-route-btn:hover {
-  background-color: var(--primary-hover);
-}
-
-.compact-route-display .favorite-route-btn i {
-  font-size: 1.1em; /* Ligeiramente menor */
 }
 
 /* --- Estilos para o search-input-container dentro do BottomSheet --- */
