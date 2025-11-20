@@ -15,8 +15,6 @@
 .top-bar {
   height: var(--header-height, 60px);
   background: rgba(from var(--background-secondary) r g b / 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
   position: fixed;
   inset: 0 0 auto 0;
@@ -86,22 +84,20 @@
 /* --- Novo Contêiner da UI no Canto Superior Esquerdo --- */
 .top-left-ui-container {
   position: absolute;
-  top: calc(var(--header-height, 60px) + 16px);
-  left: 16px;
+  top: calc(var(--header-height, 60px) + 2%);
+  left: 1%;
   z-index: 15;
   display: flex;
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
-  max-width: calc(100% - 32px); /* Evita que os elementos fiquem muito largos */
+  max-width: calc(100% - 24px); /* Evita que os elementos fiquem muito largos */
   pointer-events: none; /* Permite interação com o mapa por baixo */
 }
 
 /* --- Compact Route Display --- */
 .compact-route-display {
   background: rgba(from var(--card-background) r g b / 0.6); /* Opacidade ajustada para "flutuar" */
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: 10px; /* Ligeiramente menor */
   padding: 8px 12px; /* Reduzido */
@@ -116,7 +112,6 @@
 
 .compact-route-display .route-step {
   position: relative; /* Para posicionar os botões de limpar */
-  padding-right: 25px; /* Espaço para o botão de limpar */
   gap: 10px; /* Reduzido */
 }
 
@@ -146,27 +141,6 @@
   height: 14px; /* Menor */
 }
 
-.compact-route-display .clear-origin-btn,
-.compact-route-display .clear-route-btn {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  font-size: 0.8rem; /* Menor */
-  padding: 2px; /* Menor */
-  line-height: 1;
-  pointer-events: auto; /* Reativa interação para os botões */
-}
-
-.compact-route-display .clear-origin-btn:hover,
-.compact-route-display .clear-route-btn:hover {
-  color: var(--error);
-  transition: color 0.1s ease-in-out; /* Adicionado para suavizar, ou remover se o problema persistir */
-}
 /* Estilos do botão de favorito movidos para o botão flutuante */
 
 @keyframes slide-in-from-left {
@@ -259,8 +233,6 @@
 /* --- Controles de Rota e Indicador de Origem (Agora no canto superior esquerdo) --- */
 .origin-indicator {
   background: rgba(from var(--card-background) r g b / 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 10px 14px;
@@ -294,8 +266,6 @@
 
 .route-controls button {
   background: rgba(from var(--card-background) r g b / 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 10px 14px;
@@ -336,9 +306,9 @@
   }
 
   .top-left-ui-container {
-    top: calc(var(--header-height, 60px) + 10px); /* Ajustado para mobile */
-    left: 10px;
-    right: 10px; /* Ocupa a largura toda com margens */
+    top: calc(var(--header-height) + 1%);
+    left: 1%;
+    right: 1%; /* Ocupa a largura toda com margens */
     max-width: calc(100% - 20px);
   }
 
@@ -393,25 +363,50 @@
   pointer-events: auto;
 }
 
-.floating-action-button.favorite-route-btn {
-  background: var(--primary);
-  color: white;
-  width: 48px;
-  height: 48px;
+.floating-action-button {
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 1.0rem;
   box-shadow: var(--shadow-lg);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.floating-action-button.favorite-route-btn:hover {
+.floating-action-button:hover {
   transform: scale(1.1);
+}
+
+.favorite-route-btn {
+  background: var(--primary);
+  color: white;
+}
+.favorite-route-btn:hover {
   background-color: var(--primary-hover);
+}
+
+.clear-route-main-btn {
+  background: var(--error);
+  color: white;
+}
+.clear-route-main-btn:hover {
+  background-color: var(--error-hover, #c62828);
+}
+
+.floating-button-wrapper {
+  background: rgba(from var(--card-background) r g b / 0.6);
+
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  pointer-events: auto;
+  display: flex;
+  gap: 10px;
 }
 
 /* --- Botões de Admin --- */
@@ -471,8 +466,6 @@
 .editor-toolbar,
 .coords-display {
   background: rgba(from var(--card-background) r g b / 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 8px;
@@ -594,6 +587,7 @@
   background-color: var(--background-secondary);
   border-radius: 16px;
   margin-bottom: 24px;
+  margin-top: 16px; /* Adicionado para criar espaço */
 }
 
 .route-finder h2 {
