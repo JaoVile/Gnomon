@@ -1,9 +1,0 @@
-{
-  "scripts": {
-    "dev": "npm run dev --prefix Gnomon-react"
-  },
-  "devDependencies": {
-    "@types/google-one-tap": "^1.2.6",
-    "@types/react-router-dom": "^5.3.3"
-  }
-}
