@@ -403,12 +403,12 @@
 /* --- Botões de Admin --- */
 .admin-buttons-container {
   position: fixed;
-  bottom: calc(var(--sheet-peek-height) + 2%);
+  top: 80%;
   right: 20px;
   z-index: 45; /* Acima do backdrop (40), abaixo do sheet (50) */
   display: flex;
   gap: 10px;
-  transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-panel-button,
