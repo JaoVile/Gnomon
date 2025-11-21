@@ -421,10 +421,6 @@ export function MapaPage() {
         <div className="admin-buttons-container">
             {isAuthenticated && user?.role === 'ADMIN' && (
                 <>
-                    <Link to="/perfil" className="admin-panel-button">
-                        <i className="fa-solid fa-shield-halved"></i>
-                        <span>Painel</span>
-                    </Link>
                     <button onClick={() => setIsEditMode(!isEditMode)} className={`admin-edit-button ${isEditMode ? 'active' : ''}`}>
                         <i className={`fa-solid ${isEditMode ? 'fa-times' : 'fa-pencil'}`}></i>
                         <span>{isEditMode ? 'Sair' : 'Editar'}</span>
