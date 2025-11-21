@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { type Container, type ISourceOptions } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
-import { useThemeVars } from "../libs/useThemeVars";
-import { useTheme } from "./ThemeContext";
+import { useThemeVars } from "../../libs/useThemeVars";
+import { useTheme } from "../Theme/ThemeContext";
 
 // ✅ Define um tipo para as variáveis de tema que esperamos receber.
 interface ThemeVariables {

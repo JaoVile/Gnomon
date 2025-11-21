@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { useThemeVars } from '../libs/useThemeVars';
+import { useThemeVars } from '../../libs/useThemeVars';
 
 type Edge = [string, string, number?];
 type Node3 = { id: string; x: number; y: number; z: number };

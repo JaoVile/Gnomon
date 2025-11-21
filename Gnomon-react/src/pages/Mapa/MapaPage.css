@@ -284,10 +284,6 @@
     transform: scale(0.97); /* Efeito de clique */
 }
 
-.route-controls .clear-route-btn {
-  /* Estilo padrão já é suficiente */
-}
-
 .route-controls .favorite-btn {
   flex-shrink: 0; /* Não encolhe */
   background: var(--primary);
@@ -310,11 +306,6 @@
     left: 1%;
     right: 1%; /* Ocupa a largura toda com margens */
     max-width: calc(100% - 20px);
-  }
-
-  .search-bar-container {
-    /* A barra de busca pode precisar de ajustes se o layout superior ficar muito cheio */
-    /* Por enquanto, vamos deixar como está e ver o comportamento */
   }
 
   .route-controls button {
@@ -583,11 +574,9 @@
 
 /* --- Estilos para o "Encontre sua rota" --- */
 .route-finder {
-  padding: 16px;
   background-color: var(--background-secondary);
-  border-radius: 16px;
-  margin-bottom: 24px;
-  margin-top: 16px; /* Adicionado para criar espaço */
+  margin-bottom: 5%;
+  margin-top: 20%; /* Adicionado para criar espaço */
 }
 
 .route-finder h2 {
@@ -663,9 +652,8 @@
   /* Removido gap: 8px; pois o ícone será posicionado absolutamente */
   background: var(--background-interactive);
   border: 1px solid var(--border-color);
-  border-radius: 9999px;
-  padding: 10px 12px; /* Ajustado */
-  margin-bottom: 16px;
+  border-radius: 30px;
+  margin-bottom: 1px;
   box-shadow: var(--shadow-sm); /* Adicionado */
 }
 
@@ -691,10 +679,11 @@
   flex: 1;
   background: transparent;
   border: none;
+  border-radius: 30px;
   color: var(--text);
   font-size: 1em;
   outline: none;
-  padding: 0 0 0 30px; /* Adiciona padding-left para o ícone */
+  padding: 0 0 0 40px; /* Adiciona padding-left para o ícone */
   height: 1.5em; /* Altura explícita para alinhamento */
   line-height: 1.5em; /* Line-height explícita para alinhamento */
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'; // Importar useState
 import { Link } from 'react-router-dom';
-import { RegisterEmployeePopup } from '../../components/RegisterEmployeePopup'; // Importar o popup
+import { RegisterEmployeePopup } from '../../components/RegistrarFuncionarios/RegisterEmployeePopup'; // Importar o popup
 import './PerfilStaffPage.css'; // Atualizado para o novo nome
 
 // Interface atualizada para incluir a data de criação e role

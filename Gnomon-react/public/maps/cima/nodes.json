@@ -241,7 +241,7 @@
       "nodeId": "R10_SECRETARIA",
       "type": "destination",
       "category": "office",
-      "photoUrl": "/places/secretaria.jpg"
+      "photoUrl": "/places/secretaria.jpeg"
     },
     {
       "id": "ref_professores",
@@ -249,7 +249,7 @@
       "nodeId": "R11_PROFESSORES",
       "type": "destination",
       "category": "staff_room",
-      "photoUrl": "/places/professores.jpg"
+      "photoUrl": "/places/professores.jpeg"
     }
   ]
 }

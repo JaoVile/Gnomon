@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useMemo, useLayoutEffect, type MouseEvent as ReactMouseEvent, type TouchEvent as ReactTouchEvent } from 'react';
-import { useMapData, type MapData, type MapNode, type Poi } from '../hooks/useMapData';
-import { usePathfinding } from '../hooks/usePathfinding';
+import { useMapData, type MapData, type MapNode, type Poi } from '../../hooks/useMapData';
+import { usePathfinding } from '../../hooks/usePathfinding';
 import './Map2D.css';
 
 export type { MapNode, Poi };
@@ -49,6 +49,12 @@ type Props = {
 
 type Transform = { x: number; y: number; scale: number };
 
+const isMobileDevice = (): boolean => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  ) || window.innerWidth < 768;
+};
+
 export default function Map2D({
   mapData: mapDataProp,
   mapImageUrl,
@@ -96,29 +102,39 @@ export default function Map2D({
   const lastTouchDist = useRef(0);
   const animationRef = useRef({ startTime: 0, duration: 0, pathLength: 0 });
   const transformAnimRef = useRef<number | null>(null);
+  const minScaleRef = useRef(1);
 
   const [popup, setPopup] = useState<{ poiId: string; label: string; x: number; y: number; photoUrl?: string } | null>(null);
   const [popupPos, setPopupPos] = useState<{ left: number; top: number; orientation: 'down' | 'up' | 'left' | 'right' } | null>(null);
 
+  const [isLegendOpen, setIsLegendOpen] = useState(false);
+  const [hasLegendBeenInteracted, setHasLegendBeenInteracted] = useState(false);
   const [showHints, setShowHints] = useState(true);
 
   const routeAnimDuration = animationOptions?.routeAnimationDuration ?? 1000;
   const showHintsAnim = animationOptions?.showHintAnimations ?? true;
 
+  const handleLegendClick = () => {
+    setIsLegendOpen(!isLegendOpen);
+    if (!hasLegendBeenInteracted) {
+      setHasLegendBeenInteracted(true);
+    }
+  };
+
   const mapLegendItems = [
     { label: 'Direção', type: 'color', color: '#D9ED92' }, // Verde amarelado bem claro
     { label: 'Auditório', type: 'color', color: '#FFB3BA' },   // Vermelho claro
-    { label: 'Cantina', type: 'color', color: '#4682B4' }, // Azul marinho um pouco claro (SteelBlue)
+    { label: 'Cantina', type: 'color', color: '#4655b4ff' }, // Azul marinho um pouco claro (SteelBlue)
     { label: 'Laboratórios', type: 'color', color: '#00FFFF' }, // Ciano
     { label: 'Biblioteca', type: 'color', color: '#FFFF00' }, // Amarelo
     { label: 'Banheiros', type: 'color', color: '#DDA0DD' }, // Lilás um pouco roxo (Plum)
-    { label: 'Salas', type: 'color', color: '#FFFACD' }, // Amarelo claro bem pouco marrom (LemonChiffon)
+    { label: 'Salas', type: 'color', color: '#f0e68dff' }, // Amarelo claro bem pouco marrom (LemonChiffon)
     { label: 'Entradas', type: 'icon', icon: 'pin', color: '#EA4335' }, // Vermelho do Google Maps pin
     { label: 'Referências', type: 'icon', icon: 'pin', color: '#FFD700' }, // Amarelo para referências
   ];
 
   // Função para animar a transformação (pan/zoom)
-  const zoomTo = (targetX: number, targetY: number, targetScale: number, duration = 500) => {
+  const zoomTo = (targetX: number, targetY: number, targetScale: number, duration = 500, onFinish?: (finalTransform: Transform) => void) => {
     if (transformAnimRef.current) {
       cancelAnimationFrame(transformAnimRef.current);
     }
@@ -145,12 +161,14 @@ export default function Map2D({
       const nextY = startTransform.y + (finalY - startTransform.y) * easeProgress;
       const nextScale = startTransform.scale + (targetScale - startTransform.scale) * easeProgress;
 
-      setTransform({ x: nextX, y: nextY, scale: nextScale });
+      const nextTransform = { x: nextX, y: nextY, scale: nextScale };
+      setTransform(nextTransform);
 
       if (progress < 1) {
         transformAnimRef.current = requestAnimationFrame(animate);
       } else {
         transformAnimRef.current = null;
+        if (onFinish) onFinish(nextTransform);
       }
     };
 
@@ -164,18 +182,19 @@ export default function Map2D({
       if (poi) {
         const node = currentMapData.nodes.find(n => n.id === poi.nodeId);
         if (node) {
-          zoomTo(node.x, node.y, 2); // Dá um zoom fixo de 2x
-
-          // Abre o popup após a animação
-          setTimeout(() => {
-            const pos = worldToScreen(node.x, node.y);
-            setPopup({ poiId: poi.id, label: poi.label, x: pos.sx, y: pos.sy, photoUrl: poi.photoUrl });
-          }, 500); // Mesmo tempo da animação de zoom
+          zoomTo(node.x, node.y, 2, 500, (finalTransform) => {
+            // Adiciona um atraso para garantir que a renderização esteja estável
+            setTimeout(() => {
+              const sx = finalTransform.x + node.x * finalTransform.scale;
+              const sy = finalTransform.y + node.y * finalTransform.scale;
+              setPopup({ poiId: poi.id, label: poi.label, x: sx, y: sy, photoUrl: poi.photoUrl });
+            }, 500); // Atraso de 0.5 segundo conforme solicitado
+          });
         }
       }
       onFocusDone(); // Reseta o gatilho no pai
     }
-  }, [focusOnPoi, currentMapData]);
+  }, [focusOnPoi, currentMapData, onFocusDone, zoomTo]);
 
   // Efeito para calcular rota programaticamente
   useEffect(() => {
@@ -203,7 +222,7 @@ export default function Map2D({
         
         onDestinationRouted(); // Reseta o gatilho no pai
     }
-  }, [destinationToRoute, originId, pathfinder, currentMapData, onDestinationRouted, onRouteCalculated]);
+  }, [destinationToRoute, originId, pathfinder, currentMapData, onDestinationRouted, onRouteCalculated, normalizePathToNodes]);
 
   useEffect(() => {
     if (path && path.length > 0) {
@@ -250,14 +269,44 @@ export default function Map2D({
       if (!c) return;
       const iw = im.naturalWidth, ih = im.naturalHeight;
       const cw = c.clientWidth, ch = c.clientHeight;
-      const initialScale = cw / iw;
-      const scale = initialScale * initialZoomMultiplier;
-      const x = (cw - iw * scale) / 2;
-      const y = (ch - ih * scale) / 2;
+      
+      const isMobile = isMobileDevice();
+
+      let scale;
+
+      if (isMobile) {
+        // On mobile, calculate scale to fit the visible height precisely.
+        const visibleHeight = ch - bottomSheetPeekHeight;
+        scale = (visibleHeight / ih) * 0.69;
+      } else {
+        // On desktop, use the existing logic to cover the container and apply a zoom multiplier.
+        const scaleX = cw / iw;
+        const scaleY = ch / ih;
+        const baseScale = Math.max(scaleX, scaleY);
+        scale = baseScale * initialZoomMultiplier;
+      }
+      
+      minScaleRef.current = cw / iw; // Minimum scale should always allow seeing the full width.
+
+      let x;
+      let y = 0;
+
+      if (isMobile) {
+        // Pan map content to the left, showing more of the right side of the map.
+        x = -(iw * 0.10) * scale;
+      } else {
+        // Desktop logic: center horizontally.
+        x = (cw - iw * scale) / 2;
+        // Specific adjustments for desktop view of this map.
+        if (mapImageUrl.includes('Campus_2D_CIMA.png')) {
+          y = -(ih * 0.10) * scale;
+        }
+      }
+
       setTransform({ x, y, scale });
     };
     im.src = mapImageUrl;
-  }, [mapImageUrl, initialZoomMultiplier]);
+  }, [mapImageUrl, initialZoomMultiplier, bottomSheetPeekHeight]);
 
   useEffect(() => {
     resizeCanvas();
@@ -288,7 +337,7 @@ export default function Map2D({
             }
     
             const cw = containerEl.clientWidth;
-            let ch = containerEl.clientHeight;
+            const ch = containerEl.clientHeight;
             const pad = 16;
             const pinGap = 24;
             
@@ -335,8 +384,8 @@ export default function Map2D({
               for (const key in positions) {
                 const pos = positions[key as keyof typeof positions];
                 
-                let left = Math.min(Math.max(pos.left, pad), cw - W - pad);
-                let top = Math.min(Math.max(pos.top, pad), ch - H - effectiveBottomPadding); // Ajustado aqui
+                const left = Math.min(Math.max(pos.left, pad), cw - W - pad);
+                const top = Math.min(Math.max(pos.top, pad), ch - H - effectiveBottomPadding); // Ajustado aqui
     
                 const visibleWidth = Math.max(0, Math.min(left + W, cw - pad) - Math.max(left, pad));
                 const visibleHeight = Math.max(0, Math.min(top + H, ch - effectiveBottomPadding) - Math.max(top, pad)); // Ajustado aqui
@@ -580,7 +629,8 @@ export default function Map2D({
     }
   }, [
     img, currentMapData, pathToDraw, strokeColor, transform,
-    showPoiLabels, originId, isEditMode, tempNodes, tempPois, destinationPoi
+    showPoiLabels, originId, isEditMode, tempNodes, tempPois, destinationPoi,
+    drawRoute, getPoiVisual
   ]);
 
   useEffect(() => {
@@ -604,7 +654,7 @@ export default function Map2D({
       const t1 = e.touches[0], t2 = e.touches[1];
       return { x: (t1.clientX + t2.clientX) / 2 - rect.left, y: (t1.clientY + t2.clientY) / 2 - rect.top };
     }
-    return { x: (e as any).clientX - rect.left, y: (e as any).clientY - rect.top };
+    return { x: (e as MouseEvent).clientX - rect.left, y: (e as MouseEvent).clientY - rect.top };
   };
 
   useEffect(() => {
@@ -615,7 +665,7 @@ export default function Map2D({
       const { x, y } = getPointerPos(e);
       const scaleAmount = e.deltaY > 0 ? 0.9 : 1.1;
       setTransform(prev => {
-        const newScale = Math.max(0.1, Math.min(prev.scale * scaleAmount, 10));
+        const newScale = Math.max(minScaleRef.current, Math.min(prev.scale * scaleAmount, 4));
         const newX = x - (x - prev.x) * (newScale / prev.scale);
         const newY = y - (y - prev.y) * (newScale / prev.scale);
         return { x: newX, y: newY, scale: newScale };
@@ -705,7 +755,7 @@ export default function Map2D({
     setPopup(null);
   }
 
-  function normalizePathToNodes(raw: any): MapNode[] {
+  function normalizePathToNodes(raw: string[] | MapNode[] | null): MapNode[] {
     if (!raw) return [];
     if (!currentMapData) return [];
     if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === 'string') {
@@ -844,7 +894,7 @@ export default function Map2D({
             const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
             
             setTransform(prev => {
-              const newScale = Math.max(0.1, Math.min(prev.scale * scaleAmount, 10));
+              const newScale = Math.max(minScaleRef.current, Math.min(prev.scale * scaleAmount, 4));
               const newX = cx - (cx - prev.x) * (newScale / prev.scale);
               const newY = cy - (cy - prev.y) * (newScale / prev.scale);
               return { x: newX, y: newY, scale: newScale };
@@ -864,18 +914,23 @@ export default function Map2D({
                                 lastTouchDist.current = 0;
                               }}
                             >
-                                        <div className="map-legend">
-                                          <h4>Legenda</h4>
-                                          {mapLegendItems.map((item, index) => (
-                                            <div key={index} className="map-legend-item">
-                                              {item.type === 'color' ? (
-                                                <span className="map-legend-color-swatch" style={{ backgroundColor: item.color }}></span>
-                                              ) : (
-                                                <i className={`fas fa-map-marker-alt map-legend-icon`} style={{ color: item.color }}></i>
-                                              )}
-                                              <span>{item.label}</span>
-                                            </div>
-                                          ))}
+                                        <div className={`map-legend ${isLegendOpen ? 'open' : ''}`}>
+                                          <div className="map-legend-header" onClick={handleLegendClick}>
+                                            <h4>Legenda</h4>
+                                            <i className={`fa-solid fa-chevron-up ${!hasLegendBeenInteracted ? 'needs-attention' : ''}`}></i>
+                                          </div>
+                                          <div className="map-legend-body">
+                                            {mapLegendItems.map((item, index) => (
+                                              <div key={index} className={`map-legend-item ${item.type === 'color' ? 'is-collapsible' : ''}`}>
+                                                {item.type === 'color' ? (
+                                                  <span className="map-legend-color-swatch" style={{ backgroundColor: item.color }}></span>
+                                                ) : (
+                                                  <i className={`fas fa-map-marker-alt map-legend-icon`} style={{ color: item.color }}></i>
+                                                )}
+                                                <span>{item.label}</span>
+                                              </div>
+                                            ))}
+                                          </div>
                                         </div>                        
                               {showHints && !isEditMode && (
                                 <div className="interaction-hints">          <div className="hint-item">

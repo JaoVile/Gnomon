@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation';
-import Header from '../../components/styles/Header';
-import Footer from '../../components/styles/Footer';
-import CtaButton from '../../components/CtaButton';
+import Header from '../../components/Header/Header';
+import Footer from '../../components/Footer/Footer';
+import CtaButton from '../../components/CtaButton/CtaButton';
 import fotoLucas from '../../assets/Lucas.jpg';
 import fotoDavid from '../../assets/David.jpg';
 import fotoJoao from '../../assets/Joao.jpg';
@@ -11,7 +11,7 @@ import videoBg from '../../assets/Nassau_Intro.mp4';
 
 // ✅ Lazy load do componente pesado de partículas
 const ParticlesBackground = lazy(() => 
-  import('../../components/ParticlesBackground').then(module => ({
+  import('../../components/Particles/ParticlesBackground').then(module => ({
     default: module.ParticlesBackground
   }))
 );

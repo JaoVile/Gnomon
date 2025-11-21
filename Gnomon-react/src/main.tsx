@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { ThemeProvider } from './components/ThemeContext.tsx';
+import { ThemeProvider } from './components/Theme/ThemeContext.tsx';
 import { MapProvider } from './contexts/MapContext.tsx';
 import { MapSettingsProvider } from './contexts/MapSettingsContext.tsx';
 import { GoogleOAuthProvider } from '@react-oauth/google';

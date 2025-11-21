@@ -271,7 +271,6 @@ Possibilidades de Monetização:
 Este projeto é licenciado sob a Licença MIT. Veja o arquivo LICENSE para mais detalhes. =/
 ```
 
-
 ```
 Gnomon_Local
 ├─ Gnomon-backend
@@ -300,6 +299,10 @@ Gnomon_Local
 │  ├─ package-lock.json
 │  ├─ package.json
 │  ├─ prisma
+│  │  ├─ migrations
+│  │  │  ├─ 20251117150643_init_admin_table
+│  │  │  │  └─ migration.sql
+│  │  │  └─ migration_lock.toml
 │  │  ├─ schema.prisma
 │  │  └─ seed.ts
 │  ├─ src
@@ -326,52 +329,32 @@ Gnomon_Local
 │  ├─ dist
 │  │  ├─ assets
 │  │  │  ├─ css
-│  │  │  │  └─ index-DGNrutcD.css
-│  │  │  ├─ jpg
+│  │  │  │  └─ index-DPvndFxy.css
+│  │  │  ├─ img
 │  │  │  │  ├─ David-CmwEhJiK.jpg
+│  │  │  │  ├─ Gnomon Logo _ SEM NOME-DMDDslfa.png
 │  │  │  │  ├─ Joao-BTAKBEAu.jpg
 │  │  │  │  └─ Lucas-BdnrgAPR.jpg
 │  │  │  ├─ js
-│  │  │  │  ├─ index-C12ciEcs.js
-│  │  │  │  └─ react-vendor-Dg7zgMfl.js
-│  │  │  ├─ mp4
-│  │  │  │  └─ Nassau_Intro-D3b6Mo67.mp4
-│  │  │  └─ png
-│  │  │     └─ Gnomon Logo _ SEM NOME-DMDDslfa.png
+│  │  │  │  ├─ index-BWTDUyXp.js
+│  │  │  │  ├─ particles-vendor-B9liSarV.js
+│  │  │  │  └─ react-vendor-CIFKwk99.js
+│  │  │  └─ media
+│  │  │     └─ Nassau_Intro-D3b6Mo67.mp4
 │  │  ├─ Gnomon_Icon.png
 │  │  ├─ Gnomon_Sem_Nome_Icon.png
 │  │  ├─ index.html
 │  │  ├─ maps
+│  │  │  ├─ Campus_2D_CIMA.png
 │  │  │  ├─ Campus_2D_DETALHE.png
-│  │  │  ├─ generate-edges.js
-│  │  │  ├─ nodes-2d-detalhe.json
-│  │  │  └─ path-graph.json
-│  │  ├─ models
-│  │  │  └─ Campus.glb
-│  │  └─ places
-│  │     ├─ auditorio.jpg
-│  │     ├─ banheiro.jpg
-│  │     ├─ banheiro2.jpg
-│  │     ├─ biblioteca.jpg
-│  │     ├─ cantina.png
-│  │     ├─ cra.jpg
-│  │     ├─ entrada1.jpg
-│  │     ├─ entrada2.jpeg
-│  │     ├─ laboratorios.jpg
-│  │     ├─ patio.jpg
-│  │     └─ sala.png
-│  ├─ eslint.config.js
-│  ├─ index.html
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ public
-│  │  ├─ Gnomon_Icon.png
-│  │  ├─ Gnomon_Sem_Nome_Icon.png
-│  │  ├─ maps
-│  │  │  ├─ Campus_2D_DETALHE.png
-│  │  │  ├─ generate-edges.js
-│  │  │  ├─ nodes-2d-detalhe.json
-│  │  │  └─ path-graph.json
+│  │  │  ├─ cima
+│  │  │  │  ├─ nodes.json
+│  │  │  │  └─ path-graph.json
+│  │  │  ├─ detalhe
+│  │  │  │  ├─ nodes.json
+│  │  │  │  └─ path-graph.json
+│  │  │  ├─ generate-edges-cima.js
+│  │  │  └─ generate-edges.js
 │  │  ├─ models
 │  │  │  └─ Campus.glb
 │  │  ├─ places
@@ -384,8 +367,47 @@ Gnomon_Local
 │  │  │  ├─ entrada1.jpg
 │  │  │  ├─ entrada2.jpeg
 │  │  │  ├─ laboratorios.jpg
+│  │  │  ├─ modelo3d.png
+│  │  │  ├─ navegacao2d.png
 │  │  │  ├─ patio.jpg
 │  │  │  └─ sala.png
+│  │  └─ sundial_pattern.svg
+│  ├─ eslint.config.js
+│  ├─ index.html
+│  ├─ package-lock.json
+│  ├─ package.json
+│  ├─ public
+│  │  ├─ Gnomon_Icon.png
+│  │  ├─ Gnomon_Sem_Nome_Icon.png
+│  │  ├─ maps
+│  │  │  ├─ Campus_2D_CIMA.png
+│  │  │  ├─ Campus_2D_DETALHE.png
+│  │  │  ├─ cima
+│  │  │  │  ├─ nodes.json
+│  │  │  │  └─ path-graph.json
+│  │  │  ├─ detalhe
+│  │  │  │  ├─ nodes.json
+│  │  │  │  └─ path-graph.json
+│  │  │  ├─ generate-edges-cima.js
+│  │  │  └─ generate-edges.js
+│  │  ├─ models
+│  │  │  └─ Campus.glb
+│  │  ├─ places
+│  │  │  ├─ auditorio.jpg
+│  │  │  ├─ banheiro.jpg
+│  │  │  ├─ banheiro2.jpg
+│  │  │  ├─ biblioteca.jpg
+│  │  │  ├─ cantina.png
+│  │  │  ├─ cra.jpg
+│  │  │  ├─ entrada1.jpg
+│  │  │  ├─ entrada2.jpeg
+│  │  │  ├─ laboratorios.jpg
+│  │  │  ├─ modelo3d.png
+│  │  │  ├─ navegacao2d.png
+│  │  │  ├─ patio.jpg
+│  │  │  ├─ professores.jpeg
+│  │  │  ├─ sala.png
+│  │  │  └─ secretaria.jpeg
 │  │  └─ sundial_pattern.svg
 │  ├─ README.md
 │  ├─ scripts
@@ -398,26 +420,67 @@ Gnomon_Local
 │  │  │  ├─ Gnomon Logo.png
 │  │  │  ├─ GnomonLogo.png
 │  │  │  ├─ GnomonLogoSemNome.png
+│  │  │  ├─ image.png
 │  │  │  ├─ Joao.jpg
 │  │  │  ├─ Lucas.jpg
 │  │  │  ├─ Mapa.png
 │  │  │  └─ Nassau_Intro.mp4
 │  │  ├─ components
-│  │  │  ├─ Campus3d.tsx
-│  │  │  ├─ CtaButton.tsx
-│  │  │  ├─ GpsMarker.css
-│  │  │  ├─ GpsMarker.tsx
-│  │  │  ├─ Map2D.css
-│  │  │  ├─ Map2D.tsx
-│  │  │  ├─ ParticlesBackground.tsx
-│  │  │  ├─ RouteInstructions.css
-│  │  │  ├─ RouteInstructions.tsx
-│  │  │  ├─ styles
-│  │  │  │  ├─ Footer.tsx
+│  │  │  ├─ BottomSheet
+│  │  │  │  ├─ BottomSheet.css
+│  │  │  │  └─ BottomSheet.tsx
+│  │  │  ├─ ConfigComponents
+│  │  │  │  ├─ ConfigComponents.css
+│  │  │  │  └─ ConfigComponents.tsx
+│  │  │  ├─ CtaButton
+│  │  │  │  ├─ CtaButton.css
+│  │  │  │  └─ CtaButton.tsx
+│  │  │  ├─ Favoritos
+│  │  │  │  ├─ FavoritosPopup.css
+│  │  │  │  └─ FavoritosPopup.tsx
+│  │  │  ├─ Footer
+│  │  │  │  ├─ Footer.css
+│  │  │  │  └─ Footer.tsx
+│  │  │  ├─ GpsMarker
+│  │  │  │  ├─ GpsMarker.css
+│  │  │  │  └─ GpsMarker.tsx
+│  │  │  ├─ Header
+│  │  │  │  ├─ Header.css
 │  │  │  │  └─ Header.tsx
-│  │  │  ├─ Toast.css
-│  │  │  └─ Toast.tsx
+│  │  │  ├─ Historico
+│  │  │  │  ├─ HistoricoPopup.css
+│  │  │  │  └─ HistoricoPopup.tsx
+│  │  │  ├─ Map2d
+│  │  │  │  ├─ Map2D.css
+│  │  │  │  └─ Map2D.tsx
+│  │  │  ├─ Map3d
+│  │  │  │  └─ Campus3d.tsx
+│  │  │  ├─ Nodeeditor
+│  │  │  │  ├─ NodeEditorPopup.css
+│  │  │  │  └─ NodeEditorPopup.tsx
+│  │  │  ├─ Particles
+│  │  │  │  └─ ParticlesBackground.tsx
+│  │  │  ├─ RegistrarFuncionarios
+│  │  │  │  ├─ RegisterEmployeePopup.css
+│  │  │  │  └─ RegisterEmployeePopup.tsx
+│  │  │  ├─ RoutesInstructions
+│  │  │  │  ├─ RouteInstructions.css
+│  │  │  │  └─ RouteInstructions.tsx
+│  │  │  ├─ StagedPoints
+│  │  │  │  ├─ StagedPointsPanel.css
+│  │  │  │  └─ StagedPointsPanel.tsx
+│  │  │  ├─ Theme
+│  │  │  │  ├─ ThemeContext.tsx
+│  │  │  │  ├─ ThemeSwitcher.css
+│  │  │  │  └─ ThemeSwitcher.tsx
+│  │  │  └─ Toast
+│  │  │     ├─ Toast.css
+│  │  │     └─ Toast.tsx
+│  │  ├─ contexts
+│  │  │  ├─ MapContext.tsx
+│  │  │  └─ MapSettingsContext.tsx
 │  │  ├─ hooks
+│  │  │  ├─ useAuth.ts
 │  │  │  ├─ useMapData.ts
 │  │  │  ├─ useNavigation2D.ts
 │  │  │  ├─ usePathfinding.ts
@@ -427,6 +490,12 @@ Gnomon_Local
 │  │  │  └─ useThemeVars.ts
 │  │  ├─ main.tsx
 │  │  ├─ pages
+│  │  │  ├─ Ajuda
+│  │  │  │  ├─ AjudaPage.css
+│  │  │  │  └─ AjudaPage.tsx
+│  │  │  ├─ Configuracoes
+│  │  │  │  ├─ ConfigPage.css
+│  │  │  │  └─ ConfigPage.tsx
 │  │  │  ├─ EsqueceuSenha
 │  │  │  │  ├─ EsqueceuSenhaPage.css
 │  │  │  │  └─ EsqueceuSenhaPage.tsx
@@ -440,8 +509,11 @@ Gnomon_Local
 │  │  │  │  ├─ MapaPage.css
 │  │  │  │  └─ MapaPage.tsx
 │  │  │  ├─ Perfil
-│  │  │  │  ├─ PerfilPage.css
-│  │  │  │  └─ PerfilPage.tsx
+│  │  │  │  ├─ PerfilAdminPage.css
+│  │  │  │  ├─ PerfilAdminPage.tsx
+│  │  │  │  ├─ PerfilStaffPage.css
+│  │  │  │  ├─ PerfilStaffPage.tsx
+│  │  │  │  └─ PerfilWrapper.tsx
 │  │  │  └─ RedefinirSenha
 │  │  │     ├─ RedefinirSenha.css
 │  │  │     └─ RedefinirSenha.tsx
@@ -451,6 +523,10 @@ Gnomon_Local
 │  ├─ tsconfig.json
 │  ├─ tsconfig.node.json
 │  └─ vite.config.ts
+├─ hs_err_pid14752.log
+├─ hs_err_pid6116.log
+├─ package-lock.json
+├─ package.json
 └─ Readme.md
 
 ```

@@ -1,9 +1,10 @@
-import { useState, useEffect, type ChangeEvent } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png'
+import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
+import { ThemeSwitcher } from '../Theme/ThemeSwitcher';
+import './Header.css';
 
 export default function Header() {
-  const [theme, setTheme] = useState<string>(localStorage.getItem('theme') || 'dark')
   const [isScrolled, setIsScrolled] = useState(false)
 
   // Detectar scroll
@@ -15,17 +16,6 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-
-  // Aplicar tema
-  useEffect(() => {
-    document.body.setAttribute('data-theme', theme)
-    localStorage.setItem('theme', theme)
-    window.dispatchEvent(new CustomEvent('theme:change', { detail: { theme } }))
-  }, [theme])
-
-  const handleThemeChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setTheme(e.target.checked ? 'light' : 'dark')
-  }
 
   // Prefetch do GLB ao passar o mouse
   const prefetchGLB = () => {
@@ -52,22 +42,7 @@ export default function Header() {
         </Link>
 
         <nav>
-          <div className="theme-switcher">
-            <i className="fas fa-moon"></i>
-            <label className="theme-switch-wrapper">
-              <input
-                id="theme-switcher"
-                className="theme-switch-checkbox"
-                checked={theme === 'light'}
-                onChange={handleThemeChange}
-                type="checkbox"
-              />
-              <div className="theme-switch">
-                <div className="slider"></div>
-              </div>
-            </label>
-            <i className="fas fa-sun"></i>
-          </div>
+          <ThemeSwitcher />
 
           <Link
             to="/mapa"

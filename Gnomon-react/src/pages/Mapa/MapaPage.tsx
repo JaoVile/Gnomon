@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid'; // Para IDs únicos
 import logoIcon from '../../assets/Gnomon Logo _ SEM NOME.png';
@@ -9,7 +9,6 @@ import Map2D, {
   type Poi
 } from '../../components/Map2d/Map2D';
 import RouteInstructions from '../../components/RoutesInstructions/RouteInstructions';
-import ParticlesBackground from '../../components/Particles/ParticlesBackground';
 import Toast from '../../components/Toast/Toast';
 import { useThemeVars } from '../../libs/useThemeVars';
 import { useMapData } from '../../hooks/useMapData';
@@ -21,6 +20,12 @@ import { StagedPointsPanel, type StagedPoint } from '../../components/StagedPoin
 import { ThemeSwitcher } from '../../components/Theme/ThemeSwitcher';
 import { BottomSheet } from '../../components/BottomSheet/BottomSheet';
 import './MapaPage.css';
+
+const ParticlesBackground = lazy(() => 
+  import('../../components/Particles/ParticlesBackground').then(module => ({
+    default: module.ParticlesBackground
+  }))
+);
 
 // Hook para detectar mobile
 function useIsMobile() {
@@ -296,20 +301,12 @@ export function MapaPage() {
     }
   };
 
-  const clearRoute = () => {
-    setPath(null);
-    setDestinationPoi(null);
-    setTurnInstructions([]);
-    setToast({ message: 'Rota removida', type: 'info' });
-  };
-
   const clearOrigin = () => {
     setOriginId(null);
     setOriginLabel(null);
     setPath(null);
     setDestinationPoi(null);
     setTurnInstructions([]);
-    setToast({ message: 'Ponto de partida removido', type: 'info' });
   };
 
   const featuredPlaces = [
@@ -457,7 +454,9 @@ export function MapaPage() {
 
         <div className="map-background-logo"></div>
 
-        <ParticlesBackground color="#3498db" />
+        <Suspense fallback={null}>
+          <ParticlesBackground color="#3498db" />
+        </Suspense>
 
         {turnInstructions.length > 0 && (
           <RouteInstructions

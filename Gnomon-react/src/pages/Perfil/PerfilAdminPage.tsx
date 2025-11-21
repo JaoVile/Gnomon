@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import adminAvatar from '../../assets/Gnomon Logo _ SEM NOME.png';
-import { RegisterEmployeePopup } from '../../components/RegisterEmployeePopup';
+import { RegisterEmployeePopup } from '../../components/RegistrarFuncionarios/RegisterEmployeePopup';
 import './PerfilAdminPage.css';
 
 interface UserData {

@@ -76,14 +76,16 @@
 }
 
 .close-button {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 10%;
+  height: 66%;
+  border-radius: 100%;
   background-color: var(--error); /* Cor vermelha para fechar */
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 5px auto 0 auto;
+  top: 17%;
+  right: 45%;
+  position: absolute;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
