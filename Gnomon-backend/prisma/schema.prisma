@@ -11,27 +11,22 @@ generator client {
 }
 
 // ==========================================
-// AUTENTICAÇÃO (Admin e Staff)
+// 1. User Accounts
 // ==========================================
-
-model Admin {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  name     String
-  password String
-  
-  role     Role    @default(STAFF)
-  isActive Boolean @default(true)
-
-  passwordResetToken   String?
-  passwordResetExpires DateTime?
-
+model Admstaff {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(STAFF)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([email])
-  @@index([passwordResetToken])
-  @@map("admins")
+  // Relations
+  favorites UserFavorite[]
+  history   RouteHistory[]
+
+  @@map("admstaff") // The table name in the database
 }
 
 enum Role {
@@ -40,150 +35,102 @@ enum Role {
 }
 
 // ==========================================
-// MAPAS E LOCAIS
+// 2. Maps & Points of Interest
 // ==========================================
-
 model Map {
   id        Int      @id @default(autoincrement())
-  name      String
+  name      String   @unique
   imageUrl  String
-  floor     Int      @default(0)
-  building  String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  locals Local[]
+  
+  // Relations
+  locals    Local[]
+  graphNodes GraphNode[]
 
   @@map("maps")
 }
 
 model Local {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
   description String?
-  code        String?  @unique // Ex: "LAB-101"
-  type        LocalType @default(OTHER)
+  type        LocalType // A category from the list below
   
-  // Coordenadas (para mapa 2D e 3D)
-  x           Float
-  y           Float
-  z           Float?   @default(0)
-  
-  // Localização
-  floor       Int      @default(0)
-  building    String?
-  
-  // Metadados
-  iconUrl     String?
-  imageUrl    String?
-  accessible  Boolean  @default(true) // Acessível para cadeirantes
-  isActive    Boolean  @default(true)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  // Relations
   mapId       Int
-  map         Map      @relation(fields: [mapId], references: [id], onDelete: Cascade)
+  map         Map       @relation(fields: [mapId], references: [id])
+  graphNode   GraphNode?
 
-  @@index([mapId])
-  @@index([type])
-  @@index([code])
-  @@index([building, floor])
   @@map("locals")
 }
 
+// Enum based on the categories from your nodes.json
 enum LocalType {
-  CLASSROOM     // Sala de aula
-  LABORATORY    // Laboratório
-  BATHROOM      // Banheiro
-  OFFICE        // CRA/Secretaria
-  LIBRARY       // Biblioteca
-  CAFETERIA     // Cantina
-  AUDITORIUM    // Auditório
-  ENTRANCE      // Entradas
-  STAIRS        // Escada
-  ELEVATOR      // Elevador
-  PARKING       // Estacionamento
-  OTHER         // Outro
+  ENTRANCE
+  OFFICE
+  BATHROOM
+  PATIO
+  LIBRARY
+  LAB
+  AUDITORIUM
+  CANTEEN
+  STAFF_ROOM
 }
 
 // ==========================================
-// GRAFO DE NAVEGAÇÃO
+// 3. Navigation Graph (Replaces JSON files)
 // ==========================================
-
 model GraphNode {
-  id          Int      @id @default(autoincrement())
-  name        String?  // Opcional: "Corredor A", "Bifurcação 1"
+  id        Int    @id @default(autoincrement())
+  x         Float
+  y         Float
   
-  // Coordenadas
-  x           Float
-  y           Float
-  z           Float?   @default(0)
-  floor       Int      @default(0)
-  building    String?
-  
-  // Tipo de nó
-  type        NodeType @default(WAYPOINT)
-  
-  // Relacionamento com Local (se for um ponto de interesse)
-  localId     Int?     @unique
-  
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  // Relations
+  mapId     Int
+  map       Map    @relation(fields: [mapId], references: [id])
+  localId   Int?   @unique
+  local     Local? @relation(fields: [localId], references: [id])
+  edgesFrom GraphEdge[] @relation("EdgeFrom")
+  edgesTo   GraphEdge[] @relation("EdgeTo")
 
-  edgesFrom   GraphEdge[] @relation("EdgeFrom")
-  edgesTo     GraphEdge[] @relation("EdgeTo")
-
-  @@index([floor, building])
   @@map("graph_nodes")
 }
 
-enum NodeType {
-  WAYPOINT      // Ponto de passagem
-  ENTRANCE      // Entrada
-  STAIRS        // Escada
-  ELEVATOR      // Elevador
-  INTERSECTION  // Cruzamento
-  DESTINATION   // Destino (sala, local)
-}
-
 model GraphEdge {
-  id          Int      @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
+  weight     Float
   
-  fromNodeId  Int
-  toNodeId    Int
-  
-  // Peso da aresta (distância em metros ou tempo em segundos)
-  weight      Float    @default(1.0)
-  
-  // Tipo de conexão
-  type        EdgeType @default(CORRIDOR)
-  
-  // Acessibilidade
-  accessible  Boolean  @default(true) // Rota acessível
-  
-  // Bidirecional (ida e volta)
-  bidirectional Boolean @default(true)
-  
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  fromNode    GraphNode @relation("EdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
-  toNode      GraphNode @relation("EdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
+  // Relations
+  fromNodeId Int
+  fromNode   GraphNode @relation("EdgeFrom", fields: [fromNodeId], references: [id])
+  toNodeId   Int
+  toNode     GraphNode @relation("EdgeTo", fields: [toNodeId], references: [id])
 
   @@unique([fromNodeId, toNodeId])
-  @@index([fromNodeId])
-  @@index([toNodeId])
   @@map("graph_edges")
 }
 
-enum EdgeType {
-  CORRIDOR    // Corredor
-  STAIRS      // Escada
-  ELEVATOR    // Elevador
-  OUTDOOR     // Área externa
-  DOOR        // Porta
+// ==========================================
+// 4. USER-SPECIFIC DATA (Optional but Recommended)
+// ==========================================
+model UserFavorite {
+  id         Int      @id @default(autoincrement())
+  name       String
+  userId     Int
+  user       Admstaff @relation(fields: [userId], references: [id])
+  fromNodeId Int
+  toNodeId   Int
+  createdAt  DateTime @default(now())
+  
+  @@map("user_favorites")
+}
+
+model RouteHistory {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       Admstaff @relation(fields: [userId], references: [id])
+  fromNodeId Int
+  toNodeId   Int
+  createdAt  DateTime @default(now())
+
+  @@map("route_history")
 }

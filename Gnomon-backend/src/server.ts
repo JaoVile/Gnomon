@@ -119,6 +119,8 @@ app.get('/health', (_req, res) =>
 // ✅ Swagger ANTES das rotas de domínio
 setupSwagger(app);
 
+app.get('/api/test', (_req, res) => res.json({ message: 'Test route works!' }));
+
 // ✅ Rotas de domínio (PADRONIZADAS em inglês)
 app.use('/api/auth', authRoutes);
 app.use('/api/locals', localRoutes); // ✅ MUDEI DE /locais para /locals (padrão REST em inglês)
