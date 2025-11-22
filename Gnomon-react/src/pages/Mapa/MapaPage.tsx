@@ -13,6 +13,7 @@ import Toast from '../../components/Toast/Toast';
 import { useThemeVars } from '../../libs/useThemeVars';
 import { useMapData } from '../../hooks/useMapData';
 import { useMapSettings } from '../../contexts/MapSettingsContext';
+import { useMap } from '../../contexts/MapContext';
 import { useAuth } from '../../hooks/useAuth'; // Importar o hook
 import { HistoricoPopup, type HistoryEntry } from '../../components/Historico/HistoricoPopup';
 import { FavoritosPopup, type FavoriteEntry } from '../../components/Favoritos/FavoritosPopup';
@@ -48,6 +49,7 @@ export function MapaPage() {
   const [isFavoritosOpen, setIsFavoritosOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false); // Estado para o BottomSheet
   const { mode } = useMapSettings(); // Usando o contexto
+  const { setMapType } = useMap();
   const [topDown] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -80,6 +82,15 @@ export function MapaPage() {
   const [searchResults, setSearchResults] = useState<Poi[]>([]);
 
   const { routePrimary } = useThemeVars();
+
+  // Efeito para definir o mapa com base na autenticação
+  useEffect(() => {
+    if (isAuthenticated) {
+      setMapType('staff');
+    } else {
+      setMapType('cima');
+    }
+  }, [isAuthenticated, setMapType]);
 
   // Efeito para ler a altura do peek do BottomSheet do CSS
   useEffect(() => {

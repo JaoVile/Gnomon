@@ -48,6 +48,11 @@ const mapConfigs = {
     nodesUrl: '/maps/cima/nodes.json',
     pathGraphUrl: '/maps/cima/path-graph.json',
   },
+  staff: {
+    imageUrl: '/maps/Campus_2D_CIMA.png', // Using the same image for now
+    nodesUrl: '/maps/staff/nodes.json',
+    pathGraphUrl: '/maps/staff/path-graph.json',
+  },
   detalhe: {
     imageUrl: '/maps/Campus_2D_DETALHE.png',
     nodesUrl: '/maps/detalhe/nodes.json',

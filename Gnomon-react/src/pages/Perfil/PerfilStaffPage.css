@@ -1,105 +1,177 @@
-/*
- * Arquivo de Estilos da Página de Perfil
- * Projeto: Gnomon
- * Descrição: Contém estilos para a visualização do perfil do usuário.
-*/
-.profile-email {
-    /* ... */
-    margin-bottom: 10px; /* Diminuído para dar espaço para a data */
+/* src/pages/Perfil/PerfilStaffPage.css */
+
+.staff-page-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--text);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* ESTILO NOVO PARA A DATA DE CRIAÇÃO */
-.profile-joindate {
-    font-size: 0.9em;
-    color: var(--cor-texto-secundario);
-    margin-bottom: 30px;
-    font-style: italic;
+.staff-header {
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
-/* Removido conjunto de regras vazio para .profile-actions */
-
-.profile-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    min-height: 100vh;
-    padding: 20px;
-    background-color: var(--cor-fundo);
+.staff-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.profile-card {
-    background-color: var(--cor-fundo-secundaria);
-    padding: 40px;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    text-align: center;
+.staff-header p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
 }
 
-.profile-picture {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin: 0 auto 20px auto;
-    border: 4px solid var(--cor-destaque);
+.staff-content {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-.profile-name {
-    font-size: 2em;
-    font-weight: 600;
-    color: var(--cor-texto);
-    margin-bottom: 5px;
+.content-card {
+  background-color: var(--card-background);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
 }
 
-.profile-email {
-    font-size: 1.1em;
-    color: var(--cor-texto-secundario);
-    margin-bottom: 30px;
+.content-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
 }
 
-.profile-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+.staff-info-card .staff-details {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.staff-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary);
+}
+
+.staff-details p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0.5rem 0;
+}
+
+.staff-details p strong {
+  color: var(--text-primary);
+  min-width: 120px;
+  display: inline-block;
+}
+
+.action-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.action-card {
+  background-color: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.action-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.action-card-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.action-card-icon.map { background-color: var(--success); }
+.action-card-icon.history { background-color: var(--info); }
+
+.action-card-info .action-card-title {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.action-card-info .action-card-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.staff-footer-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
 }
 
 .logout-button {
-    background-color: #dc3545; /* Vermelho para ação de "saída" */
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  background-color: var(--error);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .logout-button:hover {
-    background-color: #c82333;
+  background-color: var(--error-hover);
 }
 
-.back-link {
-    color: var(--cor-destaque);
-    text-decoration: none;
-    font-weight: 500;
-}
+@media (max-width: 768px) {
+  .staff-page-container {
+    padding: 1rem;
+  }
 
-.register-employee-button {
-    background-color: var(--cor-sucesso); /* Assuming a success color variable exists */
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
+  .staff-header h1 {
+    font-size: 2rem;
+  }
 
-.register-employee-button:hover {
-    background-color: var(--cor-sucesso-hover); /* Assuming a hover success color variable exists */
+  .staff-info-card .staff-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
 }
