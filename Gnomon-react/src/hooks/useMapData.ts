@@ -57,106 +57,60 @@ const mapConfigs = {
 
 export function useMapData() {
   const { mapType } = useMap();
-  const [mapInfo, setMapInfo] = useState<MapInfo>({
-    data: null,
-    imageUrl: mapConfigs[mapType].imageUrl,
+  const [mapInfo, setMapInfo] = useState<MapInfo>(() => {
+    // Defensivamente, garanta que mapType seja válido ou use um padrão.
+    const initialConfig = mapConfigs[mapType as keyof typeof mapConfigs] || mapConfigs.cima;
+    return {
+      data: null,
+      imageUrl: initialConfig.imageUrl,
+    };
   });
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const mapDetails = mapConfigs[mapType];
-    console.log(`🔄 useMapData: Iniciando carregamento para o mapa "${mapType}"...`);
-    setLoading(true);
-    setError(null);
+    try {
+      const mapDetails = mapConfigs[mapType as keyof typeof mapConfigs];
+      if (!mapDetails) {
+        throw new Error(`Configuração de mapa inválida: ${mapType}`);
+      }
 
-    Promise.all([
-      fetch(mapDetails.nodesUrl)
-        .then((res) => {
-          console.log(`📡 Fetch ${mapDetails.nodesUrl}:`, res.status);
-          if (!res.ok) throw new Error(`HTTP ${res.status}: ${mapDetails.nodesUrl}`);
-          return res.json();
-        })
-        .then((data) => {
-          console.log(`✅ ${mapDetails.nodesUrl} carregado:`, {
-            nodes: data.nodes?.length || 0,
-            edges: data.edges?.length || 0,
-            pois: data.pois?.length || 0
+      console.log(`🔄 useMapData: Iniciando carregamento para o mapa "${mapType}"...`);
+      setLoading(true);
+      setError(null);
+
+      Promise.all([
+        fetch(mapDetails.nodesUrl).then(res => res.json()),
+        fetch(mapDetails.pathGraphUrl).then(res => res.ok ? res.json() : null).catch(() => null)
+      ])
+        .then(([mainData, pathGraphData]) => {
+          const combinedData: MapData = {
+            nodes: mainData?.nodes || [],
+            edges: mainData?.edges || [],
+            pois: mainData?.pois || [],
+            pathGraph: pathGraphData || undefined,
+          };
+          
+          setMapInfo({
+            data: combinedData,
+            imageUrl: mapDetails.imageUrl,
           });
-          return data;
-        }),
-      
-      fetch(mapDetails.pathGraphUrl)
-        .then((res) => {
-          console.log(`📡 Fetch ${mapDetails.pathGraphUrl}:`, res.status);
-          if (!res.ok) {
-            console.warn(`⚠️ ${mapDetails.pathGraphUrl} não encontrado, usando grafo principal`);
-            return null;
-          }
-          return res.json();
         })
-        .then((data) => {
-          if (data) {
-            console.log(`✅ ${mapDetails.pathGraphUrl} carregado:`, {
-              nodes: data.nodes?.length || 0,
-              edges: data.edges?.length || 0
-            });
-          }
-          return data;
+        .catch(err => {
+          console.error("❌ ERRO CRÍTICO ao carregar mapa:", err);
+          setError(err.message || 'Erro ao carregar mapa');
         })
-        .catch((err) => {
-          console.warn(`⚠️ Erro ao carregar ${mapDetails.pathGraphUrl}:`, err.message);
-          return null;
-        })
-    ])
-      .then(([mainData, pathGraphData]: [Omit<MapData, 'pathGraph'>, PathGraph | null]) => {
-        console.log('🔄 Combinando dados...');
-        
-        const combinedData: MapData = {
-          nodes: mainData.nodes || [],
-          edges: mainData.edges || [],
-          pois: mainData.pois || [],
-          pathGraph: pathGraphData ?? undefined,
-        };
-
-        console.log('✅ Mapa carregado com sucesso:', {
-          totalNodes: combinedData.nodes.length,
-          totalEdges: combinedData.edges.length,
-          totalPois: combinedData.pois.length,
-          hasPathGraph: !!combinedData.pathGraph,
-          pathGraphNodes: combinedData.pathGraph?.nodes.length || 0,
-          pathGraphEdges: combinedData.pathGraph?.edges.length || 0
+        .finally(() => {
+          setLoading(false);
         });
 
-        // Validações
-        if (!combinedData.nodes.length) {
-          console.error('❌ ERRO: Nenhum nó carregado!');
-        }
-        if (!combinedData.pois.length) {
-          console.warn('⚠️ AVISO: Nenhum POI carregado!');
-        }
-        
-        // Verificar se todos os POIs têm nós correspondentes
-        const poisSemNo = combinedData.pois.filter(
-          poi => !combinedData.nodes.find(n => n.id === poi.nodeId)
-        );
-        if (poisSemNo.length) {
-          console.error('❌ POIs sem nó correspondente:', poisSemNo);
-        }
-
-        setMapInfo({
-          data: combinedData,
-          imageUrl: mapDetails.imageUrl,
-        });
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("❌ ERRO CRÍTICO ao carregar mapa:", err);
-        setError(err.message || 'Erro ao carregar mapa');
-        setMapInfo(prev => ({ ...prev, data: null }));
-        setLoading(false);
-      });
+    } catch (error) {
+      const err = error as Error;
+      console.error("❌ ERRO ao inicializar o carregamento do mapa:", err);
+      setError(err.message);
+      setLoading(false);
+    }
   }, [mapType]);
 
   return { ...mapInfo, loading, error };
