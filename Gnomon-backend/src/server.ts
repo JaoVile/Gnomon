@@ -119,7 +119,17 @@ app.get('/health', (_req, res) =>
 // ✅ Swagger ANTES das rotas de domínio
 setupSwagger(app);
 
-app.get('/api/test', (_req, res) => res.json({ message: 'Test route works!' }));
+/**
+ * @openapi
+ * /api/hello:
+ *   get:
+ *     description: A simple test endpoint.
+ *     responses:
+ *       200:
+ *         description: Returns a hello message.
+ */
+app.get('/api/hello', (_req, res) => res.json({ message: 'Hello, Swagger!' }));
+
 
 // ✅ Rotas de domínio (PADRONIZADAS em inglês)
 app.use('/api/auth', authRoutes);

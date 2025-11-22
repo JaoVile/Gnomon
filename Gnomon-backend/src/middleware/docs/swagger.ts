@@ -26,19 +26,7 @@ export function setupSwagger(app: Express) {
       // security: [{ bearerAuth: [] }],
     },
     apis: [
-      // Código-fonte
       path.join(process.cwd(), 'src', 'server.ts'),
-      path.join(process.cwd(), 'src', 'routes', '**', '*.ts'),
-      path.join(process.cwd(), 'src', 'controllers', '**', '*.ts'),
-      path.join(process.cwd(), 'src', 'docs', '**', '*.ts'),
-      path.join(process.cwd(), 'src', 'docs', '**', '*.yaml'),
-      path.join(process.cwd(), 'src', 'docs', '**', '*.yml'),
-
-      // Build (produção)
-      path.join(process.cwd(), 'dist', 'server.js'),
-      path.join(process.cwd(), 'dist', 'routes', '**', '*.js'),
-      path.join(process.cwd(), 'dist', 'controllers', '**', '*.js'),
-      path.join(process.cwd(), 'dist', 'docs', '**', '*.js'),
     ],
   };
 
