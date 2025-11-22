@@ -29,7 +29,7 @@ export const getAllLocais = async (req: Request, res: Response): Promise<Respons
     const { type, floor, building, search, accessible } = req.query;
 
     // ✅ Usar Prisma.LocalWhereInput para tipagem correta
-    const where: Prisma.LocalWhereInput = { isActive: true };
+    const where: Prisma.LocalWhereInput = {};
 
     if (type && Object.values(LocalType).includes(type as LocalType)) {
       where.type = type as LocalType;

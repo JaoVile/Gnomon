@@ -89,7 +89,8 @@ const node = await prisma.graphNode.create({
     x: p.x, y: p.y, z: 0,
     floor: 0, building: 'A',
     type: p.nodeType as any,
-    isActive: true
+    isActive: true,
+    mapId: map.id
   }
 });
 nodeIdByKey[p.key] = node.id;

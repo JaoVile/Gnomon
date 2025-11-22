@@ -21,12 +21,13 @@ model Admstaff {
   role      Role     @default(STAFF)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
 
   // Relations
   favorites UserFavorite[]
   history   RouteHistory[]
 
-  @@map("admstaff") // The table name in the database
+  @@map("admins") // The table name in the database
 }
 
 enum Role {
@@ -41,6 +42,11 @@ model Map {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   imageUrl  String
+  floor     Int      @default(0)
+  building  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   
   // Relations
   locals    Local[]
@@ -53,7 +59,17 @@ model Local {
   id          Int       @id @default(autoincrement())
   name        String
   description String?
+  code        String?   @unique
   type        LocalType // A category from the list below
+  x           Float
+  y           Float
+  z           Float?    @default(0)
+  floor       Int       @default(0)
+  building    String?
+  iconUrl     String?
+  imageUrl    String?
+  accessible  Boolean   @default(true)
+  isActive    Boolean   @default(true)
   
   // Relations
   mapId       Int
@@ -74,6 +90,22 @@ enum LocalType {
   AUDITORIUM
   CANTEEN
   STAFF_ROOM
+  CLASSROOM
+  LABORATORY
+  CAFETERIA
+  STAIRS
+  ELEVATOR
+  PARKING
+  OTHER
+}
+
+enum NodeType {
+  WAYPOINT
+  ENTRANCE
+  STAIRS
+  ELEVATOR
+  INTERSECTION
+  DESTINATION
 }
 
 // ==========================================
@@ -81,12 +113,20 @@ enum LocalType {
 // ==========================================
 model GraphNode {
   id        Int    @id @default(autoincrement())
+  name      String?
   x         Float
   y         Float
+  z         Float? @default(0)
+  floor     Int    @default(0)
+  building  String?
+  type      NodeType @default(WAYPOINT)
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   
   // Relations
-  mapId     Int
-  map       Map    @relation(fields: [mapId], references: [id])
+  mapId     Int?
+  map       Map?    @relation(fields: [mapId], references: [id])
   localId   Int?   @unique
   local     Local? @relation(fields: [localId], references: [id])
   edgesFrom GraphEdge[] @relation("EdgeFrom")
@@ -97,7 +137,13 @@ model GraphNode {
 
 model GraphEdge {
   id         Int     @id @default(autoincrement())
-  weight     Float
+  weight     Float   @default(1.0)
+  type       EdgeType @default(CORRIDOR)
+  accessible Boolean @default(true)
+  bidirectional Boolean @default(true)
+  isActive   Boolean @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   
   // Relations
   fromNodeId Int
@@ -107,6 +153,14 @@ model GraphEdge {
 
   @@unique([fromNodeId, toNodeId])
   @@map("graph_edges")
+}
+
+enum EdgeType {
+  CORRIDOR
+  STAIRS
+  ELEVATOR
+  OUTDOOR
+  DOOR
 }
 
 // ==========================================

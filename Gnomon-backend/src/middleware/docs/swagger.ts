@@ -1,59 +1,70 @@
-import path from 'node:path';
-import helmet from 'helmet';
-import { Express } from 'express';
-import * as swaggerUi from 'swagger-ui-express'; // compat sem esModuleInterop
-import swaggerJSDoc, { Options } from 'swagger-jsdoc';
+import { Express, Request, Response } from 'express';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+import path from 'path';
 
-export function setupSwagger(app: Express) {
-  const baseUrl =
-    process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 3001}`;
+// IMPORTANTE: Ajuste de caminhos para Windows e Linux
+// __dirname aqui é: .../Gnomon-backend/src/middleware/docs/
+const routesPath = path.join(__dirname, '../../routes/*.{ts,js}');
+const serverPath = path.join(__dirname, '../../server.{ts,js}');
+const controllersPath = path.join(__dirname, '../../controllers/*.{ts,js}');
 
-  const options: Options = {
-    definition: {
-      openapi: '3.0.0',
-      info: { title: 'Gnomon API', version: '1.0.0' },
-      servers: [{ url: baseUrl }],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: 'http',
-            scheme: 'bearer',
-            bearerFormat: 'JWT',
-          },
+// Debug: Mostra no terminal onde ele está procurando
+console.log('🔍 Swagger buscando rotas em:', routesPath.replace(/\\/g, '/'));
+
+const options: swaggerJsdoc.Options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Gnomon API',
+      version: '1.0.0',
+      description: 'API do sistema Gnomon',
+    },
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
         },
       },
-      // Descomente se a maioria das rotas exigir auth (JWT) por padrão:
-      // security: [{ bearerAuth: [] }],
     },
-    apis: [
-      path.join(process.cwd(), 'src', 'server.ts'),
+    servers: [
+      {
+        url: `http://localhost:${process.env.PORT || 3001}`,
+        description: 'Servidor Local',
+      },
     ],
-  };
+  },
+  // AQUI ESTÁ O SEGREDO:
+  apis: [
+    routesPath.replace(/\\/g, '/'),      // Pega src/routes
+    serverPath.replace(/\\/g, '/'),      // Pega src/server.ts
+    controllersPath.replace(/\\/g, '/')  // Pega controllers
+  ],
+};
 
-  const specs = swaggerJSDoc(options);
+const swaggerSpec = swaggerJsdoc(options);
 
-  // JSON para depuração
-  app.get('/api/docs.json', (_req, res) => {
+export const setupSwagger = (app: Express) => {
+  // Endpoint JSON (se quiser ver os dados brutos)
+  app.get('/api/docs.json', (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/json');
-    res.send(specs);
+    res.send(swaggerSpec);
   });
 
-  // CSP mais permissiva só na UI do Swagger (por causa do Helmet)
-  const cspDefaults = helmet.contentSecurityPolicy.getDefaultDirectives();
+  // Swagger UI
   app.use(
     '/api/docs',
-    helmet.contentSecurityPolicy({
-      useDefaults: true,
-      directives: {
-        ...cspDefaults,
-        'script-src': ["'self'", "'unsafe-inline'", 'https:'],
-        'style-src': ["'self'", "'unsafe-inline'", 'https:'],
-        'img-src': ["'self'", 'data:', 'blob:', 'https:'],
-      },
-    }),
     swaggerUi.serve,
-    swaggerUi.setup(specs, { explorer: true })
+    swaggerUi.setup(swaggerSpec)
   );
 
-  console.log(`📚 Swagger docs: ${baseUrl}/api/docs`);
-}
+  // CORREÇÃO DO ERRO DE TYPE:
+  // Usamos (swaggerSpec as any) para dizer ao TS que sabemos que 'paths' existe
+  const paths = (swaggerSpec as any).paths || {};
+  const rotasEncontradas = Object.keys(paths).length;
+
+  console.log(`📚 Swagger UI: http://localhost:${process.env.PORT || 3001}/api/docs`);
+  console.log(`✅ Rotas documentadas encontradas: ${rotasEncontradas}`);
+};
