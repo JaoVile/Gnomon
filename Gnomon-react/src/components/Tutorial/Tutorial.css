@@ -1,0 +1,516 @@
+.tutorial-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+
+.tutorial-box {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  width: 90%;
+  max-width: 550px;
+  min-height: 420px; /* Altura aumentada */
+  padding: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tutorial-logo {
+  width: 70px; /* Tamanho ajustado */
+  height: 70px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  border: 3px solid var(--primary);
+  padding: 5px;
+  background: var(--card-background);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tutorial-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 5px;
+  line-height: 1;
+}
+.tutorial-close-btn:hover {
+  color: var(--text);
+}
+
+.tutorial-content {
+  flex-grow: 1;
+}
+
+.tutorial-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 0;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.tutorial-content p {
+  line-height: 1.6;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* Grid para os cards da Etapa 2 */
+.tutorial-features-grid.step2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  height: 100%;
+}
+
+.tutorial-feature-card {
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.feature-card-icon-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.feature-card-icon {
+  font-size: 1.8rem;
+}
+
+.feature-card-icon.entry-point { color: red; }
+.feature-card-icon.warning-point { color: var(--warning); }
+.feature-card-icon.destination-point { color: var(--primary); }
+
+.feature-card-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.mini-popup-button {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--card-background);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.mini-popup-button.primary {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.route-animation-container {
+  width: 100%;
+  height: 40px;
+}
+.route-animation-container svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.route-animation-container path {
+  stroke: var(--text-secondary);
+  stroke-width: 3;
+  fill: none;
+}
+
+.route-dot, .route-dot-pulse {
+  motion-path: path('M10,40 Q50,5 90,40');
+  animation-name: move-along-path;
+  animation-duration: 3s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  offset-path: path('M10,40 Q50,5 90,40');
+}
+
+.route-dot {
+  fill: var(--primary);
+}
+
+.route-dot-pulse {
+  fill: var(--primary);
+  stroke: none;
+  animation-name: move-along-path, route-pulse;
+}
+
+@keyframes move-along-path {
+  0% { motion-offset: 0%; offset-distance: 0%; }
+  100% { motion-offset: 100%; offset-distance: 100%; }
+}
+
+@keyframes route-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+
+/* Animação para a Etapa 3 */
+.mini-bottom-sheet-animation {
+  width: 150px;
+  height: 100px;
+  background: var(--background-secondary);
+  border-radius: 12px 12px 0 0;
+  margin: 20px auto 10px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
+.mini-sheet {
+  position: absolute;
+  bottom: -60px; /* Começa quase escondido */
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: var(--card-background);
+  border-radius: 12px 12px 0 0;
+  border-top: 1px solid var(--border-color);
+  animation: drag-animation 3s ease-in-out infinite;
+}
+
+.mini-sheet-handle {
+  width: 40px;
+  height: 5px;
+  background: var(--border-color);
+  border-radius: var(--radius-sm);
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@keyframes drag-animation {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-50px); }
+}
+
+
+.tutorial-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  margin-top: auto; /* Empurra o footer para baixo */
+  border-top: 1px solid var(--border-color);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dont-show-again {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dont-show-again input[type="checkbox"] {
+  transform: scale(0.5);
+}
+
+.dont-show-again label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.tutorial-navigation {
+  display: flex;
+  gap: 12px;
+}
+
+.tutorial-navigation button {
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tutorial-navigation button:last-child {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.tutorial-navigation button:last-child:hover {
+    filter: brightness(1.1);
+}
+
+.tutorial-navigation button:first-child {
+  background: var(--card-background);
+  color: var(--text);
+}
+.tutorial-navigation button:first-child:hover {
+  background: var(--background-secondary);
+}
+
+/* Card 4 - Rota Animada V2 */
+.route-animation-container-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 150px; /* Controla a largura da animação */
+  margin: 10px 0;
+}
+
+.route-animation-container-v2 .feature-card-icon {
+  font-size: 1.5rem; /* Ícones um pouco menores */
+  position: relative;
+  top: 6px; /* Ajuste para alinhar a ponta do pino com a linha */
+}
+
+/* Cor do Pin Verde (Destino final) */
+.feature-card-icon.final-destination-point {
+  color: #28a745; /* Verde */
+  /* Animação para aparecer e desaparecer */
+  opacity: 0;
+  animation: show-green-pin 8s ease-in-out infinite;
+}
+
+.animated-route-svg {
+  width: 100%;
+  height: 40px;
+  overflow: visible;
+}
+
+.animated-route-path {
+  stroke: var(--primary);
+  stroke-width: 4;
+  fill: none;
+  /* Animação de desenho da rota */
+  stroke-dasharray: 100; /* Aproximação do comprimento do caminho */
+  stroke-dashoffset: 100;
+  animation: draw-route 8s ease-in-out infinite;
+}
+
+/* Animação de desenho da rota (stroke-dashoffset) */
+@keyframes draw-route {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  37.5% { /* 3s / 8s */
+    stroke-dashoffset: 0;
+  }
+  99.99% { /* Fica desenhado até o fim do ciclo */
+    stroke-dashoffset: 0;
+  }
+  100% { /* Reseta instantaneamente */
+    stroke-dashoffset: 100;
+  }
+}
+
+/* Animação para mostrar o pino verde */
+@keyframes show-green-pin {
+  0%, 37.5% { /* 0s a 3s, fica invisível */
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% { /* Em 4s, aparece */
+    opacity: 1;
+    transform: scale(1);
+  }
+  99.99% { /* Fica visível até o fim do ciclo */
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% { /* Reseta instantaneamente */
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+/* Grid para os cards da Etapa 3 */
+.tutorial-features-grid.step3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.tutorial-card-full-width {
+  grid-column: 1 / -1;
+}
+
+/* Card 1: Rota Compacta */
+.compact-route-display {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  background: var(--background);
+  width: 100%;
+  max-width: 180px;
+  margin-bottom: 8px;
+}
+
+.route-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.route-step-marker {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: white;
+  background: var(--primary);
+}
+
+.route-step-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.route-step-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.route-step-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.route-step-connector {
+  height: 12px;
+  width: 2px;
+  background: var(--border-color);
+  margin: 2px 0 2px 9px;
+  border-left: 1px dashed var(--text-secondary);
+}
+
+.compact-route-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.route-action-btn {
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  cursor: pointer;
+}
+.route-action-btn:hover { background: var(--border-color); }
+
+/* Card 2: Legenda do Mapa */
+.map-legend {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  width: 100%;
+  background: var(--background);
+  overflow: hidden;
+}
+
+.map-legend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.map-legend-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.map-legend-header i {
+  transition: transform 0.3s ease;
+}
+
+.map-legend-header i.open {
+  transform: rotate(180deg);
+}
+
+.map-legend-body {
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+  padding: 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.map-legend.open .map-legend-body {
+  max-height: 100px; /* Altura suficiente para o conteúdo */
+  opacity: 1;
+  padding: 0 12px 10px;
+}
+
+.map-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-legend-color-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.map-legend-icon { font-size: 1rem; }
+
+/* Card 3: Labels do Bottom Sheet */
+.feature-card-label-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.feature-card-label-grid span strong {
+  color: var(--text);
+}
