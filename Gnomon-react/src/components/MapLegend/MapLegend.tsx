@@ -10,15 +10,14 @@ export type LegendItem = {
 interface MapLegendProps {
   initialItems: LegendItem[];
   locationItems: LegendItem[];
-  isOpen: boolean;
-  onToggle: () => void;
 }
 
-const MapLegend: React.FC<MapLegendProps> = ({ initialItems, locationItems, isOpen, onToggle }) => {
+const MapLegend: React.FC<MapLegendProps> = ({ initialItems, locationItems }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className={`map-legend-container ${isOpen ? 'open' : ''}`}>
-      <div className="map-legend-header" onClick={onToggle}>
+      <div className="map-legend-header" onClick={() => setIsOpen(!isOpen)}>
         <h4>Legenda</h4>
         <i className={`fa-solid fa-chevron-up ${isOpen ? 'open' : ''}`}></i>
       </div>

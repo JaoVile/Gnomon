@@ -1,23 +1,59 @@
 import { useEffect, useRef, useState, useMemo, useLayoutEffect, type MouseEvent as ReactMouseEvent, type TouchEvent as ReactTouchEvent } from 'react';
 import { useMapData, type MapData, type MapNode, type Poi } from '../../hooks/useMapData';
 import { usePathfinding } from '../../hooks/usePathfinding';
-import MapLegend, { type LegendItem } from '../MapLegend/MapLegend';
+import './Map2D.css';
 
-const initialLegendItems: LegendItem[] = [
-  { type: 'icon', value: 'fa-location-dot', label: 'Ponto de Entrada' },
-  { type: 'icon', value: 'fa-map-pin', label: 'Ponto de Referência' },
-];
+export type { MapNode, Poi };
+export type Node2D = MapNode;
 
-const poiCategoryColorMap: { pattern: RegExp, label: string, color: string }[] = [
-  { pattern: /auditório/i, label: 'Auditório', color: '#FFB3BA' },
-  { pattern: /cantina/i, label: 'Cantina', color: '#4655b4ff' },
-  { pattern: /laboratório|lab/i, label: 'Laboratórios', color: '#00FFFF' },
-  { pattern: /biblioteca/i, label: 'Biblioteca', color: '#FFFF00' },
-  { pattern: /banheiro/i, label: 'Banheiros', color: '#DDA0DD' },
-  { pattern: /sala/i, label: 'Salas', color: '#f0e68dff' },
-  { pattern: /direção|coordenação|adm/i, label: 'Administração', color: '#D9ED92' },
-  // Add more patterns as needed
-];
+export type TurnInstruction = { text: string; distance: number; icon: string };
+
+type AnimationOptions = {
+  routeAnimationDuration?: number;
+  showHintAnimations?: boolean;
+};
+
+type Coords = { x: number; y: number };
+
+type EditTool = 'add_poi' | 'add_entrance' | 'add_connection' | 'link_nodes' | 'delete_node' | 'none';
+
+type Props = {
+  mapData?: MapData | null;
+  mapImageUrl: string;
+  strokeColor?: string;
+  path?: MapNode[] | null;
+  originId?: string | null;
+  destinationPoi?: Poi | null;
+  onSelectOrigin?: (nodeId: string, label?: string) => void;
+  onRouteCalculated?: (path: MapNode[], instructions: TurnInstruction[], destinationPoi: Poi) => void;
+  showPoiLabels?: boolean;
+  initialZoomMultiplier?: number;
+  animationOptions?: AnimationOptions;
+  destinationToRoute?: string | null;
+  onDestinationRouted?: () => void;
+  focusOnPoi?: string | null;
+  onFocusDone?: () => void;
+  onPanStart?: () => void;
+  // Props para o BottomSheet
+  isBottomSheetOpen?: boolean;
+  bottomSheetPeekHeight?: number;
+  // Props do modo de edição
+  isEditMode?: boolean;
+  editTool?: EditTool;
+  onMapClick?: (coords: Coords) => void;
+  onNodeClick?: (nodeId: string) => void;
+  onCursorMove?: (coords: Coords) => void;
+  tempNodes?: Node2D[];
+  tempPois?: Poi[];
+};
+
+type Transform = { x: number; y: number; scale: number };
+
+const isMobileDevice = (): boolean => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  ) || window.innerWidth < 768;
+};
 
 export default function Map2D({
   mapData: mapDataProp,
@@ -85,32 +121,17 @@ export default function Map2D({
     }
   };
 
-  const locationItems = useMemo(() => {
-    if (!currentMapData || !currentMapData.pois) return [];
-    
-    const addedCategories = new Set<string>(); // To ensure unique categories
-    const items: LegendItem[] = [];
-
-    for (const poi of currentMapData.pois) {
-      const poiLabel = poi.label;
-      let categoryFound: { label: string, color: string } | null = null;
-
-      for (const category of poiCategoryColorMap) {
-        if (category.pattern.test(poiLabel)) {
-          categoryFound = { label: category.label, color: category.color };
-          break;
-        }
-      }
-
-      if (categoryFound && !addedCategories.has(categoryFound.label)) {
-        items.push({ type: 'color', value: categoryFound.color, label: categoryFound.label });
-        addedCategories.add(categoryFound.label);
-      }
-    }
-    return items;
-  }, [currentMapData]);
-
-
+  const mapLegendItems = [
+    { label: 'Direção', type: 'color', color: '#D9ED92' }, // Verde amarelado bem claro
+    { label: 'Auditório', type: 'color', color: '#FFB3BA' },   // Vermelho claro
+    { label: 'Cantina', type: 'color', color: '#4655b4ff' }, // Azul marinho um pouco claro (SteelBlue)
+    { label: 'Laboratórios', type: 'color', color: '#00FFFF' }, // Ciano
+    { label: 'Biblioteca', type: 'color', color: '#FFFF00' }, // Amarelo
+    { label: 'Banheiros', type: 'color', color: '#DDA0DD' }, // Lilás um pouco roxo (Plum)
+    { label: 'Salas', type: 'color', color: '#f0e68dff' }, // Amarelo claro bem pouco marrom (LemonChiffon)
+    { label: 'Entradas', type: 'icon', icon: 'pin', color: '#EA4335' }, // Vermelho do Google Maps pin
+    { label: 'Referências', type: 'icon', icon: 'pin', color: '#FFD700' }, // Amarelo para referências
+  ];
 
   // Função para animar a transformação (pan/zoom)
   const zoomTo = (targetX: number, targetY: number, targetScale: number, duration = 500, onFinish?: (finalTransform: Transform) => void) => {
@@ -893,8 +914,24 @@ export default function Map2D({
                                 lastTouchDist.current = 0;
                               }}
                             >
-
-                        
+                                        <div className={`map-legend ${isLegendOpen ? 'open' : ''}`}>
+                                          <div className="map-legend-header" onClick={handleLegendClick}>
+                                            <h4>Legenda</h4>
+                                            <i className={`fa-solid fa-chevron-up ${!hasLegendBeenInteracted ? 'needs-attention' : ''}`}></i>
+                                          </div>
+                                          <div className="map-legend-body">
+                                            {mapLegendItems.map((item, index) => (
+                                              <div key={index} className={`map-legend-item ${item.type === 'color' ? 'is-collapsible' : ''}`}>
+                                                {item.type === 'color' ? (
+                                                  <span className="map-legend-color-swatch" style={{ backgroundColor: item.color }}></span>
+                                                ) : (
+                                                  <i className={`fas fa-map-marker-alt map-legend-icon`} style={{ color: item.color }}></i>
+                                                )}
+                                                <span>{item.label}</span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>                        
                               {showHints && !isEditMode && (
                                 <div className="interaction-hints">          <div className="hint-item">
             <i className={`fa-solid fa-hand hint-icon ${showHintsAnim ? 'pan-icon-animation' : ''}`}></i>
@@ -963,13 +1000,6 @@ export default function Map2D({
           </div>
         </div>
       )}
-
-      <MapLegend
-        initialItems={initialLegendItems}
-        locationItems={locationItems}
-        isOpen={isLegendOpen}
-        onToggle={handleLegendClick}
-      />
 
       <canvas
         ref={canvasRef}
