@@ -31,8 +31,6 @@ export function PerfilWrapper() {
         sessionStorage.removeItem('authToken');
         console.log('Usuário deslogado');
         navigate('/');
-        // Forçar o hook a reavaliar, embora o redirecionamento já resolva
-        window.location.reload();
     };
 
     if (isLoading) {

@@ -34,30 +34,10 @@ function useIsMobile() {
   return isMobile;
 }
 
-// ✅ Hook para detectar se usuário prefere motion reduzido
-function usePrefersReducedMotion() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = () => {
-      setPrefersReducedMotion(mediaQuery.matches);
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
-
-  return prefersReducedMotion;
-}
-
 export function Intro() {
   const heroRef = useRef<HTMLElement>(null);
   
   const isMobile = useIsMobile();
-  const prefersReducedMotion = usePrefersReducedMotion();
   
   const { ref: featuresRef, isVisible: featuresVisible } = useScrollAnimation();
   const { ref: statsRef, isVisible: statsVisible } = useScrollAnimation();
@@ -119,16 +99,16 @@ export function Intro() {
   }, []);
 
   const stats = [
-    { value: '100%', label: 'Cobertura do Campus', icon: 'fa-map-marked-alt' },
-    { value: '<5s', label: 'Tempo de Resposta', icon: 'fa-bolt' },
-    { value: '24/7', label: 'Disponibilidade', icon: 'fa-clock' },
+    { value: '100%', label: 'Cobertura do Campus de 100%', icon: 'fa-map-marked-alt' },
+    { value: '5s', label: 'Tempo de Resposta menor que 5 segundos', icon: 'fa-bolt' },
+    { value: '24/7', label: 'Disponibilidade 24 horas por dia', icon: 'fa-clock' },
   ];
 
 
 
   const testimonials = [
     {
-      text: 'No meu primeiro dia, estava completamente perdido. O Gnomon me salvou!',
+      text: 'No meu primeiro dia, estava completamente perdido.',
       author: 'Estudante de Engenharia',
       role: '1º Período'
     },
@@ -146,8 +126,8 @@ export function Intro() {
 
   return (
     <div className="intro-page-wrapper">
-      {/* ✅ Partículas APENAS em desktop */}
-      {!isMobile && !prefersReducedMotion && (
+      {/* Partículas em desktop (respeitando prefers-reduced-motion via CSS) */}
+      {!isMobile && (
         <Suspense fallback={null}>
           <ParticlesBackground color="#3498db" />
         </Suspense>
@@ -179,31 +159,23 @@ export function Intro() {
             <div className="hero-overlay"></div>
           </div>
 
-          {/* ✅ Shapes reduzidas em mobile */}
-          {!prefersReducedMotion && (
-            <div className="floating-shapes">
-              <div className="shape shape-1"></div>
-              {!isMobile && <div className="shape shape-2"></div>}
-              {!isMobile && <div className="shape shape-3"></div>}
-            </div>
-          )}
+          {/* Shapes flutuantes (respeitando prefers-reduced-motion via CSS) */}
+          <div className="floating-shapes">
+            <div className="shape shape-1"></div>
+            {!isMobile && <div className="shape shape-2"></div>}
+            {!isMobile && <div className="shape shape-3"></div>}
+          </div>
 
           <div className="container hero-content">
             <div className="hero-badge">
               <i className="fa-solid fa-compass"></i>
               <span>Navegação de Campus Inteligente</span>
             </div>
-            
-            <h1 className="hero-title">
-              Navegue pelo Campus com
-              <span className="gradient-text"> Confiança Total</span>
-            </h1>
-            
-            <p className="hero-subtitle">
-              Sistema de navegação indoor/outdoor que transforma a experiência universitária.
-              Encontre salas, laboratórios e serviços em segundos.
-            </p>
+            <p className="hero-subtitle">Navegue pelo campus com o</p>
 
+            <h1 className="hero-title">GNOMON <span className="gradient-text"></span>
+            </h1>
+            <p className="hero-subtitle">Sistema de navegação que tranforma a experiencia do universitario</p>
             {/* ✅ APENAS UM CTA - REMOVIDO LOGIN */}
             <div className="hero-cta-group">
               <CtaButton to="/mapa" className="cta-primary">
@@ -216,7 +188,7 @@ export function Intro() {
             <div className="hero-stats">
               <div className="stat-item">
                 <i className="fa-solid fa-map-marked-alt"></i>
-                <span>Mapa Completo 2D</span>
+                <span>Mapa 2D</span>
               </div>
               <div className="stat-item">
                 <i className="fa-solid fa-bolt"></i>
@@ -384,8 +356,8 @@ export function Intro() {
                   podem ser estressantes, e queremos mudar isso.
                 </p>
                 <p>
-                  Desenvolvido por estudantes, para estudantes, nosso sistema combina tecnologia de ponta 
-                  com design intuitivo para criar uma ferramenta verdadeiramente útil no dia a dia acadêmico.
+                  Desenvolvido por estudantes, nosso sistema combina tecnologia de ponta 
+                  com design intuitivo para criar uma ferramenta útil no dia a dia acadêmico.
                 </p>
                 <ul className="about-highlights">
                   <li>
@@ -524,10 +496,9 @@ export function Intro() {
           </div>
           <div className="container">
             <div className="cta-content">
-              <h2>Pronto para Explorar o Campus?</h2>
+              <h2 className="hero-title_2">Pronto para Explorar o Campus?</h2>
               <p>
-                Junte-se a dezenas de estudantes que já navegam pelo campus com confiança.
-                Comece agora gratuitamente.
+                Teste o Gnomon e nós ajude a melhorar.
               </p>
               <div className="cta-buttons">
                 <CtaButton to="/mapa" className="cta-primary-large">
@@ -537,7 +508,8 @@ export function Intro() {
               </div>
               <p className="cta-note">
                 <i className="fa-solid fa-shield-halved"></i>
-                Não requer instalação • Funciona em qualquer dispositivo
+                • Não requer instalação 
+                <br /> • Funciona em qualquer dispositivo
               </p>
             </div>
           </div>

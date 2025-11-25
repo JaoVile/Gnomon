@@ -11,7 +11,6 @@ import pinoHttp from 'pino-http';
 
 // Rotas
 import authRoutes from './routes/authRouters';
-import localRoutes from './routes/localRoutes';
 
 // Configurações de e-mail
 import { mailer, verifySMTP } from './config/mail';
@@ -119,10 +118,20 @@ app.get('/health', (_req, res) =>
 // ✅ Swagger ANTES das rotas de domínio
 setupSwagger(app);
 
+/**
+ * @openapi
+ * /api/hello:
+ *   get:
+ *     description: A simple test endpoint.
+ *     responses:
+ *       200:
+ *         description: Returns a hello message.
+ */
+app.get('/api/hello', (_req, res) => res.json({ message: 'Hello, Swagger!' }));
+
+
 // ✅ Rotas de domínio (PADRONIZADAS em inglês)
 app.use('/api/auth', authRoutes);
-app.use('/api/locals', localRoutes); // ✅ MUDEI DE /locais para /locals (padrão REST em inglês)
-
 // 404 para rotas não encontradas
 app.use((_req, res) => res.status(404).json({ message: 'Rota não encontrada' }));
 

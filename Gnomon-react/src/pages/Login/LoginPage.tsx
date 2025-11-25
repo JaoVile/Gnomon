@@ -96,7 +96,7 @@ export function LoginPage() {
                     <Link to="/" className="logo-container">
                         <img src={logoIcon} alt="Ícone do Gnomon" />
                     </Link>
-                    <h1>Acessar Plataforma</h1>
+                    <h1>Apenas Admins</h1>
                 </div>
                 
                 <form onSubmit={handleSubmit}>

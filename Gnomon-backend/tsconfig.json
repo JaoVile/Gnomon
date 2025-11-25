@@ -16,6 +16,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "prisma/mapRoutes.js", "prisma/localRoutes.js"],
   "exclude": ["node_modules", "dist", "**/*.spec.ts"]
 }

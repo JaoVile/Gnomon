@@ -1,17 +1,15 @@
 // src/pages/Perfil/PerfilStaffPage.tsx
-
-import { useState } from 'react'; // Importar useState
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { RegisterEmployeePopup } from '../../components/RegistrarFuncionarios/RegisterEmployeePopup'; // Importar o popup
-import './PerfilStaffPage.css'; // Atualizado para o novo nome
+import staffAvatar from '../../assets/Gnomon Logo _ SEM NOME.png';
+import './PerfilStaffPage.css';
 
-// Interface atualizada para incluir a data de criação e role
 interface UserData {
     id: number;
     name: string;
     email: string;
-    createdAt: string; // O Prisma envia datas como strings no formato ISO
-    role: string; // Adicionado role
+    createdAt: string;
+    role: string;
     avatar?: string;
 }
 
@@ -21,49 +19,115 @@ interface PerfilStaffPageProps {
 }
 
 export function PerfilStaffPage({ userData, handleLogout }: PerfilStaffPageProps) {
-    const [isRegisterPopupOpen, setIsRegisterPopupOpen] = useState(false);
+    const [activeView, setActiveView] = useState('info'); // 'info' or 'logs'
 
-    const handleRegisterSuccess = () => {
-        setIsRegisterPopupOpen(false);
-        // Optionally, refresh user list or show a success message
+    const renderContent = () => {
+        switch (activeView) {
+            case 'logs':
+                return (
+                    <div className="content-card">
+                        <h3>Meus Logs de Atividade</h3>
+                        <p>Esta área registrará suas atividades importantes no sistema, como rotas criadas e locais favoritados.</p>
+                        <div className="logs-placeholder">
+                            <i className="fa-solid fa-person-digging"></i>
+                            <span>Funcionalidade em desenvolvimento.</span>
+                        </div>
+                    </div>
+                );
+            case 'info':
+            default:
+                return (
+                    <>
+                        <div className="content-card staff-info-card">
+                            <h3>Minhas Informações</h3>
+                            <div className="staff-details">
+                                <div>
+                                    <p><strong>Nome:</strong> {userData.name}</p>
+                                    <p><strong>Email:</strong> {userData.email}</p>
+                                    <p><strong>Cargo:</strong> {userData.role}</p>
+                                    <p><strong>Membro desde:</strong> {new Date(userData.createdAt).toLocaleDateString('pt-BR')}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="content-card">
+                            <h3>Ações Rápidas</h3>
+                             <div className="action-card-grid">
+                                <Link to="/mapa" className="action-card">
+                                    <div className="action-card-icon map">
+                                        <i className="fa-solid fa-map-location-dot"></i>
+                                    </div>
+                                    <div className="action-card-info">
+                                        <span className="action-card-title">Navegar no Mapa</span>
+                                        <span className="action-card-desc">Acessar o mapa interativo do campus.</span>
+                                    </div>
+                                </Link>
+                                <div className="action-card disabled">
+                                    <div className="action-card-icon history">
+                                        <i className="fa-solid fa-clock-rotate-left"></i>
+                                    </div>
+                                    <div className="action-card-info">
+                                        <span className="action-card-title">Meu Histórico</span>
+                                        <span className="action-card-desc">Ver suas rotas recentes (em breve).</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                );
+        }
     };
 
     return (
-        <div className="profile-container">
-            <div className="profile-card">
-                <img 
-                    src={userData?.avatar} 
-                    alt="Foto do perfil" 
-                    className="profile-picture" 
-                />
-                <h1 className="profile-name">{userData?.name}</h1>
-                <p className="profile-email">{userData?.email}</p>
-
-                <p className="profile-joindate">
-                    Membro desde: {new Date(userData?.createdAt || '').toLocaleDateString('pt-BR')}
-                </p>
-                <p className="profile-role">
-                    Cargo: {userData?.role}
-                </p>
-
-                <div className="profile-actions">
-                    <button onClick={() => setIsRegisterPopupOpen(true)} className="register-employee-button">
-                        Cadastrar Funcionário
-                    </button>
-                    <button onClick={handleLogout} className="logout-button">
-                        Sair (Logout)
-                    </button>
-                    <Link to="/mapa" className="back-link">
-                        Voltar para o Mapa
-                    </Link>
+        <div className="staff-page-container">
+            <aside className="staff-sidebar">
+                <div className="staff-profile">
+                    <img 
+                        src={userData.avatar || staffAvatar} 
+                        alt="Foto do Perfil" 
+                        className="staff-profile-picture" 
+                    />
+                    <h2 className="staff-profile-name">{userData?.name}</h2>
                 </div>
-            </div>
-
-            <RegisterEmployeePopup
-                isOpen={isRegisterPopupOpen}
-                onClose={() => setIsRegisterPopupOpen(false)}
-                onRegisterSuccess={handleRegisterSuccess}
-            />
+                <nav className="staff-menu">
+                    <ul>
+                        <li>
+                            <button 
+                                onClick={() => setActiveView('info')}
+                                className={activeView === 'info' ? 'active' : ''}
+                            >
+                                <i className="fa-solid fa-user"></i>
+                                <span>Minhas Informações</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button 
+                                onClick={() => setActiveView('logs')}
+                                className={activeView === 'logs' ? 'active' : ''}
+                            >
+                                <i className="fa-solid fa-list-check"></i>
+                                <span>Meus Logs</span>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+                <div className="staff-sidebar-footer">
+                    <Link to="/mapa" className="staff-back-link">
+                        <i className="fa-solid fa-map"></i>
+                        <span>Voltar para o Mapa</span>
+                    </Link>
+                    <button onClick={handleLogout} className="staff-logout-button">
+                        <i className="fa-solid fa-right-from-bracket"></i>
+                        <span>Sair (Logout)</span>
+                    </button>
+                </div>
+            </aside>
+            <main className="staff-main-content">
+                <header className="staff-header">
+                    <h1>Portal do Funcionário</h1>
+                    <p>Gerencie suas informações e acesse as funcionalidades do Gnomon.</p>
+                </header>
+                {renderContent()}
+            </main>
         </div>
     );
 }

@@ -11,179 +11,26 @@ generator client {
 }
 
 // ==========================================
-// AUTENTICAÇÃO (Admin e Staff)
+// 1. User Accounts
 // ==========================================
-
-model Admin {
-  id       Int    @id @default(autoincrement())
-  email    String @unique
-  name     String
-  password String
-  
-  role     Role    @default(STAFF)
-  isActive Boolean @default(true)
-
-  passwordResetToken   String?
-  passwordResetExpires DateTime?
-
+model Admstaff {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  password  String   // Armazenará o hash da senha
+  role      Role     @default(STAFF)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
 
-  @@index([email])
-  @@index([passwordResetToken])
-  @@map("admins")
+  // Campos para recuperação de senha
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
+
+  @@map("admins") // The table name in the database
 }
 
 enum Role {
   ADMIN
   STAFF
-}
-
-// ==========================================
-// MAPAS E LOCAIS
-// ==========================================
-
-model Map {
-  id        Int      @id @default(autoincrement())
-  name      String
-  imageUrl  String
-  floor     Int      @default(0)
-  building  String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  locals Local[]
-
-  @@map("maps")
-}
-
-model Local {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  code        String?  @unique // Ex: "LAB-101"
-  type        LocalType @default(OTHER)
-  
-  // Coordenadas (para mapa 2D e 3D)
-  x           Float
-  y           Float
-  z           Float?   @default(0)
-  
-  // Localização
-  floor       Int      @default(0)
-  building    String?
-  
-  // Metadados
-  iconUrl     String?
-  imageUrl    String?
-  accessible  Boolean  @default(true) // Acessível para cadeirantes
-  isActive    Boolean  @default(true)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  mapId       Int
-  map         Map      @relation(fields: [mapId], references: [id], onDelete: Cascade)
-
-  @@index([mapId])
-  @@index([type])
-  @@index([code])
-  @@index([building, floor])
-  @@map("locals")
-}
-
-enum LocalType {
-  CLASSROOM     // Sala de aula
-  LABORATORY    // Laboratório
-  BATHROOM      // Banheiro
-  OFFICE        // CRA/Secretaria
-  LIBRARY       // Biblioteca
-  CAFETERIA     // Cantina
-  AUDITORIUM    // Auditório
-  ENTRANCE      // Entradas
-  STAIRS        // Escada
-  ELEVATOR      // Elevador
-  PARKING       // Estacionamento
-  OTHER         // Outro
-}
-
-// ==========================================
-// GRAFO DE NAVEGAÇÃO
-// ==========================================
-
-model GraphNode {
-  id          Int      @id @default(autoincrement())
-  name        String?  // Opcional: "Corredor A", "Bifurcação 1"
-  
-  // Coordenadas
-  x           Float
-  y           Float
-  z           Float?   @default(0)
-  floor       Int      @default(0)
-  building    String?
-  
-  // Tipo de nó
-  type        NodeType @default(WAYPOINT)
-  
-  // Relacionamento com Local (se for um ponto de interesse)
-  localId     Int?     @unique
-  
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  edgesFrom   GraphEdge[] @relation("EdgeFrom")
-  edgesTo     GraphEdge[] @relation("EdgeTo")
-
-  @@index([floor, building])
-  @@map("graph_nodes")
-}
-
-enum NodeType {
-  WAYPOINT      // Ponto de passagem
-  ENTRANCE      // Entrada
-  STAIRS        // Escada
-  ELEVATOR      // Elevador
-  INTERSECTION  // Cruzamento
-  DESTINATION   // Destino (sala, local)
-}
-
-model GraphEdge {
-  id          Int      @id @default(autoincrement())
-  
-  fromNodeId  Int
-  toNodeId    Int
-  
-  // Peso da aresta (distância em metros ou tempo em segundos)
-  weight      Float    @default(1.0)
-  
-  // Tipo de conexão
-  type        EdgeType @default(CORRIDOR)
-  
-  // Acessibilidade
-  accessible  Boolean  @default(true) // Rota acessível
-  
-  // Bidirecional (ida e volta)
-  bidirectional Boolean @default(true)
-  
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  fromNode    GraphNode @relation("EdgeFrom", fields: [fromNodeId], references: [id], onDelete: Cascade)
-  toNode      GraphNode @relation("EdgeTo", fields: [toNodeId], references: [id], onDelete: Cascade)
-
-  @@unique([fromNodeId, toNodeId])
-  @@index([fromNodeId])
-  @@index([toNodeId])
-  @@map("graph_edges")
-}
-
-enum EdgeType {
-  CORRIDOR    // Corredor
-  STAIRS      // Escada
-  ELEVATOR    // Elevador
-  OUTDOOR     // Área externa
-  DOOR        // Porta
 }

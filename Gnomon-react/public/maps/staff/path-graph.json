@@ -1,19 +1,5 @@
 {
   "nodes": [
-    { "id": "E1", "x": 470, "y": 43 },
-    { "id": "R1_CRA", "x": 523, "y": 75},
-    { "id": "R2_BANHEIRO","x": 450, "y": 394},
-    { "id": "R3_PATIO", "x": 611, "y": 496},
-    { "id": "R4_BIBLIOTECA", "x": 751, "y": 557 },
-    { "id": "R5_LABORATORIO_02", "x": 580, "y": 317},
-    { "id": "R6_AUDITORIO", "x": 322, "y": 281},
-    { "id": "R7_BANHEIRO_2", "x": 737, "y": 366 },
-    { "id": "R9_CANTINA", "x": 401, "y": 682 },
-    { "id": "E2", "x": 431, "y": 792 },
-    { "id": "R10_SECRETARIA","x": 495, "y": 202},
-    { "id": "R11_PROFESSORES","x": 443, "y": 263},
-    { "id": "R12_LABORATORIO_1","x": 542, "y": 317},
-    
     { "id": "conn_0","x": 470, "y": 43},
     { "id": "conn_1", "x": 470, "y": 82},
     { "id": "conn_2", "x": 523, "y": 81 },
@@ -61,22 +47,9 @@
     { "id": "conn_44", "x": 493, "y": 447 },
     { "id": "conn_45", "x": 471, "y": 448 },
     { "id": "conn_46", "x": 470, "y": 393 }
-  ],
+  ]
+    ,
   "edges": [
-    ["E1", "conn_0"],
-    ["R1_CRA", "conn_3"],
-    ["R2_BANHEIRO", "conn_14"],
-    ["R3_PATIO", "conn_27"],
-    ["R4_BIBLIOTECA", "conn_23"],
-    ["R5_LABORATORIO_02", "conn_18"],
-    ["R6_AUDITORIO", "conn_10"],
-    ["R7_BANHEIRO_2", "conn_21"],
-    ["R9_CANTINA", "conn_31"],
-    ["E2", "conn_34"],
-    ["R10_SECRETARIA", "conn_5"],
-    ["R11_PROFESSORES", "conn_7"],
-    ["R12_LABORATORIO_1", "conn_16"],
-
     ["conn_0", "conn_1"],
     ["conn_1", "conn_2"],
     ["conn_3", "conn_2"],
@@ -144,112 +117,5 @@
     ["conn_13", "conn_46"],
     ["conn_44", "conn_25"],
     ["conn_25", "conn_44"]
-  ],
-  "pois": [
-    {
-      "id": "entrada_1",
-      "label": "Entrada 1",
-      "nodeId": "E1",
-      "type": "entrance",
-      "category": "entrance",
-      "photoUrl": "/places/entrada1.jpg"
-    },
-    {
-      "id": "ref_cra",
-      "label": "CRA",
-      "nodeId": "R1_CRA",
-      "type": "destination",
-      "category": "office",
-      "photoUrl": "/places/cra.jpg"
-    },
-    {
-      "id": "ref_banheiro_1",
-      "label": "Banheiro",
-      "nodeId": "R2_BANHEIRO",
-      "type": "destination",
-      "category": "bathroom",
-      "photoUrl": "/places/banheiro.jpg"
-    },
-    {
-      "id": "ref_patio",
-      "label": "Pátio",
-      "nodeId": "R3_PATIO",
-      "type": "destination",
-      "category": "patio",
-      "photoUrl": "/places/patio.jpg"
-    },
-    {
-      "id": "ref_biblioteca",
-      "label": "Biblioteca",
-      "nodeId": "R4_BIBLIOTECA",
-      "type": "destination",
-      "category": "library",
-      "photoUrl": "/places/biblioteca.jpg"
-    },
-    {
-      "id": "ref_laboratorio_02",
-      "label": "Laboratório 02",
-      "nodeId": "R5_LABORATORIO_02",
-      "type": "destination",
-      "category": "lab",
-      "photoUrl": "/places/laboratorios.jpg"
-    },
-    {
-      "id": "ref_laboratorio_01",
-      "label": "Laboratório 1",
-      "nodeId": "R12_LABORATORIO_1",
-      "type": "destination",
-      "category": "lab",
-      "photoUrl": "/places/laboratorios.jpg"
-    },
-    {
-      "id": "ref_auditorio",
-      "label": "Auditório",
-      "nodeId": "R6_AUDITORIO",
-      "type": "destination",
-      "category": "auditorium",
-      "photoUrl": "/places/auditorio.jpg"
-    },
-    {
-      "id": "ref_banheiro_2",
-      "label": "Banheiro 2",
-      "nodeId": "R7_BANHEIRO_2",
-      "type": "destination",
-      "category": "bathroom",
-      "photoUrl": "/places/banheiro2.jpg"
-    }
-    ,
-    {
-      "id": "ref_cantina",
-      "label": "Cantina",
-      "nodeId": "R9_CANTINA",
-      "type": "destination",
-      "category": "canteen",
-      "photoUrl": "/places/cantina.png"
-    },
-    {
-      "id": "entrada_2",
-      "label": "Entrada 2",
-      "nodeId": "E2",
-      "type": "entrance",
-      "category": "entrance",
-      "photoUrl": "/places/entrada2.jpeg"
-    },
-    {
-      "id": "ref_secretaria",
-      "label": "Secretaria",
-      "nodeId": "R10_SECRETARIA",
-      "type": "destination",
-      "category": "office",
-      "photoUrl": "/places/secretaria.jpeg"
-    },
-    {
-      "id": "ref_professores",
-      "label": "Sala dos Professores",
-      "nodeId": "R11_PROFESSORES",
-      "type": "destination",
-      "category": "staff_room",
-      "photoUrl": "/places/professores.jpeg"
-    }
   ]
 }
