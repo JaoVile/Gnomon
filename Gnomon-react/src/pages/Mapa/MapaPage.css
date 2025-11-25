@@ -74,6 +74,22 @@
     height: 100%;
     width: 100%;
   }
+  position: relative; /* Essencial para que os filhos absolutos se posicionem corretamente */
+  overflow: hidden; /* Garante que nada vaze */
+}
+
+/* Nova área para renderizar o mapa, que ficará por baixo da UI */
+.map-render-area {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* Fica na camada mais baixa dentro do #map-container */
+}
+
+.map-render-area > div {
+  height: 100%;
+  width: 100%;
 }
 
 /* Garante que os filhos diretos (Toast, etc) fiquem acima do mapa */
@@ -83,10 +99,10 @@
 
 /* --- Novo Contêiner da UI no Canto Superior Esquerdo --- */
 .top-left-ui-container {
-  position: absolute;
-  top: calc(var(--header-height, 60px) + 2%);
+  position: absolute; /* Agora se posiciona relativo ao #map-container */
+  top: 1%; /* Distância de 2% do topo do mapa */
   left: 1%;
-  z-index: 15;
+  z-index: 2; /* Fica acima do .map-render-area */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -97,7 +113,8 @@
 
 /* --- Compact Route Display --- */
 .compact-route-display {
-  background: rgba(from var(--card-background) r g b / 0.6); /* Opacidade ajustada para "flutuar" */
+  background-color: var(--card-background); /* Fundo sólido que se adapta ao tema */
+  color: var(--text); /* Cor do texto que se adapta ao tema */
   border: 1px solid var(--border-color);
   border-radius: 10px; /* Ligeiramente menor */
   padding: 8px 12px; /* Reduzido */
@@ -302,7 +319,6 @@
   }
 
   .top-left-ui-container {
-    top: calc(var(--header-height) + 1%);
     left: 1%;
     right: 1%; /* Ocupa a largura toda com margens */
     max-width: calc(100% - 20px);
@@ -580,59 +596,6 @@
   margin-top: 20%; /* Adicionado para criar espaço */
 }
 
-.route-finder h2 {
-  font-size: 2.3rem; /* Increased by 15% */
-  margin-bottom: 0.5rem; /* Adjusted to move up */
-  margin-top: -0.5rem; /* Adjusted to move up */
-  color: var(--text-secondary);
-}
-
-.route-step {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.route-step-marker {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.3s ease;
-}
-
-.route-step-marker.pending {
-  background-color: var(--background-interactive);
-  color: var(--text-secondary);
-  border: 2px solid var(--border-color);
-}
-
-.route-step-marker.complete {
-  background-color: var(--success);
-  color: white;
-  border: 2px solid var(--success);
-}
-
-.route-step-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.route-step-label {
-  font-size: 0.8rem;
-  color: var(--text-tertiary);
-  font-weight: 500;
-}
-
-.route-step-value {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
 .route-step-connector {
   height: 20px;
   width: 2px;
@@ -746,4 +709,54 @@
 
 .route-finder .search-result-item i {
   color: var(--text-tertiary);
+}
+
+/* --- Otimização e Estilo do Bottom Sheet --- */
+
+/* Remove o botão 'X' vermelho que não está mais em uso */
+.bottom-sheet-container .close-button {
+  display: none;
+}
+
+/* --- Estilos para o Puxador do Bottom Sheet --- */
+.bottom-sheet-header {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  position: relative; /* Necessário para o novo ícone de fechar */
+  cursor: grab;
+}
+
+/* Adiciona um ícone de chevron para fechar quando o painel está aberto */
+.bottom-sheet-container.open .bottom-sheet-header::after {
+  content: '\f078'; /* Código do ícone 'chevron-down' do Font Awesome */
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  left: 50%; /* Centraliza horizontalmente */
+  top: 50%;
+  transform: translate(-50%, -50%); /* Ajuste para centralização exata */
+  color: var(--text-secondary);
+  font-size: 1.2rem; /* Aumenta o tamanho do ícone */
+  animation: pulse-blue-glow 2s infinite ease-in-out; /* Reutiliza a animação de pulso */
+}
+
+.drag-handle {
+  width: 40px;
+  height: 5px;
+  background-color: var(--border-strong);
+  border-radius: 2.5px;
+  margin: 0 auto;
+  /* Animação de pulso para indicar interatividade */
+  animation: pulse-handle 2s infinite ease-in-out;
+}
+
+@keyframes pulse-handle {
+  0%, 100% {
+    background-color: var(--border-strong);
+    box-shadow: none;
+  }
+  50% {
+    background-color: var(--primary);
+    box-shadow: 0 0 8px 0px var(--primary);
+  }
 }

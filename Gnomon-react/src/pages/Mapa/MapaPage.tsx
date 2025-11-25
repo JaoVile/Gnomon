@@ -21,6 +21,7 @@ import { StagedPointsPanel, type StagedPoint } from '../../components/StagedPoin
 import { ThemeSwitcher } from '../../components/Theme/ThemeSwitcher';
 import { BottomSheet } from '../../components/BottomSheet/BottomSheet';
 import './MapaPage.css';
+import Tutorial from '../../components/Tutorial/Tutorial';
 
 const ParticlesBackground = lazy(() => 
   import('../../components/Particles/ParticlesBackground').then(module => ({
@@ -45,6 +46,12 @@ const HISTORY_STORAGE_KEY = 'gnomon_route_history';
 const FAVORITES_STORAGE_KEY = 'gnomon_favorite_routes';
 
 export function MapaPage() {
+  const [showTutorial, setShowTutorial] = useState(() => {
+    // Verifica no localStorage se o tutorial já foi dispensado antes
+    return !localStorage.getItem('gnomon_tutorial_dismissed');
+  });
+  const [tutorialJustClosed, setTutorialJustClosed] = useState(false);
+
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isFavoritosOpen, setIsFavoritosOpen] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false); // Estado para o BottomSheet
@@ -67,7 +74,7 @@ export function MapaPage() {
 
   const [originId, setOriginId] = useState<string | null>(null);
   const [originLabel, setOriginLabel] = useState<string | null>(null);
-  const [path, setPath] = useState<Node2D[] | null>(null);
+  const [path, setPath] = useState<Node2D[] | undefined>(undefined);
   const [destinationPoi, setDestinationPoi] = useState<Poi | null>(null);
   const [turnInstructions, setTurnInstructions] = useState<TurnInstruction[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -153,6 +160,21 @@ export function MapaPage() {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
+
+  const handleCloseTutorial = (dontShowAgain: boolean) => {
+    setShowTutorial(false); // Esconde o tutorial
+    if (dontShowAgain) {
+      setTutorialJustClosed(true); // Ativa o gatilho para reiniciar a animação
+      // Salva no localStorage para não mostrar mais
+      localStorage.setItem('gnomon_tutorial_dismissed', 'true');
+
+      // IMPORTANTE: Reseta o gatilho logo após o uso para garantir que ele funcione
+      // como um evento único a cada vez que o tutorial é fechado.
+      setTimeout(() => {
+        setTutorialJustClosed(false);
+      }, 100);
+    }
+  };
 
   // --- LÓGICA DO EDITOR DE MAPA ---
   const handleMapClick = (coords: { x: number; y: number }) => {
@@ -269,7 +291,7 @@ export function MapaPage() {
     if (isEditMode) return;
     setOriginId(nodeId);
     setOriginLabel(label || null);
-    setPath(null);
+    setPath(undefined);
     setDestinationPoi(null);
     // setToast({ message: `📍 Ponto de partida: ${label || 'Local marcado'}`, type: 'success' });
   };
@@ -315,7 +337,7 @@ export function MapaPage() {
   const clearOrigin = () => {
     setOriginId(null);
     setOriginLabel(null);
-    setPath(null);
+    setPath(undefined);
     setDestinationPoi(null);
     setTurnInstructions([]);
   };
@@ -335,6 +357,8 @@ export function MapaPage() {
 
   return (
     <div id="map-app-container">
+      {showTutorial && <Tutorial onClose={handleCloseTutorial} />}
+
       <header className="top-bar">
         <div className="container">
           <Link to="/" className="logo-container">
@@ -376,56 +400,6 @@ export function MapaPage() {
       />
 
       <main className={`content-area ${isEditMode ? 'edit-mode-active' : ''}`}>
-        <div className="top-left-ui-container">
-          {toast && (
-            <Toast
-              message={toast.message}
-              type={toast.type}
-              onClose={() => setToast(null)}
-            />
-          )}
-
-          <div className="compact-route-display">
-            <div className="route-step">
-              <div className={`route-step-marker ${originId ? 'complete' : 'pending'}`}>
-                <i className={`fa-solid ${originId ? 'fa-check' : 'fa-location-dot'}`}></i>
-              </div>
-              <div className="route-step-info">
-                <span className="route-step-label">Origem</span>
-                <span className="route-step-value">
-                  {originLabel || 'Selecione seu local'}
-                </span>
-              </div>
-            </div>
-
-            {path && destinationPoi && (
-              <>
-                <div className="route-step-connector"></div>
-                <div className="route-step">
-                  <div className="route-step-marker complete">
-                    <i className="fa-solid fa-map-pin"></i>
-                  </div>
-                  <div className="route-step-info">
-                    <span className="route-step-label">Destino</span>
-                    <span className="route-step-value">{destinationPoi.label}</span>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {path && destinationPoi && (
-            <div className="floating-button-wrapper">
-              <button onClick={addRouteToFavorites} className="floating-action-button favorite-route-btn" title="Adicionar rota aos favoritos">
-                <i className="fa-regular fa-star"></i>
-              </button>
-              <button onClick={clearOrigin} className="floating-action-button clear-route-main-btn" title="Limpar Rota">
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-          )}
-        </div>
-
         <div className="floating-buttons-container">
         </div>
 
@@ -470,52 +444,111 @@ export function MapaPage() {
             instructions={turnInstructions}
             onClose={() => {
               setTurnInstructions([]);
-              setPath(null);
+              setPath(undefined);
             }}
           />
         )}
         
         <div id="map-container">
-          {mapLoading && <div className="map-loading-overlay">Carregando mapa...</div>}
-          {mapError && <div className="map-loading-overlay error">Erro ao carregar o mapa: {mapError}</div>}
-          {!mapLoading && !mapError && mode === '3d' ? (
-            <Campus3D url="/models/Campus.glb" topDown={topDown} />
-          ) : (
-            <Map2D
-              mapData={mapData}
-              mapImageUrl={imageUrl}
-              strokeColor={routePrimary}
-              path={path}
-              originId={originId}
-              destinationPoi={destinationPoi}
-              onSelectOrigin={handleSelectOrigin}
-              onRouteCalculated={handleRouteCalculated}
-              initialZoomMultiplier={isMobile ? 1.5 : 1.2}
-              animationOptions={isMobile 
-                ? { routeAnimationDuration: 500, showHintAnimations: true } 
-                : {}}
-              destinationToRoute={destinationTrigger}
-              onDestinationRouted={() => setDestinationTrigger(null)}
-              focusOnPoi={focusOnPoi}
-              onFocusDone={() => setFocusOnPoi(null)}
-              onPanStart={() => setIsSheetOpen(false)}
-              isEditMode={isEditMode}
-              editTool={editTool}
-              onMapClick={handleMapClick}
-              onCursorMove={setCursorCoords}
-              isBottomSheetOpen={isSheetOpen} // Passa o estado do BottomSheet
-              bottomSheetPeekHeight={sheetPeekHeight} // Passa a altura do peek
-            />
+          {/* UI que precisa ficar sobre o mapa foi movida para cá */}
+          <div className="top-left-ui-container">
+            {toast && (
+              <Toast
+                message={toast.message}
+                type={toast.type}
+                onClose={() => setToast(null)}
+              />
+            )}
+
+            <div className="compact-route-display">
+              <div className="route-step">
+                <div className={`route-step-marker ${originId ? 'complete' : 'pending'}`}>
+                  <i className={`fa-solid ${originId ? 'fa-check' : 'fa-location-dot'}`}></i>
+                </div>
+                <div className="route-step-info">
+                  <span className="route-step-label">Origem</span>
+                  <span className="route-step-value">
+                    {originLabel || 'Selecione seu local'}
+                  </span>
+                </div>
+              </div>
+
+              {path && destinationPoi && (
+                <>
+                  <div className="route-step-connector"></div>
+                  <div className="route-step">
+                    <div className="route-step-marker complete">
+                      <i className="fa-solid fa-map-pin"></i>
+                    </div>
+                    <div className="route-step-info">
+                      <span className="route-step-label">Destino</span>
+                      <span className="route-step-value">{destinationPoi.label}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {path && destinationPoi && (
+              <div className="floating-button-wrapper">
+                <button onClick={addRouteToFavorites} className="floating-action-button favorite-route-btn" title="Adicionar rota aos favoritos">
+                  <i className="fa-regular fa-star"></i>
+                </button>
+                <button onClick={clearOrigin} className="floating-action-button clear-route-main-btn" title="Limpar Rota">
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* O Mapa em si */}
+          {!showTutorial && (
+            <div className="map-render-area">
+              {mapLoading && <div className="map-loading-overlay">Carregando mapa...</div>}
+              {mapError && <div className="map-loading-overlay error">Erro ao carregar o mapa: {mapError}</div>}
+              {!mapLoading && !mapError && mode === '3d' ? (
+                <Campus3D url="/models/Campus.glb" topDown={topDown} />
+              ) : (
+                <Map2D
+                  mapData={mapData}
+                  mapImageUrl={imageUrl}
+                  strokeColor={routePrimary}
+                  path={path}
+                  originId={originId}
+                  destinationPoi={destinationPoi}
+                  onSelectOrigin={handleSelectOrigin}
+                  onRouteCalculated={handleRouteCalculated}
+                  initialZoomMultiplier={isMobile ? 1.5 : 1.2}
+                  animationOptions={isMobile 
+                    ? { routeAnimationDuration: 500, showHintAnimations: true } 
+                    : {}}
+                  destinationToRoute={destinationTrigger}
+                  onDestinationRouted={() => setDestinationTrigger(null)}
+                  focusOnPoi={focusOnPoi}
+                  onFocusDone={() => setFocusOnPoi(null)}
+                  onPanStart={() => setIsSheetOpen(false)}
+                  isEditMode={isEditMode}
+                  editTool={editTool}
+                  onMapClick={handleMapClick}
+                  onCursorMove={setCursorCoords}
+                  isBottomSheetOpen={isSheetOpen}
+                  bottomSheetPeekHeight={sheetPeekHeight}
+                  onShowTutorial={() => setShowTutorial(true)}
+                  tutorialJustClosed={tutorialJustClosed}
+                />
+              )}
+            </div>
           )}
         </div>
       </main>
 
-      <BottomSheet 
-        isOpen={isSheetOpen} 
-        onClose={() => setIsSheetOpen(false)}
-        onOpen={() => setIsSheetOpen(true)}
-      >
-        <div className="route-finder">
+      {!showTutorial && (
+        <BottomSheet 
+          isOpen={isSheetOpen} 
+          onClose={() => setIsSheetOpen(false)}
+          onOpen={() => setIsSheetOpen(true)}
+        >
+          <div className="route-finder">
           <div className="search-input-container">
             <div className="input-wrapper">
               <i className="fas fa-search search-icon"></i>
@@ -523,7 +556,7 @@ export function MapaPage() {
                 type="text"
                 placeholder="Para onde vamos?"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
                 onFocus={() => setIsSheetOpen(true)} // Abre o sheet ao focar
               />
             </div>
@@ -572,8 +605,8 @@ export function MapaPage() {
             </button>
           ))}
         </nav>
-      </BottomSheet>
+        </BottomSheet>
+      )}
     </div>
   );
 }
-

@@ -37,7 +37,7 @@ export const loginUser = async (req: Request, res: Response): Promise<Response> 
   try {
     const { email, password } = loginSchema.parse(req.body);
 
-    const admin = await prisma.admin.findUnique({ where: { email } });
+    const admin = await prisma.admstaff.findUnique({ where: { email } });
     
     if (!admin || !admin.isActive) {
       return res.status(401).json({ message: 'E-mail ou senha inválidos.' });
@@ -76,7 +76,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<Respo
   try {
     const { email } = forgotPasswordSchema.parse(req.body);
 
-    const admin = await prisma.admin.findUnique({ where: { email } });
+    const admin = await prisma.admstaff.findUnique({ where: { email } });
 
     const genericMessage = {
       message: 'Se um usuário com este e-mail existir, um link de recuperação foi enviado.',
@@ -91,7 +91,7 @@ export const forgotPassword = async (req: Request, res: Response): Promise<Respo
     const ttlMin = Number(process.env.PASSWORD_RESET_EXPIRES_MINUTES ?? 30);
     const expires = new Date(Date.now() + ttlMin * 60 * 1000);
 
-    await prisma.admin.update({
+    await prisma.admstaff.update({
       where: { id: admin.id },
       data: {
         passwordResetToken: tokenHash,
@@ -154,7 +154,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<Respon
 
     const tokenHash = createHash('sha256').update(token.trim()).digest('hex');
 
-    const admin = await prisma.admin.findFirst({
+    const admin = await prisma.admstaff.findFirst({
       where: {
         email,
         passwordResetToken: tokenHash,
@@ -170,7 +170,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<Respon
     const rounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 10);
     const hashedPassword = await bcrypt.hash(password, rounds);
 
-    await prisma.admin.update({
+    await prisma.admstaff.update({
       where: { id: admin.id },
       data: {
         password: hashedPassword,
@@ -196,7 +196,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<R
       return res.status(401).json({ message: 'Não autorizado.' });
     }
     
-      const admin = await prisma.admin.findUnique({
+      const admin = await prisma.admstaff.findUnique({
         where: { id: userId },
         select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
       });
@@ -227,7 +227,7 @@ export const registerStaff = async (req: AuthRequest, res: Response): Promise<Re
     }
 
     // Check if user already exists
-    const existingAdmin = await prisma.admin.findUnique({ where: { email } });
+    const existingAdmin = await prisma.admstaff.findUnique({ where: { email } });
     if (existingAdmin) {
       return res.status(409).json({ message: 'Já existe um funcionário com este e-mail.' });
     }
@@ -235,7 +235,7 @@ export const registerStaff = async (req: AuthRequest, res: Response): Promise<Re
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newStaff = await prisma.admin.create({
+    const newStaff = await prisma.admstaff.create({
       data: {
         name,
         email,

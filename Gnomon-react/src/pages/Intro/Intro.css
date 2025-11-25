@@ -25,7 +25,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.3; /* Unificado com desktop para melhor visibilidade */
+  opacity: 0.6; /* Unificado com desktop para melhor visibilidade */
 }
 
 /* Overlay unificado com desktop */
@@ -41,6 +41,7 @@
   z-index: 1;
   overflow: hidden;
   pointer-events: none;
+  display: none; /* Remove as bolhas flutuantes do fundo */
 }
 
 /* ✅ Mobile: shapes menores e menos blur */
@@ -97,16 +98,17 @@
 }
 
 .hero-title {
-  font-size: clamp(1.8rem, 10vw, 5rem); /* ✅ Base menor */
+  font-size: clamp(0.9rem, 20vw, 5rem); /* ✅ Base menor */
   font-weight: 800;
   line-height: 1.15; /* ✅ Line-height ajustado */
   margin: 0 0 16px 0;
   letter-spacing: -0.02em;
+  color: var(--text-dark);
 }
 
 .gradient-text {
   display: block;
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  background: linear-gradient(135deg, #0084ff 0%, #270081 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -115,13 +117,21 @@
 }
 
 .hero-subtitle {
-  font-size: clamp(0.95rem, 4vw, 1.4rem); /* ✅ Base menor */
+  font-size: clamp(0.9rem, 2vw, 1.4rem); /* ✅ Base menor */
   line-height: 1.5; /* ✅ Line-height menor */
   max-width: 100%; /* ✅ Full width em mobile */
-  margin: 0 auto 30px; /* ✅ Margin menor */
+  margin: 0 auto 0 0px; /* ✅ Margin menor */
   opacity: 0.95;
   font-weight: 400;
-  padding: 0 8px; /* ✅ Padding lateral */
+  padding: 0 0px; /* ✅ Padding lateral */
+}
+.hero-title_2 {
+  font-size: clamp(1rem, 10vw, 5rem); /* ✅ Base menor */
+  font-weight: 800;
+  line-height: 1.15; /* ✅ Line-height ajustado */
+  margin: 0 0 16px 0;
+  letter-spacing: -0.02em;
+  color: var(--text-dark);
 }
 
 .hero-cta-group {
@@ -129,6 +139,7 @@
   flex-direction: column; /* ✅ Column em mobile */
   gap: 12px; /* ✅ Gap menor */
   align-items: stretch; /* ✅ Full width buttons */
+  margin-top: 40px;
   margin-bottom: 40px; /* ✅ Margin menor */
   padding: 0 16px; /* ✅ Padding lateral */
 }
@@ -298,6 +309,10 @@
   transition: all 0.2s ease;
   opacity: 0;
   border: 1px solid var(--border-color);
+  display: flex; /* Adiciona flexbox */
+  flex-direction: column; /* Organiza os itens em coluna */
+  align-items: center; /* Centraliza os itens horizontalmente */
+  text-align: center; /* Centraliza o texto dentro dos parágrafos e títulos */
 }
 
 .features-section.is-visible .feature-card {
@@ -311,15 +326,15 @@
 }
 
 .feature-icon-wrapper {
-  width: 56px; /* ✅ Ícone menor */
-  height: 56px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
-  border-radius: var(--radius-sm);
+  width: 64px; /* Tamanho fixo para ser um círculo perfeito */
+  height: 64px; /* Tamanho fixo para ser um círculo perfeito */
+  background: linear-gradient(300deg, var(--primary) 0%, var(--info) 100%);
+  border-radius: 50%; /* Transforma em um círculo */
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.8rem; /* Ícone um pouco maior para preencher o círculo */
   margin-bottom: 16px;
   transition: all 0.2s ease;
 }
@@ -581,6 +596,15 @@
 
 .about-text .section-badge {
   margin-bottom: 12px;
+}
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px; /* Ensure consistent gap */
+  padding: 6px 16px; /* Ensure consistent padding */
+  border-radius: var(--radius-full); /* Ensure consistent border-radius */
+  font-weight: 600; /* Ensure consistent font-weight */
 }
 
 #about-project .section-header {

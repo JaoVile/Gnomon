@@ -17,15 +17,15 @@ model Admstaff {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String
-  password  String
+  password  String   // Armazenará o hash da senha
   role      Role     @default(STAFF)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   isActive  Boolean  @default(true)
 
-  // Relations
-  favorites UserFavorite[]
-  history   RouteHistory[]
+  // Campos para recuperação de senha
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
 
   @@map("admins") // The table name in the database
 }
@@ -33,158 +33,4 @@ model Admstaff {
 enum Role {
   ADMIN
   STAFF
-}
-
-// ==========================================
-// 2. Maps & Points of Interest
-// ==========================================
-model Map {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  imageUrl  String
-  floor     Int      @default(0)
-  building  String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  locals    Local[]
-  graphNodes GraphNode[]
-
-  @@map("maps")
-}
-
-model Local {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String?
-  code        String?   @unique
-  type        LocalType // A category from the list below
-  x           Float
-  y           Float
-  z           Float?    @default(0)
-  floor       Int       @default(0)
-  building    String?
-  iconUrl     String?
-  imageUrl    String?
-  accessible  Boolean   @default(true)
-  isActive    Boolean   @default(true)
-  
-  // Relations
-  mapId       Int
-  map         Map       @relation(fields: [mapId], references: [id])
-  graphNode   GraphNode?
-
-  @@map("locals")
-}
-
-// Enum based on the categories from your nodes.json
-enum LocalType {
-  ENTRANCE
-  OFFICE
-  BATHROOM
-  PATIO
-  LIBRARY
-  LAB
-  AUDITORIUM
-  CANTEEN
-  STAFF_ROOM
-  CLASSROOM
-  LABORATORY
-  CAFETERIA
-  STAIRS
-  ELEVATOR
-  PARKING
-  OTHER
-}
-
-enum NodeType {
-  WAYPOINT
-  ENTRANCE
-  STAIRS
-  ELEVATOR
-  INTERSECTION
-  DESTINATION
-}
-
-// ==========================================
-// 3. Navigation Graph (Replaces JSON files)
-// ==========================================
-model GraphNode {
-  id        Int    @id @default(autoincrement())
-  name      String?
-  x         Float
-  y         Float
-  z         Float? @default(0)
-  floor     Int    @default(0)
-  building  String?
-  type      NodeType @default(WAYPOINT)
-  isActive  Boolean @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  // Relations
-  mapId     Int?
-  map       Map?    @relation(fields: [mapId], references: [id])
-  localId   Int?   @unique
-  local     Local? @relation(fields: [localId], references: [id])
-  edgesFrom GraphEdge[] @relation("EdgeFrom")
-  edgesTo   GraphEdge[] @relation("EdgeTo")
-
-  @@map("graph_nodes")
-}
-
-model GraphEdge {
-  id         Int     @id @default(autoincrement())
-  weight     Float   @default(1.0)
-  type       EdgeType @default(CORRIDOR)
-  accessible Boolean @default(true)
-  bidirectional Boolean @default(true)
-  isActive   Boolean @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  
-  // Relations
-  fromNodeId Int
-  fromNode   GraphNode @relation("EdgeFrom", fields: [fromNodeId], references: [id])
-  toNodeId   Int
-  toNode     GraphNode @relation("EdgeTo", fields: [toNodeId], references: [id])
-
-  @@unique([fromNodeId, toNodeId])
-  @@map("graph_edges")
-}
-
-enum EdgeType {
-  CORRIDOR
-  STAIRS
-  ELEVATOR
-  OUTDOOR
-  DOOR
-}
-
-// ==========================================
-// 4. USER-SPECIFIC DATA (Optional but Recommended)
-// ==========================================
-model UserFavorite {
-  id         Int      @id @default(autoincrement())
-  name       String
-  userId     Int
-  user       Admstaff @relation(fields: [userId], references: [id])
-  fromNodeId Int
-  toNodeId   Int
-  createdAt  DateTime @default(now())
-  
-  @@map("user_favorites")
-}
-
-model RouteHistory {
-  id         Int      @id @default(autoincrement())
-  userId     Int
-  user       Admstaff @relation(fields: [userId], references: [id])
-  fromNodeId Int
-  toNodeId   Int
-  createdAt  DateTime @default(now())
-
-  @@map("route_history")
 }

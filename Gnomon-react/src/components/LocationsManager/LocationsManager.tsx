@@ -1,5 +1,4 @@
 // src/components/LocationsManager/LocationsManager.tsx
-import React from 'react';
 import './LocationsManager.css';
 
 // Define the type for a single location based on the backend controller

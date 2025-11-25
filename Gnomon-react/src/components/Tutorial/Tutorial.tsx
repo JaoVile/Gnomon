@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './Tutorial.css';
 import gnomonLogo from '/Gnomon_Sem_Nome_Icon.png'; // Importando o logo
 
@@ -9,6 +9,16 @@ interface TutorialProps {
 const Tutorial: React.FC<TutorialProps> = ({ onClose }) => {
   const [step, setStep] = useState(1);
   const [dontShowAgain, setDontShowAgain] = useState(false);
+  const tutorialBoxRef = useRef<HTMLDivElement>(null);
+
+  // Efeito para rolar para o topo sempre que a etapa (step) mudar
+  useEffect(() => {
+    if (tutorialBoxRef.current) {
+      // Reseta a posição da barra de rolagem para o topo
+      tutorialBoxRef.current.scrollTop = 0;
+    }
+  }, [step]); // O array de dependências garante que isso rode apenas quando 'step' mudar
+
 
   const handleNext = () => {
     if (step < 3) {
@@ -32,150 +42,223 @@ const Tutorial: React.FC<TutorialProps> = ({ onClose }) => {
     switch (step) {
       case 1:
         return (
-          <>
-            <img src={gnomonLogo} alt="Gnomon Logo" className="tutorial-logo" />
+          <div className="step-welcome-container">
+            <div className="logo-animation-wrapper">
+              {/* Círculos de "Radar" que pulsam atrás do logo */}
+              <div className="radar-pulse ring-1"></div>
+              <div className="radar-pulse ring-2"></div>
+              <div className="radar-pulse ring-3"></div>
+              
+              {/* Seu Logo flutuando */}
+              <img src={gnomonLogo} alt="Gnomon Logo" className="tutorial-logo floating-logo" />
+            </div>
+
             <h2>Bem-vindo ao Gnomon!</h2>
-            <p>Este é um aplicativo em <strong>versão beta</strong> e está em contínuo desenvolvimento. Sua ajuda é fundamental para aprimorarmos sua experiência.</p>
-          </>
+            <p>
+              Este é um aplicativo em <strong>versão beta</strong> e está em contínuo desenvolvimento.
+              <br />
+              Sua ajuda é fundamental para aprimorarmos sua experiência.
+            </p>
+          </div>
         );
       case 2:
         return (
-          <>
+          <div className="step-container">
             <h2>Como Navegar</h2>
-            <p>Siga estes passos para encontrar seu caminho no campus de forma fácil e rápida.</p>
+            <p>Siga estes passos para encontrar seu caminho.</p>
+            
             <div className="tutorial-features-grid step2">
-              {/* Card 1 */}
-              <div className="tutorial-feature-card">
+              
+              {/* Card 1: Pins (Com animação de pulo) */}
+              <div className="tutorial-feature-card stagger-1">
                 <div className="feature-card-icon-group">
-                  <i className="feature-card-icon entry-point fa-solid fa-location-dot"></i>
-                  <i className="feature-card-icon warning-point fa-solid fa-location-dot"></i>
+                  <i className="feature-card-icon entry-point fa-solid fa-location-dot animate-bounce-soft" style={{animationDelay: '0s'}}></i>
+                  <i className="feature-card-icon place-point fa-solid fa-location-dot animate-bounce-soft" style={{animationDelay: '0.4s', color: '#FFD700'}}></i>
                 </div>
-                <div className="feature-card-label">1. Explore os pins vermelhos (entradas) e amarelos (locais).</div>
-              </div>
-              {/* Card 2 */}
-              <div className="tutorial-feature-card">
-                <div className="feature-card-icon-group">
-                  <div className="mini-popup-button"><i className="fa-solid fa-location-dot"></i> Estou aqui</div>
-                  <div className="mini-popup-button primary"><i className="fa-solid fa-route"></i> Ir para cá</div>
+                <div className="feature-card-label">
+                  <strong>1. Explore</strong>
+                  <span>Toque nos ícones do mapa para ver detalhes.</span>
                 </div>
-                <div className="feature-card-label">2. Clique neles para definir sua origem ou destino.</div>
               </div>
-              {/* Card 3 */}
-              <div className="tutorial-feature-card">
-                <i className="feature-card-icon destination-point fa-solid fa-location-dot"></i>
-                <div className="feature-card-label">3. Sua localização foi marcada. Agora, escolha um destino.</div>
+
+              {/* Card 2: Ações (Botão pulsando) */}
+              <div className="tutorial-feature-card stagger-2 center-content">
+                <div className="feature-card-icon-group column-group">
+                  <div className="mini-popup-button static">
+                    <i className="fa-solid fa-location-dot"></i> Estou aqui
+                  </div>
+                  {/* Ícone animado movido para fora e centralizado pelo column-group */}
+                  <i className="feature-card-icon destination-point fa-solid fa-location-dot drop-in-pin"></i>
+                  <div className="feature-card-label">
+                    <strong>2. Defina</strong>
+                    <span>Escolha seu local de origem.</span>
+                  </div>
+                </div>
               </div>
-              {/* Card 4 */}
-              <div className="tutorial-feature-card">
+
+              {/* Card 3: Seleção (Foco) */}
+              <div className="tutorial-feature-card stagger-3 center-content">
+                   <div className="selection-circle"></div>
+             
+                <div className="mini-popup-button primary animate-pulse-gentle">
+                  <i className="fa-solid fa-route"></i> Ir para cá
+                </div>
+                <div className="feature-card-label">
+                  <strong>3. Escolha</strong>
+                  <span>Escolha seu destino entre os pontos.</span>
+                </div>
+              </div>
+
+              {/* Card 4: Rota (Animação refinada) */}
+              <div className="tutorial-feature-card stagger-4">
                 <div className="route-animation-container-v2">
-                  <i className="feature-card-icon destination-point fa-solid fa-location-dot"></i>
-                  <svg className="animated-route-svg" viewBox="0 0 100 40">
-                    <path className="animated-route-path" d="M10 20 C 40 0, 60 40, 90 20" />
+                  {/* Pin Origem */}
+                  <i className="feature-card-icon start-point fa-solid fa-circle-dot" style={{fontSize: '0.8rem', color: 'var(--text-secondary)'}}></i>
+                  
+                  {/* Linha SVG */}
+                  <svg className="animated-route-svg" viewBox="0 0 100 40" preserveAspectRatio="none">
+                    <path className="animated-route-path" d="M5 20 Q 50 5, 95 20" vectorEffect="non-scaling-stroke"/>
                   </svg>
+                  
+                  {/* Pin Destino (Verde) */}
                   <i className="feature-card-icon final-destination-point fa-solid fa-location-dot"></i>
                 </div>
-                <div className="feature-card-label">4. Pronto! Siga o caminho traçado para você.</div>
+                
+                <div className="feature-card-label">
+                  <strong>4. Navegue</strong>
+                  <span>Siga a linha traçada até seu objetivo.</span>
+                </div>
               </div>
+
             </div>
-          </>
+          </div>
         );
+      // ... dentro do switch(step)
       case 3:
-        const exampleInitialItems = [
-          { type: 'icon', value: 'fa-location-dot', label: 'Ponto de Entrada' },
-          { type: 'icon', value: 'fa-map-pin', label: 'Ponto de Referência' },
-        ];
-
-        const exampleLocationItems = [
-          { type: 'color', value: '#FFB3BA', label: 'Auditório' },
-          { type: 'color', value: '#00FFFF', label: 'Laboratórios' },
-          { type: 'color', value: '#f0e68dff', label: 'Salas' },
-        ];
-
         return (
-          <>
-            <h2>Passo 3: Explore e Navegue</h2>
+          <div className="step-container">
+            <h2>Explore e Navegue</h2>
+            
             <div className="tutorial-features-grid step3">
 
-              {/* Card 1: Rota Compacta */}
-              <div className="tutorial-feature-card">
-                <div className="compact-route-display">
+              {/* Card 1: Rota Compacta (Versão Mini) */}
+              <div className="tutorial-feature-card stagger-1">
+                <div className="compact-route-display mini">
                   <div className="route-step">
-                    <div className="route-step-marker complete"><i className="fa-solid fa-check"></i></div>
+                    <div className="route-step-marker complete small"><i className="fa-solid fa-check"></i></div>
                     <div className="route-step-info">
                       <span className="route-step-label">Origem</span>
                       <span className="route-step-value">Entrada 1</span>
                     </div>
                   </div>
-                  <div className="route-step-connector"></div>
+                  <div className="route-step-connector small"></div>
                   <div className="route-step">
-                    <div className="route-step-marker complete"><i className="fa-solid fa-map-pin"></i></div>
+                    <div className="route-step-marker complete small"><i className="fa-solid fa-map-pin"></i></div>
                     <div className="route-step-info">
                       <span className="route-step-label">Destino</span>
                       <span className="route-step-value">Auditório</span>
                     </div>
                   </div>
                 </div>
-                  <div class="floating-button-wrapper">
-                    <button class="floating-action-button favorite-route-btn" title="Adicionar rota aos favoritos"><i class="fa-regular fa-star"></i></button>
-                    <button class="floating-action-button clear-route-main-btn" title="Limpar Rota"><i class="fa-solid fa-xmark"></i></button>
-                  </div>
                 <div className="feature-card-label">
-                  Acompanhe sua rota, delete-a ou salve nos seus favoritos.
+                  <strong>Gerencie</strong>
+                  <span>Veja aonde você está e para onde vai.</span>
+                </div>
+                {/* Botões de Ação Flutuantes (Visual apenas) */}
+                <div className="floating-button-wrapper">
+                  <button className="tutorial-floating-btn favorite-route-btn" title="Adicionar rota aos favoritos">
+                    <i className="fa-regular fa-star"></i>
+                  </button>
+                  <button className="tutorial-floating-btn clear-route-main-btn" title="Limpar Rota">
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+
+                <div className="feature-card-label">
+                  <span>Salve nos favoritos ou limpe a rota.</span>
                 </div>
               </div>
 
-              {/* Card 2: Legenda do Mapa */}
-              <div className="tutorial-feature-card">
-                  <div className="map-legend open">
-                      <div className="map-legend-header">
-                          <h4>Legenda</h4>
-                          <i className="fa-solid fa-chevron-up open"></i>
-                      </div>
-                      <div className="map-legend-body">
-                          {exampleInitialItems.map((item, index) => (
-                            <div key={`initial-${index}`} className="map-legend-item">
-                              {item.type === 'color' ? (
-                                <span className="map-legend-color-swatch" style={{ backgroundColor: item.value }}></span>
-                              ) : (
-                                <i className={`map-legend-icon ${item.value}`} style={{ color: item.value.startsWith('fa') ? 'inherit' : item.value }}></i>
-                              )}
-                              <span>{item.label}</span>
-                            </div>
-                          ))}
-                          {exampleLocationItems.map((item, index) => (
-                            <div key={`location-${index}`} className="map-legend-item">
-                              {item.type === 'color' ? (
-                                <span className="map-legend-color-swatch" style={{ backgroundColor: item.value }}></span>
-                              ) : (
-                                <i className={`map-legend-icon ${item.value}`} style={{ color: item.value.startsWith('fa') ? 'inherit' : item.value }}></i>
-                              )}
-                              <span>{item.label}</span>
-                            </div>
-                          ))}
-                      </div>
+              {/* Card 2: Legenda Interativa (Réplica Animada) */}
+              <div className="tutorial-feature-card stagger-2 split-card">
+                {/* Seção da Animação (66.6%) */}
+                <div className="split-section animation-section">
+                  <div className="drag-hand-anim"><i className="fa-solid fa-hand-pointer"></i></div>
+                  <div className="map-legend tutorial-version">
+                    <div className="map-legend-header">
+                      <h4>Legenda</h4>
+                      <i className="fa-solid fa-chevron-down legend-chevron-anim"></i>
+                    </div>
+                    <div className="map-legend-body">
+                      <div className="legend-separator"></div>
+                      <div className="map-legend-item"><i className="fas fa-map-marker-alt map-legend-icon" style={{color: 'rgb(234, 67, 53)'}}></i><span>Entradas</span></div>
+                      <div className="map-legend-item"><i className="fas fa-map-marker-alt map-legend-icon" style={{color: 'rgb(255, 215, 0)'}}></i><span>Referências</span></div>
+                      <div className="map-legend-item"><span className="map-legend-color-swatch" style={{backgroundColor: 'rgb(217, 237, 146)'}}></span><span>Coord.</span></div>
+                      <div className="map-legend-item"><span className="map-legend-color-swatch" style={{backgroundColor: 'rgb(255, 179, 186)'}}></span><span>Auditório</span></div>
+                      <div className="map-legend-item"><span className="map-legend-color-swatch" style={{backgroundColor: 'rgb(70, 85, 180)'}}></span><span>Cantina</span></div>
+                      <div className="map-legend-item"><span className="map-legend-color-swatch" style={{backgroundColor: 'rgb(0, 255, 255)'}}></span><span>Labs</span></div>
+                      <div className="map-legend-item"><span className="map-legend-color-swatch" style={{backgroundColor: 'rgb(255, 255, 0)'}}></span><span>Biblioteca</span></div>
+                      <div className="map-legend-item"><span className="map-legend-color-swatch" style={{backgroundColor: 'rgb(221, 160, 221)'}}></span><span>Banheiros</span></div>
+                      <div className="map-legend-item"><span className="map-legend-color-swatch" style={{backgroundColor: 'rgb(240, 230, 141)'}}></span><span>Salas</span></div>
+                    </div>
                   </div>
+                </div>
+                {/* Seção do Texto (33.4%) */}
+                <div className="split-section text-section">
                   <div className="feature-card-label">
-                  Clique na legenda para expandir e ver o significado de ícones e cores no mapa.
+                    <strong>Legenda Dinâmica</strong>
+                    <span>Clique e arraste para ver os locais.</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Card 3: Animação Bottom Sheet */}
-              <div className="tutorial-feature-card tutorial-card-full-width">
-                <div className="mini-bottom-sheet-animation">
-                  <div className="mini-sheet">
-                    <div className="mini-sheet-handle"></div>
-                  </div>
-                </div>
-                <div className="feature-card-label-grid">
-                  <span><strong>Favoritos:</strong> Acesse suas rotas salvas.</span>
-                  <span><strong>Histórico:</strong> Reveja suas rotas recentes.</span>
-                  <span><strong>Ajuda:</strong> Encontre dicas e tutoriais.</span>
-                  <span><strong>Configurações:</strong> Ajuste o mapa e a acessibilidade.</span>
+              {/* Card 3: Bottom Sheet (Clean List) */}
+              <div className="tutorial-feature-card tutorial-card-full-width stagger-3">
+                <div className="sheet-content-wrapper">
+                    <div className="sheet-animation-group">
+                      <span className="animation-label">Arraste para ver mais funções</span>
+                      {/* Contêiner para isolar a animação */}
+                      <div className="animation-container">                      
+                        <div className="mini-bottom-sheet-visual">                        
+                          <div className="mini-sheet-header">
+                            <div className="sheet-handle"></div>
+                          </div>
+                          {/* Conteúdo realista que será revelado */}
+                          <div className="mini-sheet-content-realistic">
+                            {/* Fake Search Bar */}
+                            <div className="mini-search-bar">
+                              <i className="fas fa-search"></i>
+                            </div>
+                            {/* Fake Featured Places */}
+                            <div className="mini-featured-place"></div>
+                            <div className="mini-featured-place"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Lista Limpa */}
+                    <div className="clean-sheet-list">
+                        <div className="sheet-list-item">
+                            <i className="fa-solid fa-star" style={{color: '#0062ffff'}}></i>
+                            <span><strong>Favoritos:</strong> Suas rotas salvas.</span>
+                        </div>
+                        <div className="sheet-list-item">
+                            <i className="fa-solid fa-clock-rotate-left" style={{color: '#2196F3'}}></i>
+                            <span><strong>Histórico:</strong> Locais visitados.</span>
+                        </div>
+                        <div className="sheet-list-item">
+                            <i className="fa-solid fa-gear" style={{color: '#757575'}}></i>
+                            <span><strong>Ajustes:</strong> Opções do mapa.</span>
+                        </div>
+                    </div>
                 </div>
               </div>
+
             </div>
-          </>
+          </div>
         );
+// ... restante
       default:
         return null;
     }
@@ -183,7 +266,7 @@ const Tutorial: React.FC<TutorialProps> = ({ onClose }) => {
 
   return (
     <div className="tutorial-backdrop">
-      <div className="tutorial-box">
+      <div className="tutorial-box" ref={tutorialBoxRef}>
         <button className="tutorial-close-btn" onClick={handleClose}>×</button>
         <div className="tutorial-content">
           {renderContent()}
@@ -194,7 +277,8 @@ const Tutorial: React.FC<TutorialProps> = ({ onClose }) => {
               type="checkbox"
               id="dontShowAgain"
               checked={dontShowAgain}
-              onChange={(e) => setDontShowAgain(e.target.checked)}
+              // O 'any' desliga a checagem chata apenas para este evento
+              onChange={(e: any) => setDontShowAgain(e.target.checked)}
             />
             <label htmlFor="dontShowAgain">Não mostrar novamente</label>
           </div>
@@ -209,5 +293,3 @@ const Tutorial: React.FC<TutorialProps> = ({ onClose }) => {
 };
 
 export default Tutorial;
-
-
