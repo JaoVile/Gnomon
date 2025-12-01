@@ -299,12 +299,15 @@ Gnomon_Local
 │  ├─ package-lock.json
 │  ├─ package.json
 │  ├─ prisma
+│  │  ├─ localRoutes.js
+│  │  ├─ mapRoutes.js
 │  │  ├─ migrations
 │  │  │  ├─ 20251117150643_init_admin_table
 │  │  │  │  └─ migration.sql
 │  │  │  └─ migration_lock.toml
 │  │  ├─ schema.prisma
-│  │  └─ seed.ts
+│  │  ├─ seed.ts
+│  │  └─ swagger.js
 │  ├─ src
 │  │  ├─ config
 │  │  │  └─ mail.ts
@@ -329,16 +332,17 @@ Gnomon_Local
 │  ├─ dist
 │  │  ├─ assets
 │  │  │  ├─ css
-│  │  │  │  └─ index-DPvndFxy.css
+│  │  │  │  └─ index-w6UZozRX.css
 │  │  │  ├─ img
 │  │  │  │  ├─ David-CmwEhJiK.jpg
 │  │  │  │  ├─ Gnomon Logo _ SEM NOME-DMDDslfa.png
 │  │  │  │  ├─ Joao-BTAKBEAu.jpg
 │  │  │  │  └─ Lucas-BdnrgAPR.jpg
 │  │  │  ├─ js
-│  │  │  │  ├─ index-BWTDUyXp.js
-│  │  │  │  ├─ particles-vendor-B9liSarV.js
-│  │  │  │  └─ react-vendor-CIFKwk99.js
+│  │  │  │  ├─ index-BM0BkvbT.js
+│  │  │  │  ├─ particles-vendor-CddQblDT.js
+│  │  │  │  ├─ ParticlesBackground-Cz9Q0VoK.js
+│  │  │  │  └─ react-vendor-kRTjhaTT.js
 │  │  │  └─ media
 │  │  │     └─ Nassau_Intro-D3b6Mo67.mp4
 │  │  ├─ Gnomon_Icon.png
@@ -370,7 +374,9 @@ Gnomon_Local
 │  │  │  ├─ modelo3d.png
 │  │  │  ├─ navegacao2d.png
 │  │  │  ├─ patio.jpg
-│  │  │  └─ sala.png
+│  │  │  ├─ professores.jpeg
+│  │  │  ├─ sala.png
+│  │  │  └─ secretaria.jpeg
 │  │  └─ sundial_pattern.svg
 │  ├─ eslint.config.js
 │  ├─ index.html
@@ -389,7 +395,10 @@ Gnomon_Local
 │  │  │  │  ├─ nodes.json
 │  │  │  │  └─ path-graph.json
 │  │  │  ├─ generate-edges-cima.js
-│  │  │  └─ generate-edges.js
+│  │  │  ├─ generate-edges.js
+│  │  │  └─ staff
+│  │  │     ├─ nodes.json
+│  │  │     └─ path-graph.json
 │  │  ├─ models
 │  │  │  └─ Campus.glb
 │  │  ├─ places
@@ -450,6 +459,9 @@ Gnomon_Local
 │  │  │  ├─ Historico
 │  │  │  │  ├─ HistoricoPopup.css
 │  │  │  │  └─ HistoricoPopup.tsx
+│  │  │  ├─ LocationsManager
+│  │  │  │  ├─ LocationsManager.css
+│  │  │  │  └─ LocationsManager.tsx
 │  │  │  ├─ Map2d
 │  │  │  │  ├─ Map2D.css
 │  │  │  │  └─ Map2D.tsx
@@ -523,10 +535,6 @@ Gnomon_Local
 │  ├─ tsconfig.json
 │  ├─ tsconfig.node.json
 │  └─ vite.config.ts
-├─ hs_err_pid14752.log
-├─ hs_err_pid6116.log
-├─ package-lock.json
-├─ package.json
 └─ Readme.md
 
 ```

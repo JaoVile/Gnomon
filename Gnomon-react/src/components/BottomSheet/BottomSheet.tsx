@@ -13,6 +13,7 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
   const sheetRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const [isBouncing, setIsBouncing] = useState(false);
+  const [hasBeenInteracted, setHasBeenInteracted] = useState(false);
   const dragState = useRef({
     isDragging: false,
     dragStartTime: 0,
@@ -30,6 +31,9 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
   };
 
   const onDragStart = (e: React.TouchEvent<HTMLElement> | React.MouseEvent<HTMLElement>) => {
+    if (!hasBeenInteracted) {
+      setHasBeenInteracted(true);
+    }
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
@@ -122,6 +126,9 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
   };
 
   const handleHeaderClick = () => {
+    if (!hasBeenInteracted) {
+      setHasBeenInteracted(true);
+    }
     if (isOpen) {
       onClose();
     } else {
@@ -198,7 +205,7 @@ export function BottomSheet({ isOpen, onClose, onOpen, children, title }: Bottom
               <i className="fa-solid fa-xmark"></i>
             </div>
           ) : (
-            <div className="drag-handle"></div>
+            <div className={`drag-handle ${!hasBeenInteracted ? 'pulsing-handle' : ''}`}></div>
           )}
           {/* O título só aparece quando a aba está aberta para um look mais clean */}
           {isOpen && title && <h2 id="bottom-sheet-title" className="bottom-sheet-title">{title}</h2>}

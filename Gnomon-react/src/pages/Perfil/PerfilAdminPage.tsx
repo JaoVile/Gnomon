@@ -1,8 +1,9 @@
 // src/pages/Perfil/PerfilAdminPage.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import adminAvatar from '../../assets/Gnomon Logo _ SEM NOME.png';
 import { RegisterEmployeePopup } from '../../components/RegistrarFuncionarios/RegisterEmployeePopup';
+import { LocationsManager, type Local } from '../../components/LocationsManager/LocationsManager';
 import './PerfilAdminPage.css';
 
 interface UserData {
@@ -20,9 +21,63 @@ interface PerfilAdminPageProps {
 }
 
 export function PerfilAdminPage({ userData, handleLogout }: PerfilAdminPageProps) {
-    const [activeView, setActiveView] = useState('dashboard'); // 'dashboard', 'registerEmployee', etc.
+    const [activeView, setActiveView] = useState('dashboard');
+    const [locations, setLocations] = useState<Local[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchLocations = async () => {
+            try {
+                const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+                const response = await fetch('http://localhost:3001/api/locals', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Falha ao buscar os locais');
+                }
+                const data: Local[] = await response.json();
+                setLocations(data);
+            } catch (err: any) {
+                setError(err.message);
+                console.error(err);
+            }
+        };
+
+        fetchLocations();
+    }, []);
+
+    const handleDeleteLocation = async (id: number) => {
+        if (window.confirm('Tem certeza que deseja deletar este local? Esta ação não pode ser desfeita.')) {
+            try {
+                const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+                const response = await fetch(`http://localhost:3001/api/locals/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao deletar o local.');
+                }
+
+                setLocations(prev => prev.filter(loc => loc.id !== id));
+                alert('Local deletado com sucesso!');
+
+            } catch (err: any) {
+                alert(err.message);
+                console.error(err);
+            }
+        }
+    };
 
     const renderContent = () => {
+        if (error) {
+            return <div className="content-card error-card"><h3>Erro</h3><p>{error}</p></div>;
+        }
+
         switch (activeView) {
             case 'registerEmployee':
                 return (
@@ -31,9 +86,16 @@ export function PerfilAdminPage({ userData, handleLogout }: PerfilAdminPageProps
                             isOpen={true}
                             onClose={() => setActiveView('dashboard')}
                             onRegisterSuccess={() => setActiveView('dashboard')}
-                            isPopup={false} // Render as an embedded form
+                            isPopup={false}
                         />
                     </div>
+                );
+            case 'manageLocations':
+                return (
+                    <LocationsManager
+                        locations={locations}
+                        onDelete={handleDeleteLocation}
+                    />
                 );
             case 'dashboard':
             default:
@@ -67,7 +129,7 @@ export function PerfilAdminPage({ userData, handleLogout }: PerfilAdminPageProps
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                                 </div>
                                 <div className="stat-card-info">
-                                    <span className="stat-card-value">42</span>
+                                    <span className="stat-card-value">{locations.length}</span>
                                     <span className="stat-card-title">Locais Cadastrados</span>
                                 </div>
                             </div>
@@ -120,7 +182,14 @@ export function PerfilAdminPage({ userData, handleLogout }: PerfilAdminPageProps
                                 Cadastrar Funcionário
                             </button>
                         </li>
-                        {/* Futuras opções de gerenciamento podem ser adicionadas aqui */}
+                        <li>
+                            <button
+                                onClick={() => setActiveView('manageLocations')}
+                                className={activeView === 'manageLocations' ? 'active' : ''}
+                            >
+                                Gerenciar Locais
+                            </button>
+                        </li>
                         <li>
                             <button disabled>Gerenciar Usuários</button>
                         </li>

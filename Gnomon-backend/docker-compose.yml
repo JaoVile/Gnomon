@@ -29,6 +29,8 @@ services:
         condition: service_healthy
     ports:
       - "3001:3001"
+    env_file:
+      - .env
     environment:
       # Servidor
       NODE_ENV: production
@@ -39,21 +41,12 @@ services:
       DATABASE_URL: "postgresql://gnomon:gnomon@db:5432/gnomon?schema=public"
       DIRECT_DATABASE_URL: "postgresql://gnomon:gnomon@db:5432/gnomon?schema=public"
 
-      # JWT
-      JWT_SECRET: "a2894b93bd1845f846f98f3bf9e0fa69e506c12af663852b6c0d58641fc26258"
+      # JWT (carregado do .env)
       JWT_EXPIRES_IN: "24h"
 
       # Frontend (ajuste conforme necessário)
       FRONTEND_URL: "http://localhost:5173"
       CORS_ORIGIN: "http://localhost:5173"
-
-      # E-mail (SMTP)
-      SMTP_HOST: "smtp.gmail.com"
-      SMTP_PORT: "587"
-      SMTP_SECURE: "false"
-      SMTP_USER: "Hectorkyll@gmail.com"
-      SMTP_PASS: "pipxhxmmewpimfya"
-      SMTP_FROM: "Gnomon <Hectorkyll@gmail.com>"
 
       # Segurança
       BCRYPT_SALT_ROUNDS: "10"

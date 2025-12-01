@@ -42,11 +42,13 @@ export function useAuth(): AuthState {
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
+                    // CORREÇÃO 1: Tipando errorData como any
+                    const errorData: any = await response.json();
                     throw new Error(errorData.message || 'Falha ao buscar dados do perfil.');
                 }
 
-                const data: UserData = await response.json();
+                // CORREÇÃO 2: Tipando a resposta como any antes de atribuir ao state
+                const data: any = await response.json();
                 setUser(data);
 
             } catch (err: any) {

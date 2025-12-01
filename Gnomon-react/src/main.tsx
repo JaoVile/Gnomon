@@ -1,4 +1,3 @@
-import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
@@ -8,7 +7,7 @@ import { MapSettingsProvider } from './contexts/MapSettingsContext.tsx';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  // <StrictMode>
     <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
       <ThemeProvider>
         <MapSettingsProvider>
@@ -18,5 +17,5 @@ createRoot(document.getElementById('root')!).render(
         </MapSettingsProvider>
       </ThemeProvider>
     </GoogleOAuthProvider>
-  </StrictMode>
+  // </StrictMode>
 );

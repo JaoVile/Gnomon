@@ -54,6 +54,20 @@
   margin: 0;
 }
 
+.dev-warning {
+  background-color: #fffbe6; /* Amarelo claro */
+  color: #9a7d0a; /* Amarelo escuro/marrom */
+  border: 1px solid #ffe58f;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
 .config-options-list {
   display: flex;
   flex-direction: column;
@@ -163,4 +177,14 @@
   .config-actions button {
     width: 100%;
   }
+}
+
+.map-type-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  margin-top: 1rem;
 }

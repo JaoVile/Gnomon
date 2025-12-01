@@ -75,6 +75,26 @@
   margin: 5px auto 0 auto; /* Added margin-top */
 }
 
+/* Animação de pulsar para o drag-handle */
+@keyframes pulse-animation {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(128, 128, 128, 0.4);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px 15px rgba(128, 128, 128, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(128, 128, 128, 0);
+  }
+}
+
+.pulsing-handle {
+  animation: pulse-animation 2s infinite;
+}
+
 .close-button {
   width: 10%;
   height: 66%;
