@@ -7,14 +7,20 @@ async function main() {
   console.log('🌱 Iniciando o processo de seed...');
 
   const saltRounds = 10;
-  const password = '12345';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'gnomon.map@gmail.com';
+  const password = process.env.SEED_ADMIN_PASSWORD;
+  if (!password) {
+    throw new Error(
+      'Defina SEED_ADMIN_PASSWORD (e opcionalmente SEED_ADMIN_EMAIL) no ambiente antes de rodar o seed.',
+    );
+  }
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   const adminUser = await prisma.admstaff.upsert({
-    where: { email: 'gnomon.map@gmail.com' },
+    where: { email: adminEmail },
     update: {}, // Não faz nada se o usuário já existir
     create: {
-      email: 'gnomon.map@gmail.com',
+      email: adminEmail,
       name: 'Gnomon Admin',
       password: hashedPassword,
       role: Role.ADMIN,
