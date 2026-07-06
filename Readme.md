@@ -1,5 +1,3 @@
-Segue o conteúdo pronto para salvar como README.md.
-
 # Gnomon — Navegação e Integração no Campus
 
 > PWA para orientar alunos e visitantes no campus, com mapa interativo, catálogo de locais e autenticação.
