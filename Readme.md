@@ -536,3 +536,17 @@ Gnomon_Local
 └─ Readme.md
 
 ```
+
+## Histórico do projeto (branches legadas)
+
+O Gnomon passou por iterações que viviam em repositórios separados. Elas foram
+consolidadas aqui como branches, para que o histórico completo fique num lugar
+só:
+
+| Branch | O que é |
+|---|---|
+| `main` | versão atual — `Gnomon-react/` (PWA) + `Gnomon-backend/` (API + Prisma) |
+| `legacy/gnostart-frontend` | frontend Vite standalone (mar–abr/2026), antecessor direto do `Gnomon-react` |
+| `legacy/gnocenter-prototype` | protótipo inicial do frontend (fev/2026) |
+
+O back-end também existe extraído em [nomonG](https://github.com/JaoVile/nomonG).
