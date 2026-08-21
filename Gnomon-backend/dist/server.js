@@ -14,27 +14,23 @@ const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const pino_http_1 = __importDefault(require("pino-http"));
 // Rotas
 const authRouters_1 = __importDefault(require("./routes/authRouters"));
-const localRoutes_1 = __importDefault(require("./routes/localRoutes"));
 // Configurações de e-mail
 const mail_1 = require("./config/mail");
 // Swagger
 const swagger_1 = require("./middleware/docs/swagger");
 const app = (0, express_1.default)();
+// Configuração de e-mail
 app.set('mailer', mail_1.mailer);
 if (process.env.NODE_ENV !== 'production') {
-    (0, mail_1.verifySMTP)(); // opcional, só para validar credenciais em dev
+    (0, mail_1.verifySMTP)();
 }
-/**
- * Trust proxy:
- * - Ligue se estiver atrás de Nginx/Cloudflare/Render/etc.
- * - Controle por env no index.ts (opcional) ou aqui via variável.
- */
+// Trust proxy
 if (process.env.TRUST_PROXY === '1' || process.env.NODE_ENV === 'production') {
     app.set('trust proxy', 1);
 }
 // Segurança básica
 app.use((0, helmet_1.default)());
-// CORS: aceita lista CSV (CORS_ORIGIN ou FRONTEND_URL), ex: "https://site.com,http://localhost:5173"
+// CORS
 const allowed = (process.env.CORS_ORIGIN ||
     process.env.FRONTEND_URL ||
     'http://localhost:5173')
@@ -43,7 +39,6 @@ const allowed = (process.env.CORS_ORIGIN ||
     .filter(Boolean);
 app.use((0, cors_1.default)({
     origin: (origin, cb) => {
-        // permite ferramentas sem Origin (curl, health checks)
         if (!origin)
             return cb(null, true);
         if (allowed.includes(origin))
@@ -54,9 +49,9 @@ app.use((0, cors_1.default)({
 }));
 // Body parser
 app.use(express_1.default.json());
-// Rate limit (parametrizável por env)
-const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 15 * 60 * 1000); // 15min
-const max = Number(process.env.RATE_LIMIT_MAX ?? 300); // 300 req/IP
+// Rate limit
+const windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 15 * 60 * 1000);
+const max = Number(process.env.RATE_LIMIT_MAX ?? 300);
 app.use((0, express_rate_limit_1.default)({
     windowMs,
     max,
@@ -65,29 +60,64 @@ app.use((0, express_rate_limit_1.default)({
 }));
 // Logger HTTP
 app.use((0, pino_http_1.default)({
-    // Nível pode ser controlado por LOG_LEVEL (info|debug...)
     level: process.env.LOG_LEVEL || 'info',
-    // Em dev dá para deixar mais bonito com pino-pretty via transport (opcional)
 }));
-// Health check simples
-app.get('/', (_req, res) => res.send('<h1>API do Gnomon está no ar!</h1>'));
-app.get('/health', (_req, res) => res.json({ ok: true }));
-// Swagger
+// Health check
+/**
+ * @openapi
+ * /:
+ *   get:
+ *     tags:
+ *       - Health
+ *     summary: Health check raiz
+ *     responses:
+ *       200:
+ *         description: API online
+ */
+app.get('/', (_req, res) => res.send('<h1>API do Gnomon está no ar! 🚀</h1>'));
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     tags:
+ *       - Health
+ *     summary: Health check JSON
+ *     responses:
+ *       200:
+ *         description: Status da API
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 ok:
+ *                   type: boolean
+ *                 timestamp:
+ *                   type: string
+ */
+app.get('/health', (_req, res) => res.json({ ok: true, timestamp: new Date().toISOString() }));
+// ✅ Swagger ANTES das rotas de domínio
 (0, swagger_1.setupSwagger)(app);
-// Rotas de domínio
+/**
+ * @openapi
+ * /api/hello:
+ *   get:
+ *     description: A simple test endpoint.
+ *     responses:
+ *       200:
+ *         description: Returns a hello message.
+ */
+app.get('/api/hello', (_req, res) => res.json({ message: 'Hello, Swagger!' }));
+// ✅ Rotas de domínio (PADRONIZADAS em inglês)
 app.use('/api/auth', authRouters_1.default);
-app.use('/api/locais', localRoutes_1.default);
 // 404 para rotas não encontradas
 app.use((_req, res) => res.status(404).json({ message: 'Rota não encontrada' }));
 // Middleware de erro (último)
-app.use(
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-(err, req, res, _next) => {
-    // Se tiver pino-http, use req.log
+app.use((err, req, res, _next) => {
     if (req.log)
         req.log.error(err);
     else
-        console.error(err);
+        console.error('❌ Erro:', err);
     return res.status(500).json({
         message: 'Erro interno do servidor',
         error: process.env.NODE_ENV === 'development' ? err?.message : undefined,

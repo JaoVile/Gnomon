@@ -4,13 +4,13 @@
  * tags:
  *   - name: Health
  *     description: Health check da API
- *   - name: Users
- *     description: Autenticação e gerenciamento de usuários
+ *   - name: Autenticação
+ *     description: Login, recuperação de senha e perfil
  *   - name: Locais
- *     description: Endpoints de locais
- *   - name: Mapas
- *     description: Endpoints de mapas
- *   - name: Rotas
- *     description: Endpoints de rotas
+ *     description: CRUD de locais (salas, labs, etc)
+ *   - name: Navegação
+ *     description: Cálculo de rotas e pathfinding
+ *   - name: Grafo
+ *     description: Nós e arestas do grafo de navegação
  */
 Object.defineProperty(exports, "__esModule", { value: true });

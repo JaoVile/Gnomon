@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserProfile = exports.resetPassword = exports.forgotPassword = exports.loginUser = void 0;
+exports.registerStaff = exports.getUserProfile = exports.resetPassword = exports.forgotPassword = exports.loginUser = void 0;
 const client_1 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const zod_1 = require("zod");
@@ -22,10 +22,16 @@ const resetPasswordSchema = zod_1.z.object({
     token: zod_1.z.string().trim().min(1, 'Token obrigatório.'),
     password: zod_1.z.string().min(6, 'Senha precisa ter no mínimo 6 caracteres.'),
 });
+const registerStaffSchema = zod_1.z.object({
+    name: zod_1.z.string().trim().min(1, 'Nome é obrigatório.'),
+    email: zod_1.z.string().trim().toLowerCase().email('E-mail inválido.'),
+    password: zod_1.z.string().min(6, 'Senha precisa ter no mínimo 6 caracteres.'),
+    role: zod_1.z.enum(['STAFF', 'ADMIN']).default('STAFF'), // Default to STAFF, can be ADMIN if explicitly set by an ADMIN
+});
 const loginUser = async (req, res) => {
     try {
         const { email, password } = loginSchema.parse(req.body);
-        const admin = await prisma.admin.findUnique({ where: { email } });
+        const admin = await prisma.admstaff.findUnique({ where: { email } });
         if (!admin || !admin.isActive) {
             return res.status(401).json({ message: 'E-mail ou senha inválidos.' });
         }
@@ -55,7 +61,7 @@ exports.loginUser = loginUser;
 const forgotPassword = async (req, res) => {
     try {
         const { email } = forgotPasswordSchema.parse(req.body);
-        const admin = await prisma.admin.findUnique({ where: { email } });
+        const admin = await prisma.admstaff.findUnique({ where: { email } });
         const genericMessage = {
             message: 'Se um usuário com este e-mail existir, um link de recuperação foi enviado.',
         };
@@ -66,7 +72,7 @@ const forgotPassword = async (req, res) => {
         const tokenHash = (0, crypto_1.createHash)('sha256').update(resetToken).digest('hex');
         const ttlMin = Number(process.env.PASSWORD_RESET_EXPIRES_MINUTES ?? 30);
         const expires = new Date(Date.now() + ttlMin * 60 * 1000);
-        await prisma.admin.update({
+        await prisma.admstaff.update({
             where: { id: admin.id },
             data: {
                 passwordResetToken: tokenHash,
@@ -122,7 +128,7 @@ const resetPassword = async (req, res) => {
     try {
         const { email, token, password } = resetPasswordSchema.parse(req.body);
         const tokenHash = (0, crypto_1.createHash)('sha256').update(token.trim()).digest('hex');
-        const admin = await prisma.admin.findFirst({
+        const admin = await prisma.admstaff.findFirst({
             where: {
                 email,
                 passwordResetToken: tokenHash,
@@ -135,7 +141,7 @@ const resetPassword = async (req, res) => {
         }
         const rounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 10);
         const hashedPassword = await bcryptjs_1.default.hash(password, rounds);
-        await prisma.admin.update({
+        await prisma.admstaff.update({
             where: { id: admin.id },
             data: {
                 password: hashedPassword,
@@ -160,7 +166,7 @@ const getUserProfile = async (req, res) => {
         if (!userId) {
             return res.status(401).json({ message: 'Não autorizado.' });
         }
-        const admin = await prisma.admin.findUnique({
+        const admin = await prisma.admstaff.findUnique({
             where: { id: userId },
             select: { id: true, name: true, email: true, role: true, isActive: true, createdAt: true },
         });
@@ -175,3 +181,44 @@ const getUserProfile = async (req, res) => {
     }
 };
 exports.getUserProfile = getUserProfile;
+const registerStaff = async (req, res) => {
+    try {
+        // Check if the requesting user has permission to register staff
+        if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'STAFF')) {
+            return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para cadastrar funcionários.' });
+        }
+        const { name, email, password, role } = registerStaffSchema.parse(req.body);
+        // Only ADMIN can register other ADMINs
+        if (role === 'ADMIN' && req.user.role !== 'ADMIN') {
+            return res.status(403).json({ message: 'Acesso negado. Somente administradores podem cadastrar outros administradores.' });
+        }
+        // Check if user already exists
+        const existingAdmin = await prisma.admstaff.findUnique({ where: { email } });
+        if (existingAdmin) {
+            return res.status(409).json({ message: 'Já existe um funcionário com este e-mail.' });
+        }
+        const salt = await bcryptjs_1.default.genSalt(10);
+        const hashedPassword = await bcryptjs_1.default.hash(password, salt);
+        const newStaff = await prisma.admstaff.create({
+            data: {
+                name,
+                email,
+                password: hashedPassword,
+                role,
+                isActive: true,
+            },
+        });
+        return res.status(201).json({
+            message: 'Funcionário cadastrado com sucesso!',
+            user: { id: newStaff.id, name: newStaff.name, email: newStaff.email, role: newStaff.role },
+        });
+    }
+    catch (error) {
+        if (error instanceof zod_1.z.ZodError) {
+            return res.status(400).json({ message: 'Erro de validação.', details: error.issues });
+        }
+        console.error('Erro no registerStaff:', error);
+        return res.status(500).json({ message: 'Erro interno.' });
+    }
+};
+exports.registerStaff = registerStaff;

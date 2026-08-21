@@ -1,43 +1,54 @@
 "use strict";
 /**
  * @file index.ts
- * @description Entrypoint: carrega .env, inicia o servidor e trata sinais/erros globais.
+ * @description Entrypoint: Inicia o servidor de forma segura para o Cloud Run.
  */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
-const server_1 = __importDefault(require("./server"));
-const port = Number(process.env.PORT || 3001);
-const host = process.env.HOST || '0.0.0.0';
-// Opcional: reforça trust proxy via env (alternativa ao que está no server.ts)
-// if (process.env.TRUST_PROXY === '1') app.set('trust proxy', 1);
-// Sobe o servidor
-const server = server_1.default.listen(port, host, () => {
-    const base = `http://${host === '0.0.0.0' ? 'localhost' : host}:${port}`;
-    console.log(`🚀 API rodando em: ${base}`);
-    if (process.env.SWAGGER_ENABLED !== 'false') {
-        const docsPath = process.env.SWAGGER_PATH || '/api-docs';
-        console.log(`📚 Swagger: ${base}${docsPath}`);
-    }
-});
-// Erros não tratados
-process.on('unhandledRejection', (reason) => {
-    console.error('Unhandled Rejection:', reason);
-});
+// Log imediato para provar que o script começou a rodar
+console.log('🏁 Iniciando script de entrada (index.ts)...');
+// Tratamento de erros globais IMEDIATO (antes de importar o app)
+// Isso pega erros caso o import do ./server falhe (ex: erro no prisma client na inicialização)
 process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
-    // Em produção, opcional fechar o servidor de forma controlada:
-    // process.exit(1);
+    console.error('❌ CRASH FATAL (Uncaught Exception):', err);
+    process.exit(1);
 });
-// Encerramento gracioso
-['SIGINT', 'SIGTERM'].forEach((sig) => {
-    process.on(sig, () => {
-        console.log(`Recebido ${sig}. Encerrando...`);
-        server.close(() => {
-            console.log('Servidor encerrado.');
-            process.exit(0);
-        });
+process.on('unhandledRejection', (reason) => {
+    console.error('❌ CRASH FATAL (Unhandled Rejection):', reason);
+    process.exit(1);
+});
+// Importa o app DEPOIS dos handlers de erro
+const server_1 = __importDefault(require("./server"));
+// Garante que a porta seja um número inteiro
+const PORT = parseInt(process.env.PORT || '3001', 10);
+// OBRIGATÓRIO PARA CLOUD RUN:
+const HOST = '0.0.0.0';
+console.log(`🔌 Configurando para escutar em: ${HOST}:${PORT}`);
+// Inicia o servidor explicitando o HOST
+const server = server_1.default.listen(PORT, HOST, () => {
+    console.log(`🚀 SERVIDOR RODANDO!`);
+    console.log(`👉 URL Interna: http://${HOST}:${PORT}`);
+    console.log(`👉 Ambiente: ${process.env.NODE_ENV}`);
+});
+// Graceful Shutdown (Essencial para Cloud Run)
+const shutdown = (signal) => {
+    console.log(`⚠️ Recebido sinal ${signal}. Fechando servidor HTTP...`);
+    server.close((err) => {
+        if (err) {
+            console.error('❌ Erro ao fechar servidor:', err);
+            process.exit(1);
+        }
+        console.log('✅ Servidor HTTP fechado.');
+        process.exit(0);
     });
-});
+    // Força o encerramento se o server.close travar (ex: conexões presas)
+    setTimeout(() => {
+        console.error('🛑 Forçando encerramento após timeout...');
+        process.exit(1);
+    }, 10000); // 10 segundos
+};
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));

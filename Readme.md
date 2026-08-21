@@ -1,3 +1,5 @@
+[![CI](https://github.com/JaoVile/Gnomon/actions/workflows/ci.yml/badge.svg)](https://github.com/JaoVile/Gnomon/actions/workflows/ci.yml)
+
 # Gnomon — Navegação e Integração no Campus
 
 > PWA para orientar alunos e visitantes no campus, com mapa interativo, catálogo de locais e autenticação.
